@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "infinitygauntlet",
+  "version": "${version}",
+  "name": "Infinity-Gauntlet",
+  "description": "Another Infinity Gauntlet Mod",
+  "authors": ["Team_Whitehall"],
+  "contact": {
+    "repo": "https://github.com/JoelLogan/Infinity-Gauntlet"
+  },
+  "license": "MIT",
+  "icon": "assets/infinitygauntlet/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "com.whitehallplugins.infinitygauntlet.client.InfinityGauntletClient"
+    ],
+    "main": [
+      "com.whitehallplugins.infinitygauntlet.InfinityGauntlet"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}
