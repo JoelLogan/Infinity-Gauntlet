@@ -13,6 +13,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.function.Predicate;
@@ -58,6 +59,17 @@ public class Gauntlet extends BowItem {
         super.onStoppedUsing(stack, world, user, remainingUseTicks);
     }
 
+    public static void setCustomModelData(ItemStack stack, int customModelData) {
+        NbtCompound tag = stack.getOrCreateNbt();
+        tag.putInt("CustomModelData", customModelData);
+        stack.setNbt(tag);
+    }
+
+    public static int getCustomModelData(ItemStack stack) {
+        NbtCompound tag = stack.getOrCreateNbt();
+        return tag != null && tag.contains("CustomModelData") ? tag.getInt("CustomModelData") : 0;
+    }
+
     @Override
     public UseAction getUseAction(ItemStack stack) {
         System.out.println("getUseAction called");
@@ -92,7 +104,35 @@ public class Gauntlet extends BowItem {
     }
 
     @Override
+    public void appendTooltip(ItemStack stack, @Nullable World world, List<Text> tooltip, TooltipContext context) {
+        tooltip.add(Text.translatable("item.infinitygauntlet.gauntlet.tooltip1", Text.translatable("item.infinitygauntlet.gauntlet.power" + getCustomModelData(stack))).formatted(Formatting.GOLD));
+        super.appendTooltip(stack, world, tooltip, context);
+    }
+
+    @Override
     public boolean postMine(ItemStack stack, World world, BlockState state, BlockPos pos, LivingEntity miner) {
+        System.out.println("postMine called " + getCustomModelData(stack));
+        switch(getCustomModelData(stack)){
+            case 1:
+                appendTooltip(stack, world, stack.getTooltip((PlayerEntity) miner, TooltipContext.BASIC), TooltipContext.BASIC);
+                setCustomModelData(stack, 2);
+                break;
+            case 2:
+                setCustomModelData(stack, 3);
+                break;
+            case 3:
+                setCustomModelData(stack, 4);
+                break;
+            case 4:
+                setCustomModelData(stack, 5);
+                break;
+            case 5:
+                setCustomModelData(stack, 0);
+                break;
+            default:
+                setCustomModelData(stack, 1);
+                break;
+        }
         return super.postMine(stack, world, state, pos, miner);
     }
 
@@ -113,6 +153,7 @@ public class Gauntlet extends BowItem {
         }
         else {
             setHideDurabilityBar(stack, true);
+            setCustomModelData(stack, 0);
         }
         super.onCraftByPlayer(stack, world, player);
     }
@@ -135,11 +176,6 @@ public class Gauntlet extends BowItem {
     @Override
     public boolean isUsedOnRelease(ItemStack stack) {
         return false;
-    }
-
-    @Override
-    public void appendTooltip(ItemStack itemStack, World world, List<Text> tooltip, TooltipContext tooltipContext) {
-        tooltip.add(Text.translatable("item.infinitygauntlet.gauntlet.tooltip1", "Test Power").formatted(Formatting.DARK_GRAY));
     }
 
     @Override

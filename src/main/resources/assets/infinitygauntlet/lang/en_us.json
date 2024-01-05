@@ -1,5 +1,11 @@
 {
   "item.infinitygauntlet.gauntlet": "Infinity Gauntlet",
   "item.infinitygauntlet.gauntlet.description": "Craft The Gauntlet",
-  "item.infinitygauntlet.gauntlet.tooltip1": "Current Power: %s"
+  "item.infinitygauntlet.gauntlet.tooltip1": "Current Power: %s",
+  "item.infinitygauntlet.gauntlet.power0": "Power Gem",
+  "item.infinitygauntlet.gauntlet.power1": "Space Gem",
+  "item.infinitygauntlet.gauntlet.power2": "Time Gem",
+  "item.infinitygauntlet.gauntlet.power3": "Mind Gem",
+  "item.infinitygauntlet.gauntlet.power4": "Reality Gem",
+  "item.infinitygauntlet.gauntlet.power5": "Soul Gem"
 }
