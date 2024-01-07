@@ -16,7 +16,6 @@ import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.function.Predicate;
 
 public class Gauntlet extends BowItem {
 
@@ -26,10 +25,17 @@ public class Gauntlet extends BowItem {
 
     @Override
     public void usageTick(World world, LivingEntity user, ItemStack stack, int remainingUseTicks) {
+        int charge = (getMaxUseTime(stack) - remainingUseTicks) - 5; // -5 For LAG
         if (world.isClient()) {
             System.out.println("usageTick called: " + remainingUseTicks + " ticks remaining");
-            int charge = getMaxUseTime(stack) - remainingUseTicks;
-            stack.setDamage(stack.getMaxDamage() - Math.min(charge*5, stack.getMaxDamage()-1));
+            if (charge >= 0) {
+                stack.setDamage(stack.getMaxDamage() - Math.min(charge * 5, stack.getMaxDamage() - 1));
+            }
+        }
+        else {
+            if (charge == 20) {
+                world.playSound(null, user.getX(), user.getY(), user.getZ(), SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.PLAYERS, 0.75f, 2.0f);
+            }
         }
         super.usageTick(world, user, stack, remainingUseTicks);
     }
@@ -46,17 +52,14 @@ public class Gauntlet extends BowItem {
 
     @Override
     public void onStoppedUsing(ItemStack stack, World world, LivingEntity user, int remainingUseTicks) {
-        if (world.isClient()) {
+        if (!world.isClient()) {
             int charge = getMaxUseTime(stack) - remainingUseTicks;
+            setHideDurabilityBar(stack, true);
             if (charge >= 22) {
                 System.out.println("onStoppedUsing called: " + charge + " ticks charged, " + getMaxUseTime(stack) + " ticks max, " + remainingUseTicks + " ticks remaining");
-                world.playSound((PlayerEntity) user, user.getX(), user.getY(), user.getZ(), SoundEvents.BLOCK_ANVIL_PLACE, SoundCategory.PLAYERS, 1.0F, 1.0F);
+                user.sendMessage(Text.literal("You drew 22"));
             }
         }
-        else {
-            setHideDurabilityBar(stack, true);
-        }
-        super.onStoppedUsing(stack, world, user, remainingUseTicks);
     }
 
     public static void setCustomModelData(ItemStack stack, int customModelData) {
@@ -110,33 +113,6 @@ public class Gauntlet extends BowItem {
     }
 
     @Override
-    public boolean postMine(ItemStack stack, World world, BlockState state, BlockPos pos, LivingEntity miner) {
-        System.out.println("postMine called " + getCustomModelData(stack));
-        switch(getCustomModelData(stack)){
-            case 1:
-                appendTooltip(stack, world, stack.getTooltip((PlayerEntity) miner, TooltipContext.BASIC), TooltipContext.BASIC);
-                setCustomModelData(stack, 2);
-                break;
-            case 2:
-                setCustomModelData(stack, 3);
-                break;
-            case 3:
-                setCustomModelData(stack, 4);
-                break;
-            case 4:
-                setCustomModelData(stack, 5);
-                break;
-            case 5:
-                setCustomModelData(stack, 0);
-                break;
-            default:
-                setCustomModelData(stack, 1);
-                break;
-        }
-        return super.postMine(stack, world, state, pos, miner);
-    }
-
-    @Override
     public boolean isSuitableFor(ItemStack stack, BlockState state) {
         return state.getBlock().getHardness() <= 50f;
     }
@@ -148,19 +124,11 @@ public class Gauntlet extends BowItem {
 
     @Override
     public void onCraftByPlayer(ItemStack stack, World world, PlayerEntity player) {
-        if (world.isClient()) {
-            world.playSound(player, player.getX(), player.getY(), player.getZ(), SoundEvents.BLOCK_END_PORTAL_SPAWN, SoundCategory.PLAYERS, 1.0F, 1.0F);
-        }
-        else {
+        if (!world.isClient()) {
             setHideDurabilityBar(stack, true);
             setCustomModelData(stack, 0);
         }
         super.onCraftByPlayer(stack, world, player);
-    }
-
-    @Override
-    public Predicate<ItemStack> getProjectiles() {
-        return stack -> (stack.getItem() == ItemStack.EMPTY.getItem());
     }
 
     @Override
@@ -179,8 +147,36 @@ public class Gauntlet extends BowItem {
     }
 
     @Override
+    public int getRange() {
+        return 0;
+    }
+
+    @Override
     public boolean allowContinuingBlockBreaking(PlayerEntity player, ItemStack oldStack, ItemStack newStack) {
         return true;
+    }
+
+    public static void swapPower(ItemStack stack) {
+        switch(getCustomModelData(stack)){
+            case 1:
+                setCustomModelData(stack, 2);
+                break;
+            case 2:
+                setCustomModelData(stack, 3);
+                break;
+            case 3:
+                setCustomModelData(stack, 4);
+                break;
+            case 4:
+                setCustomModelData(stack, 5);
+                break;
+            case 5:
+                setCustomModelData(stack, 0);
+                break;
+            default:
+                setCustomModelData(stack, 1);
+                break;
+        }
     }
 
 }

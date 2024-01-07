@@ -7,5 +7,7 @@
   "item.infinitygauntlet.gauntlet.power2": "Time Gem",
   "item.infinitygauntlet.gauntlet.power3": "Mind Gem",
   "item.infinitygauntlet.gauntlet.power4": "Reality Gem",
-  "item.infinitygauntlet.gauntlet.power5": "Soul Gem"
+  "item.infinitygauntlet.gauntlet.power5": "Soul Gem",
+  "key.category.infinitygauntlet": "Infinity Gauntlet",
+  "key.infinitygauntlet.changepower": "Change Gem Mode"
 }
