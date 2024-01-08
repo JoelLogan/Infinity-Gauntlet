@@ -1,6 +1,6 @@
 package com.whitehallplugins.infinitygauntlet.networking;
 
-import com.whitehallplugins.infinitygauntlet.items.Gauntlet;
+import com.whitehallplugins.infinitygauntlet.items.gauntlets.Gauntlet;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.PlayChannelHandler;
 import net.minecraft.network.PacketByteBuf;

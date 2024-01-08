@@ -1,4 +1,4 @@
-package com.whitehallplugins.infinitygauntlet.items;
+package com.whitehallplugins.infinitygauntlet.items.gauntlets;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.client.item.TooltipContext;
@@ -62,17 +62,6 @@ public class Gauntlet extends BowItem {
         }
     }
 
-    public static void setCustomModelData(ItemStack stack, int customModelData) {
-        NbtCompound tag = stack.getOrCreateNbt();
-        tag.putInt("CustomModelData", customModelData);
-        stack.setNbt(tag);
-    }
-
-    public static int getCustomModelData(ItemStack stack) {
-        NbtCompound tag = stack.getOrCreateNbt();
-        return tag != null && tag.contains("CustomModelData") ? tag.getInt("CustomModelData") : 0;
-    }
-
     @Override
     public UseAction getUseAction(ItemStack stack) {
         System.out.println("getUseAction called");
@@ -101,6 +90,17 @@ public class Gauntlet extends BowItem {
         stack.setNbt(nbt);
     }
 
+    public static void setCustomModelData(ItemStack stack, int customModelData) {
+        NbtCompound tag = stack.getOrCreateNbt();
+        tag.putInt("CustomModelData", customModelData);
+        stack.setNbt(tag);
+    }
+
+    public static int getCustomModelData(ItemStack stack) {
+        NbtCompound tag = stack.getOrCreateNbt();
+        return tag != null && tag.contains("CustomModelData") ? tag.getInt("CustomModelData") : 0;
+    }
+
     @Override
     public boolean isDamageable() {
         return true;
@@ -108,7 +108,7 @@ public class Gauntlet extends BowItem {
 
     @Override
     public void appendTooltip(ItemStack stack, @Nullable World world, List<Text> tooltip, TooltipContext context) {
-        tooltip.add(Text.translatable("item.infinitygauntlet.gauntlet.tooltip1", Text.translatable("item.infinitygauntlet.gauntlet.power" + getCustomModelData(stack))).formatted(Formatting.GOLD));
+        tooltip.add(Text.translatable("item.infinitygauntlet.gauntlet.gauntlet.tooltip1", Text.translatable("item.infinitygauntlet.gauntlet.gauntlet.power" + getCustomModelData(stack))).formatted(Formatting.GOLD));
         super.appendTooltip(stack, world, tooltip, context);
     }
 
