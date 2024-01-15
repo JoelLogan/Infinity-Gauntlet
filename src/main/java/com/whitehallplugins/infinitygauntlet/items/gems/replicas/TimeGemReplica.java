@@ -1,4 +1,4 @@
-package com.whitehallplugins.infinitygauntlet.items.stonereplicas;
+package com.whitehallplugins.infinitygauntlet.items.gems.replicas;
 
 import net.minecraft.client.item.TooltipContext;
 import net.minecraft.item.Item;

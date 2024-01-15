@@ -1,4 +1,4 @@
-package com.whitehallplugins.infinitygauntlet.items.stonereplicas;
+package com.whitehallplugins.infinitygauntlet.items.gems.replicas;
 
 import net.minecraft.client.item.TooltipContext;
 import net.minecraft.item.Item;
@@ -11,8 +11,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class MindGemReplica extends Item {
-    public MindGemReplica(Settings settings) {
+public class SpaceGemReplica extends Item {
+    public SpaceGemReplica(Settings settings) {
         super(settings);
     }
 
@@ -28,7 +28,7 @@ public class MindGemReplica extends Item {
 
     @Override
     public void appendTooltip(ItemStack stack, @Nullable World world, List<Text> tooltip, TooltipContext context) {
-        tooltip.add(Text.translatable("item.infinitygauntlet.mind.gemreplica.tooltip").formatted(Formatting.GRAY));
+        tooltip.add(Text.translatable("item.infinitygauntlet.space.gemreplica.tooltip").formatted(Formatting.GRAY));
         super.appendTooltip(stack, world, tooltip, context);
     }
 
