@@ -1,5 +1,6 @@
 package com.whitehallplugins.infinitygauntlet.client;
 
+import com.whitehallplugins.infinitygauntlet.items.gauntlets.Gauntlet;
 import com.whitehallplugins.infinitygauntlet.networking.NetworkingConstants;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -17,7 +18,10 @@ public class InfinityGauntletClient implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (InfinityGauntletKeybinds.CHANGE_POWER.isPressed()) {
                 if (!isKeyPressed) {
-                    ClientPlayNetworking.send(NetworkingConstants.MOD_PACKET_ID, swapPowerPacket);
+                    assert client.player != null;
+                    if (client.player.getStackInHand(client.player.getActiveHand()).getItem() instanceof Gauntlet){
+                        ClientPlayNetworking.send(NetworkingConstants.GAUNTLET_PACKET_ID, swapPowerPacket);
+                    }
                     isKeyPressed = true;
                 }
             } else {

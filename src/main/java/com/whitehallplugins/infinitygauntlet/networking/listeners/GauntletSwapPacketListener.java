@@ -1,6 +1,7 @@
-package com.whitehallplugins.infinitygauntlet.networking;
+package com.whitehallplugins.infinitygauntlet.networking.listeners;
 
 import com.whitehallplugins.infinitygauntlet.items.gauntlets.Gauntlet;
+import com.whitehallplugins.infinitygauntlet.networking.NetworkingConstants;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.PlayChannelHandler;
 import net.minecraft.network.PacketByteBuf;
@@ -8,7 +9,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 
-public class ServerPacketListener implements PlayChannelHandler {
+public class GauntletSwapPacketListener implements PlayChannelHandler {
 
     @Override
     public void receive(MinecraftServer server, ServerPlayerEntity player, ServerPlayNetworkHandler handler, PacketByteBuf buf, PacketSender responseSender) {

@@ -3,11 +3,12 @@ package com.whitehallplugins.infinitygauntlet.items.gems;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
 
-import static com.whitehallplugins.infinitygauntlet.items.gems.SharedGemFunctions.soulGemAction;
+import static com.whitehallplugins.infinitygauntlet.items.gems.SharedGemFunctions.soulGemUse;
 
 public class SoulGem extends Item {
     public SoulGem(Settings settings) {
@@ -37,7 +38,7 @@ public class SoulGem extends Item {
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
         if (!world.isClient()) {
-            soulGemAction(world, user, hand);
+            soulGemUse(world, user, hand);
         }
         return TypedActionResult.pass(user.getStackInHand(hand));
     }

@@ -7,7 +7,7 @@ import com.whitehallplugins.infinitygauntlet.items.gauntlets.GauntletReplica;
 import com.whitehallplugins.infinitygauntlet.items.gems.replicas.*;
 import com.whitehallplugins.infinitygauntlet.items.gems.*;
 import com.whitehallplugins.infinitygauntlet.networking.NetworkingConstants;
-import com.whitehallplugins.infinitygauntlet.networking.ServerPacketListener;
+import com.whitehallplugins.infinitygauntlet.networking.listeners.GauntletSwapPacketListener;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
@@ -96,7 +96,7 @@ public class InfinityGauntlet implements ModInitializer {
 
         ServerEntityEvents.ENTITY_LOAD.register(new ItemLoadEvent());
 
-        ServerPlayNetworking.registerGlobalReceiver(NetworkingConstants.MOD_PACKET_ID, new ServerPacketListener());
+        ServerPlayNetworking.registerGlobalReceiver(NetworkingConstants.GAUNTLET_PACKET_ID, new GauntletSwapPacketListener());
     }
 
 }

@@ -3,11 +3,12 @@ package com.whitehallplugins.infinitygauntlet.items.gems;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
 
-import static com.whitehallplugins.infinitygauntlet.items.gems.SharedGemFunctions.powerGemAction;
+import static com.whitehallplugins.infinitygauntlet.items.gems.SharedGemFunctions.powerGemUse;
 
 public class PowerGem extends Item {
     public PowerGem(Settings settings) {
@@ -37,7 +38,7 @@ public class PowerGem extends Item {
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
         if (!world.isClient()) {
-            powerGemAction(world, user, hand);
+            powerGemUse(world, user, hand);
         }
         return TypedActionResult.pass(user.getStackInHand(hand));
     }

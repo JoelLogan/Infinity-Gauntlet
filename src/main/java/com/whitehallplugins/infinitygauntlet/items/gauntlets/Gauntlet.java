@@ -25,7 +25,7 @@ public class Gauntlet extends BowItem {
 
     @Override
     public void usageTick(World world, LivingEntity user, ItemStack stack, int remainingUseTicks) {
-        int charge = (getMaxUseTime(stack) - remainingUseTicks) - 5; // -5 For LAG
+        int charge = (getMaxUseTime(stack) - remainingUseTicks);
         if (world.isClient()) {
             System.out.println("usageTick called: " + remainingUseTicks + " ticks remaining");
             if (charge >= 0) {
@@ -33,7 +33,7 @@ public class Gauntlet extends BowItem {
             }
         }
         else {
-            if (charge == 20) {
+            if (charge == 20) { // TODO add solution for multiple gems
                 world.playSound(null, user.getX(), user.getY(), user.getZ(), SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.PLAYERS, 0.75f, 2.0f);
             }
         }
