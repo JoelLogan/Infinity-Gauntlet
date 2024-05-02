@@ -38,7 +38,7 @@ public class RealityGem extends Item {
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
         if (!world.isClient()) {
-            realityGemUse(world, user, hand);
+            realityGemUse(world, user);
         }
         return TypedActionResult.pass(user.getStackInHand(hand));
     }

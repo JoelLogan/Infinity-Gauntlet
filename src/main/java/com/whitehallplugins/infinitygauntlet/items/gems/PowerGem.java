@@ -38,7 +38,7 @@ public class PowerGem extends Item {
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
         if (!world.isClient()) {
-            powerGemUse(world, user, hand);
+            powerGemUse(world, user);
         }
         return TypedActionResult.pass(user.getStackInHand(hand));
     }

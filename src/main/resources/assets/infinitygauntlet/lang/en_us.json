@@ -30,5 +30,6 @@
   "item.infinitygauntlet.mind.gemreplica": "Mind Gem",
   "item.infinitygauntlet.mind.gemreplica.tooltip": "Replica",
   "key.category.infinitygauntlet": "Infinity Gauntlet",
-  "key.infinitygauntlet.changepower": "Change Gem Mode"
+  "key.infinitygauntlet.changepower": "Change Gem Mode",
+  "effect.infinitygauntlet.targeteffect": "Mind Gem Controlled"
 }

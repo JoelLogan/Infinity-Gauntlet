@@ -1,6 +1,7 @@
 package com.whitehallplugins.infinitygauntlet;
 
 import com.whitehallplugins.infinitygauntlet.client.InfinityGauntletKeybinds;
+import com.whitehallplugins.infinitygauntlet.effects.TargetEntityEffect;
 import com.whitehallplugins.infinitygauntlet.events.ItemLoadEvent;
 import com.whitehallplugins.infinitygauntlet.items.gauntlets.Gauntlet;
 import com.whitehallplugins.infinitygauntlet.items.gauntlets.GauntletReplica;
@@ -14,6 +15,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.item.ItemGroups;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
@@ -24,10 +26,8 @@ public class InfinityGauntlet implements ModInitializer {
 
 
     /**
-     * {@code @todo} Add infinity stones
      * {@code @TODO} Add infinity stone effects
      * {@code @TODO} Get gauntlet and stone models
-     * {@code @TODO} Add fakes
      */
     public static final Gauntlet GAUNTLET_ITEM = new Gauntlet(new FabricItemSettings().rarity(Rarity.EPIC).maxCount(1).fireproof().maxDamage(100));
     public static final MindGem MIND_GEM = new MindGem(new FabricItemSettings().rarity(Rarity.EPIC).maxCount(1).fireproof());
@@ -45,6 +45,8 @@ public class InfinityGauntlet implements ModInitializer {
     public static final TimeGemReplica TIME_GEM_REPLICA = new TimeGemReplica(new FabricItemSettings().rarity(Rarity.EPIC).maxCount(1).fireproof());
 
     private final Identifier[] itemIdentifiers = new Identifier[14];
+
+    public static final StatusEffect targetEntityEffect = new TargetEntityEffect();
 
     @Override
     public void onInitialize() {
@@ -87,6 +89,8 @@ public class InfinityGauntlet implements ModInitializer {
             content.add(SPACE_GEM_REPLICA);
             content.add(TIME_GEM_REPLICA);
         });
+
+        Registry.register(Registries.STATUS_EFFECT, new Identifier("infinitygauntlet", "targeteffect"), targetEntityEffect);
 
         KeyBindingHelper.registerKeyBinding(InfinityGauntletKeybinds.CHANGE_POWER);
 
