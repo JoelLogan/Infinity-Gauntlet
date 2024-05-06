@@ -1,6 +1,7 @@
 package com.whitehallplugins.infinitygauntlet.items.gems;
 
 import com.whitehallplugins.infinitygauntlet.InfinityGauntlet;
+import com.whitehallplugins.infinitygauntlet.items.gauntlets.Gauntlet;
 import net.minecraft.block.*;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -12,6 +13,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.particle.DustParticleEffect;
 import net.minecraft.particle.ParticleTypes;
@@ -21,7 +23,6 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.stat.Stats;
 import net.minecraft.text.Text;
-import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
@@ -34,11 +35,9 @@ import net.minecraft.world.World;
 import net.minecraft.world.explosion.ExplosionBehavior;
 import org.joml.Vector3f;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
-public class SharedGemFunctions { // Add Gauntlet as a parameter to the functions
+public class SharedGemFunctions { // TODO: Add Gauntlet functionality (and sounds) from the gems
     private static final List<EntityType<?>> disallowedEntities = List.of(EntityType.ITEM,
             EntityType.EXPERIENCE_BOTTLE, EntityType.ITEM_FRAME, EntityType.GLOW_ITEM_FRAME,
             EntityType.ARMOR_STAND, EntityType.AREA_EFFECT_CLOUD, EntityType.ARROW,
@@ -51,8 +50,9 @@ public class SharedGemFunctions { // Add Gauntlet as a parameter to the function
             EntityType.FURNACE_MINECART, EntityType.HOPPER_MINECART, EntityType.TNT_MINECART,
             EntityType.EGG, EntityType.ENDER_PEARL, EntityType.POTION, EntityType.EVOKER_FANGS,
             EntityType.FIREBALL, EntityType.TNT, EntityType.DRAGON_FIREBALL);
-    private static final List<Entity> despawnedEntities = new ArrayList<>();
     private static final int MAX_DESPAWNED_ENTITIES = 25;
+    public static final String SOUL_GEM_NBT_ID = "SoulGemEntities";
+    public static final String MIND_GEM_NBT_ID = "HostileEntity";
 
     /**
      * Get the target of the player's crosshair
@@ -79,20 +79,27 @@ public class SharedGemFunctions { // Add Gauntlet as a parameter to the function
 
         int returnMode = 1;
         boolean runParticles = false;
+        boolean runExplosion = false;
 
         if (!blockHitResult.getType().equals(HitResult.Type.MISS) && (entityHitResult == null || blockHitResult.getPos().squaredDistanceTo(playerEyePos) < entityHitResult.getPos().squaredDistanceTo(playerEyePos))) {
             endPoint = blockHitResult.getPos();
             if (particles) {
                 runParticles = true;
             }
+            if (explosion) {
+                runExplosion = true;
+            }
         }
         else if (entityHitResult != null) {
             endPoint = entityHitResult.getPos();
+            if (particles) {
+                runParticles = true;
+            }
             returnMode = 2;
         }
 
         if (runParticles) {
-            createExplosionParticles(world, playerEyePos, endPoint, explosion);
+            createExplosionParticles(world, playerEyePos, endPoint, runExplosion);
         }
 
         if (mode == 1) {
@@ -197,7 +204,7 @@ public class SharedGemFunctions { // Add Gauntlet as a parameter to the function
 
     private static void createExplosionParticles(ServerWorld world, Vec3d start, Vec3d end, boolean explosion) {
         double distance = start.distanceTo(end);
-        int numParticles = (int) distance/2;
+        int numParticles = (int) distance * 2;
 
         Vec3d step = end.subtract(start).multiply(1.0 / numParticles);
 
@@ -219,41 +226,40 @@ public class SharedGemFunctions { // Add Gauntlet as a parameter to the function
                 }
                 break;
             }
-            world.spawnParticles(ParticleTypes.FLAME, particlePos.x, particlePos.y, particlePos.z, 1, 0.5, 0.5, 0.5, 0.5);
+            world.spawnParticles(ParticleTypes.FLAME, particlePos.x, particlePos.y, particlePos.z, 1, 0.25, 0.25, 0.25, 0.5);
         }
     }
 
-    public static void mindGemUse(World world, PlayerEntity user, Hand hand) {
+    public static void mindGemUse(World world, PlayerEntity user) {
         try {
             System.out.println("Right Clicked Mind Gem");
-            if (user.getStackInHand(hand).getItem() instanceof MindGem) {
-                NbtCompound glowingItem = user.getStackInHand(hand).getOrCreateNbt();
+            ItemStack stackInHand = user.getStackInHand(user.getActiveHand());
+            if (stackInHand.getItem() instanceof MindGem || stackInHand.getItem() instanceof Gauntlet) {
+                NbtCompound glowingItem = stackInHand.getOrCreateNbt();
                 EntityHitResult entityHitResult;
                 try {
                     entityHitResult = (EntityHitResult) raycast(user, 32, 2, false, false);
                     if (!entityHitResult.getType().equals(HitResult.Type.MISS)) {
                         Entity targetEntity = entityHitResult.getEntity();
-                        if (!glowingItem.contains("Enchantments")) {
+                        if (!glowingItem.contains(MIND_GEM_NBT_ID)) {
                             if (targetEntity instanceof HostileEntity) {
-                                NbtList glowingTag = new NbtList();
-                                glowingTag.add(new NbtCompound());
-                                glowingItem.put("Enchantments", glowingTag);
-                                glowingItem.putUuid("HostileEntity", targetEntity.getUuid());
+                                setStackGlowing(stackInHand, true);
+                                glowingItem.putUuid(MIND_GEM_NBT_ID, targetEntity.getUuid());
                             }
                         } else {
                             if (targetEntity instanceof LivingEntity && !(targetEntity instanceof PlayerEntity)) {
-                                if (!targetEntity.getUuid().equals(glowingItem.getUuid("HostileEntity"))) {
-                                    user.sendMessage(Text.literal("You have targeted " + targetEntity.getUuidAsString() + "with " + glowingItem.getUuid("HostileEntity").toString()));
+                                if (!targetEntity.getUuid().equals(glowingItem.getUuid(MIND_GEM_NBT_ID))) {
+                                    user.sendMessage(Text.literal("You have targeted " + targetEntity.getUuidAsString() + "with " + glowingItem.getUuid(MIND_GEM_NBT_ID).toString()));
                                     ServerWorld serverWorld = (ServerWorld) world;
-                                    if (Objects.requireNonNull(serverWorld.getEntity(glowingItem.getUuid("HostileEntity"))).isAlive()) {
-                                        HostileEntity entity = (HostileEntity) serverWorld.getEntity(glowingItem.getUuid("HostileEntity"));
+                                    if (Objects.requireNonNull(serverWorld.getEntity(glowingItem.getUuid(MIND_GEM_NBT_ID))).isAlive()) {
+                                        HostileEntity entity = (HostileEntity) serverWorld.getEntity(glowingItem.getUuid(MIND_GEM_NBT_ID));
                                         assert entity != null;
                                         entity.addCommandTag("MindGemControlled." + targetEntity.getUuidAsString());
                                         entity.addStatusEffect(new StatusEffectInstance(InfinityGauntlet.targetEntityEffect, StatusEffectInstance.INFINITE));
                                         entity.setTarget((LivingEntity) targetEntity);
                                     }
-                                    glowingItem.remove("Enchantments");
-                                    glowingItem.remove("HostileEntity");
+                                    setStackGlowing(stackInHand, false);
+                                    glowingItem.remove(MIND_GEM_NBT_ID);
                                 }
                             }
                         }
@@ -261,20 +267,35 @@ public class SharedGemFunctions { // Add Gauntlet as a parameter to the function
                 }
                 catch (NullPointerException ignored){
                     glowingItem.remove("Enchantments");
-                    glowingItem.remove("HostileEntity");
+                    glowingItem.remove(MIND_GEM_NBT_ID);
                     return;
                 }
-                user.getStackInHand(hand).setNbt(glowingItem);
+                stackInHand.setNbt(glowingItem);
             }
         }
         catch (NullPointerException ignored){
 
         }
-        /**
+        /*
          * right click = control hostile mob to attack another mob (WORKS)
          * (after command given, no more agro from that specific mob) (NOT WORKING BUT MIGHT NOT BE NECESSARY)
          *
          */
+    }
+
+    public static void setStackGlowing(ItemStack stack, boolean glowing) {
+        NbtList glowingTag = new NbtList();
+        glowingTag.add(new NbtCompound());
+        if (glowing) {
+            stack.getOrCreateNbt().put("Enchantments", glowingTag);
+        }
+        else {
+            stack.getOrCreateNbt().remove("Enchantments");
+        }
+    }
+
+    public static boolean isStackGlowing(ItemStack stack) {
+        return stack.getOrCreateNbt().contains("Enchantments");
     }
 
     public static void powerGemUse(World world, PlayerEntity user) {
@@ -301,7 +322,7 @@ public class SharedGemFunctions { // Add Gauntlet as a parameter to the function
                 entityTarget.getEntity().damage(entityTarget.getEntity().getDamageSources().playerAttack(user),1000.0F);
             }
         }
-        /**
+        /*
          * Right click gem = explosion/instakill (max 64 blocks distance) (traced particles) (WORKING)
          * Shift right click gem = strength + resistance, 8 minutes (invincible) (kills enderman in 3 hits) (WORKING)
          *
@@ -332,7 +353,7 @@ public class SharedGemFunctions { // Add Gauntlet as a parameter to the function
             }
             world.setBlockState(targetPos, targetBlock.getDefaultState());
         }
-        /**
+        /*
          * Shift right click = creative/survival (if op) (WORKS)
          * right click = change targeted block to the right block in hotbar (WORKS)
          *
@@ -341,51 +362,81 @@ public class SharedGemFunctions { // Add Gauntlet as a parameter to the function
          */
     }
 
-    public static void soulGemUse(World world, PlayerEntity user, Hand hand) {
-        System.out.println("Right Clicked Soul Gem");
-        EntityHitResult result = (EntityHitResult) raycast(user, 64, 2, false, false);
-        if (result != null && !result.getType().equals(HitResult.Type.MISS)){
-            Entity targetEntity = result.getEntity();
-            if (despawnedEntities.size() < MAX_DESPAWNED_ENTITIES && !despawnedEntities.contains(targetEntity)) {
-                if (!(targetEntity instanceof PlayerEntity)) {
-                    System.out.println("Despawned Entity: " + targetEntity.getType().getName());
-                    despawnEntity(world, targetEntity);
+    public static void soulGemUse(World world, PlayerEntity user) {
+        ItemStack stackInHand = user.getStackInHand(user.getActiveHand());
+        if (stackInHand.getItem() instanceof SoulGem || stackInHand.getItem() instanceof Gauntlet) {
+            NbtCompound glowingItem = stackInHand.getOrCreateNbt();
+            NbtList entityList = new NbtList();
+            if (glowingItem.contains(SOUL_GEM_NBT_ID, NbtCompound.LIST_TYPE)) {
+                entityList = glowingItem.getList(SOUL_GEM_NBT_ID, NbtElement.COMPOUND_TYPE);
+            }
+            if (!user.isSneaking()) {
+                System.out.println("Right Clicked Soul Gem");
+                if (entityList.size() < MAX_DESPAWNED_ENTITIES) {
+                    EntityHitResult entityHitResult;
+                    try {
+                        entityHitResult = (EntityHitResult) raycast(user, 64, 2, false, false);
+                        if (entityHitResult != null && !entityHitResult.getType().equals(HitResult.Type.MISS)) {
+                            Entity targetEntity = entityHitResult.getEntity();
+                            if (!(targetEntity instanceof PlayerEntity)) {
+                                NbtCompound entityDataForList = new NbtCompound();
+                                targetEntity.saveNbt(entityDataForList);
+                                System.out.println("Despawned Entity: " + targetEntity.getType().getName());
+                                entityList.add(entityDataForList);
+                                glowingItem.put(SOUL_GEM_NBT_ID, entityList);
+                                setStackGlowing(stackInHand, true);
+                                despawnEntity(world, targetEntity);
+                            }
+                        }
+                    } catch (NullPointerException ignored) {
+
+                    }
+                }
+            }
+            else {
+                System.out.println("Soul Gem Shift Right Clicked");
+                if (!entityList.isEmpty()) {
+                    System.out.println("Resummoned Entity: " + Objects.requireNonNull(((NbtCompound) entityList.get(entityList.size() - 1)).get("id")));
+                    resummonEntity(world, user, entityList, stackInHand);
                 }
             }
         }
-        else {
-            if (!despawnedEntities.isEmpty()) {
-                System.out.println("Resummoned Entity: " + despawnedEntities.get(despawnedEntities.size() - 1).getType().getName());
-                resummonEntity(world, user, hand);
-            }
-        }
-        /**
-         * Right click gem = check if mob then suck (not player) (64 blocks) (max 25) (WORKS)
-         * Shift right click = place sucked mob (not player) (64 blocks) (WORKS)
-         *
-         * With gauntlet: long right click for player to soul dimension
-         * long shift right click bring player back from soul dimension
+
+        /*
+          Right click gem = check if mob then suck (not player) (64 blocks) (max 25) (WORKS)
+          Shift right click = place sucked mob (not player) (64 blocks) (WORKS)
+
+          With gauntlet: long right click for player to soul dimension
+          long shift right click bring player back from soul dimension
          */
     }
 
     private static void despawnEntity(World world, Entity entity) {
         ServerWorld serverWorld = (ServerWorld) world;
-        despawnedEntities.add(entity);
         Objects.requireNonNull(serverWorld.getEntity(entity.getUuid())).remove(Entity.RemovalReason.DISCARDED);
     }
 
-    private static void resummonEntity(World world, PlayerEntity summoner, Hand hand) {
-        Entity lastDespawnedEntity = despawnedEntities.remove(despawnedEntities.size() - 1);
+    private static void resummonEntity(World world, PlayerEntity summoner, NbtList entityList, ItemStack stack) {
+        NbtCompound lastDespawnedEntity = (NbtCompound) entityList.remove(entityList.size() - 1);
         if (lastDespawnedEntity != null) {
-            EntityType<?> type = lastDespawnedEntity.getType();
-            Entity newEntity = type.create(world);
-            if (newEntity != null) {
-                newEntity.copyFrom(lastDespawnedEntity);
-                BlockHitResult result = (BlockHitResult) raycast(summoner, 64, 1, false, false);
-                BlockPos position = result.getBlockPos();
-                newEntity.refreshPositionAndAngles(position.getX(), position.getY() + 1, position.getZ(), summoner.getYaw(), summoner.getPitch());
-                world.spawnEntity(newEntity);
-                summoner.swingHand(hand);
+            try {
+                Optional<EntityType<?>> type = EntityType.fromNbt(lastDespawnedEntity);
+                Entity newEntity = type.orElseThrow().create(world);
+                if (newEntity != null) {
+                    newEntity.readNbt(lastDespawnedEntity);
+                    BlockHitResult result = (BlockHitResult) raycast(summoner, 64, 1, false, false);
+                    Vec3d position = result.getPos();
+                    newEntity.refreshPositionAndAngles(position.getX(), position.getY() + 0.5, position.getZ(), summoner.getYaw(), summoner.getPitch());
+                    world.spawnEntity(newEntity);
+                    if (entityList.isEmpty()) {
+                        setStackGlowing(stack, false);
+                        assert stack.getNbt() != null;
+                        stack.getNbt().remove(SOUL_GEM_NBT_ID);
+                    }
+                }
+            }
+            catch (NoSuchElementException ignored) {
+
             }
         }
     }
@@ -404,7 +455,7 @@ public class SharedGemFunctions { // Add Gauntlet as a parameter to the function
         else {
             System.out.println("Right Clicked Space Gem");
             try {
-                Vec3d targetPos = raycast(user, 32, 1, false, false).getPos();
+                Vec3d targetPos = raycast(user, 64, 1, false, false).getPos();
                 BlockPos blockPos = new BlockPos((int) targetPos.getX(), (int) targetPos.getY(), (int) targetPos.getZ());
                 boolean validTeleport = false;
                 for (BlockPos pos : BlockPos.iterateOutwards(blockPos, 1, 1, 1)) {
@@ -420,11 +471,15 @@ public class SharedGemFunctions { // Add Gauntlet as a parameter to the function
                 System.out.println("Raycast error in space gem action: " + e);
             }
         }
-        /**
-         * right click = teleport to target block (within 32 blocks) (WORKS)
+        /*
+         * right click = teleport to target block (within 64 blocks) (WORKS)
          * shift right click = open enderchest (WORKS)
          *
-         * With gauntlet: long right click = change dimension (world, nether, end)
+         * With gauntlet:
+         * short right click and shift right click = same as gem
+         * long right click = change dimension (world, nether, end)
+         * (When changing to end, goes to end spawn) (When changing to nether, Finds closest y coordinate first)
+         * (When changing to overworld, teleport to exact coordinates)
          */
     }
 
@@ -445,7 +500,7 @@ public class SharedGemFunctions { // Add Gauntlet as a parameter to the function
                 BlockPos blockTarget = new BlockPos((int) targetPos.getX(), (int) targetPos.getY(), (int) targetPos.getZ());
                 boolean validBlock = false;
                 if (!(world.getBlockState(blockTarget).getBlock() instanceof Fertilizable)) {
-                    for (BlockPos pos : BlockPos.iterateOutwards(blockTarget, 1, 1, 1)) {
+                    for (BlockPos pos : BlockPos.iterateOutwards(blockTarget, 0, 1, 0)) {
                         if (pos.equals(blockTarget)) {
                             continue;
                         }
@@ -468,7 +523,7 @@ public class SharedGemFunctions { // Add Gauntlet as a parameter to the function
                 System.out.println("Raycast error in time gem action: " + e);
             }
         }
-        /**
+        /*
          * right click = bone meal (up to 32 blocks) (WORKS)
          * shift right click = speed 10 (7:30) Haste 3 (WORKS)
          *

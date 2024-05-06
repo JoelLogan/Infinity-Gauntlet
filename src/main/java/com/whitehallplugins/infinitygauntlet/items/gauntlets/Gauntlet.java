@@ -7,6 +7,7 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.*;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
@@ -16,6 +17,9 @@ import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Objects;
+
+import static com.whitehallplugins.infinitygauntlet.items.gems.SharedGemFunctions.*;
 
 public class Gauntlet extends BowItem {
 
@@ -25,19 +29,31 @@ public class Gauntlet extends BowItem {
 
     @Override
     public void usageTick(World world, LivingEntity user, ItemStack stack, int remainingUseTicks) {
-        int charge = (getMaxUseTime(stack) - remainingUseTicks);
-        if (world.isClient()) {
-            System.out.println("usageTick called: " + remainingUseTicks + " ticks remaining");
-            if (charge >= 0) {
-                stack.setDamage(stack.getMaxDamage() - Math.min(charge * 5, stack.getMaxDamage() - 1));
-            }
-        }
-        else {
-            if (charge == 20) { // TODO add solution for multiple gems
-                world.playSound(null, user.getX(), user.getY(), user.getZ(), SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.PLAYERS, 0.75f, 2.0f);
+        if (user instanceof PlayerEntity) {
+            int charge = (getMaxUseTime(stack) - remainingUseTicks);
+            if (world.isClient()) {
+                if (charge >= 0 && charge <= 30) {
+                    stack.setDamage(stack.getMaxDamage() - (int) Math.min(charge * 3.33, stack.getMaxDamage() - 1));
+                }
+            } else {
+                if (charge == getChargeTime(stack)) {
+                    world.playSound(null, user.getX(), user.getY(), user.getZ(), SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.PLAYERS, 0.75f, 2.0f);
+                }
             }
         }
         super.usageTick(world, user, stack, remainingUseTicks);
+    }
+
+    private int getChargeTime(ItemStack stack) {
+        return switch (getCustomModelData(stack)) { // TODO: Find Correct Values
+            case 0 -> 30; // POWER
+            case 1 -> 31; // SPACE
+            case 2 -> 32; // TIME
+            case 3 -> 33; // MIND
+            case 4 -> 34; // REALITY
+            case 5 -> 35; // SOUL
+            default -> 0;
+        };
     }
 
     @Override
@@ -55,17 +71,32 @@ public class Gauntlet extends BowItem {
         if (!world.isClient()) {
             int charge = getMaxUseTime(stack) - remainingUseTicks;
             setHideDurabilityBar(stack, true);
-            if (charge >= 22) {
-                System.out.println("onStoppedUsing called: " + charge + " ticks charged, " + getMaxUseTime(stack) + " ticks max, " + remainingUseTicks + " ticks remaining");
-                user.sendMessage(Text.literal("You drew 22"));
+            if (charge >= getChargeTime(stack)) {
+                user.sendMessage(Text.literal("You fully charged the gauntlet. (REMOVE ME)"));
+            }
+            else {
+                switch (getCustomModelData(stack)) {
+                    case 0: // POWER
+                        powerGemUse(world, (PlayerEntity) user);
+                        break;
+                    case 1: // SPACE
+                        spaceGemUse(world, (PlayerEntity) user);
+                        break;
+                    case 2: // TIME
+                        timeGemUse(world, (PlayerEntity) user);
+                        break;
+                    case 3: // MIND
+                        mindGemUse(world, (PlayerEntity) user);
+                        break;
+                    case 4: // REALITY
+                        realityGemUse(world, (PlayerEntity) user);
+                        break;
+                    case 5: // SOUL
+                        soulGemUse(world, (PlayerEntity) user);
+                        break;
+                }
             }
         }
-    }
-
-    @Override
-    public UseAction getUseAction(ItemStack stack) {
-        System.out.println("getUseAction called");
-        return UseAction.BOW;
     }
 
     @Override
@@ -137,16 +168,6 @@ public class Gauntlet extends BowItem {
     }
 
     @Override
-    public boolean canRepair(ItemStack stack, ItemStack ingredient) {
-        return false;
-    }
-
-    @Override
-    public boolean isUsedOnRelease(ItemStack stack) {
-        return false;
-    }
-
-    @Override
     public int getRange() {
         return 0;
     }
@@ -156,27 +177,55 @@ public class Gauntlet extends BowItem {
         return true;
     }
 
-    public static void swapPower(ItemStack stack) {
+    private static void sendCurrentMode(PlayerEntity player, int mode){
+        player.sendMessage(Text.translatable("item.infinitygauntlet.gauntlet.gauntlet.tooltip1", Text.translatable("item.infinitygauntlet.gauntlet.gauntlet.power" + mode)).formatted(Formatting.WHITE));
+    }
+
+    public static void swapPower(PlayerEntity player, ItemStack stack) {
         switch(getCustomModelData(stack)){
-            case 1:
+            case 1: // FROM SPACE TO TIME
                 setCustomModelData(stack, 2);
+                sendCurrentMode(player, 2);
                 break;
-            case 2:
+            case 2: // FROM TIME TO MIND
+                if (stack.hasNbt()){
+                    try {
+                        assert stack.getNbt() != null;
+                        Objects.requireNonNull(stack.getNbt().getUuid(MIND_GEM_NBT_ID));
+                        setStackGlowing(stack, true);
+                    }
+                    catch (NullPointerException ignored) {}
+                }
                 setCustomModelData(stack, 3);
+                sendCurrentMode(player, 3);
                 break;
-            case 3:
+            case 3: // FROM MIND TO REALITY
+                setStackGlowing(stack, false);
                 setCustomModelData(stack, 4);
+                sendCurrentMode(player, 4);
                 break;
-            case 4:
+            case 4: // FROM REALITY TO SOUL
+                if (stack.hasNbt()){
+                    try {
+                        assert stack.getNbt() != null;
+                        if (!Objects.requireNonNull(stack.getNbt().getList(SOUL_GEM_NBT_ID, NbtElement.COMPOUND_TYPE)).isEmpty()) {
+                            setStackGlowing(stack, true);
+                        }
+                    }
+                    catch (NullPointerException ignored) {}
+                }
                 setCustomModelData(stack, 5);
+                sendCurrentMode(player, 5);
                 break;
-            case 5:
+            case 5: // FROM SOUL TO POWER
+                setStackGlowing(stack, false);
                 setCustomModelData(stack, 0);
+                sendCurrentMode(player, 0);
                 break;
-            default:
+            default: // FROM POWER TO SPACE
                 setCustomModelData(stack, 1);
+                sendCurrentMode(player, 1);
                 break;
         }
     }
-
 }

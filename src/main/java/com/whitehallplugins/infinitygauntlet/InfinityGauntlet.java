@@ -24,7 +24,6 @@ import net.minecraft.registry.Registry;
 
 public class InfinityGauntlet implements ModInitializer {
 
-
     /**
      * {@code @TODO} Add infinity stone effects
      * {@code @TODO} Get gauntlet and stone models

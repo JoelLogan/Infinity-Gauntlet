@@ -38,7 +38,7 @@ public class SoulGem extends Item {
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
         if (!world.isClient()) {
-            soulGemUse(world, user, hand);
+            soulGemUse(world, user);
         }
         return TypedActionResult.pass(user.getStackInHand(hand));
     }
