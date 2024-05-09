@@ -26,6 +26,8 @@ import net.minecraft.screen.GenericContainerScreenHandler;
 import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.stat.Stats;
 import net.minecraft.text.Text;
 import net.minecraft.util.hit.BlockHitResult;
@@ -44,7 +46,7 @@ import org.joml.Vector3f;
 import java.util.*;
 import java.util.function.Predicate;
 
-public class SharedGemFunctions { // TODO: Add Gauntlet functionality (and sounds) from the gems
+public class SharedGemFunctions { // TODO: Finish Soul And Reality Gems
     private static final List<EntityType<?>> disallowedEntities = List.of(EntityType.ITEM,
             EntityType.EXPERIENCE_BOTTLE, EntityType.ITEM_FRAME, EntityType.GLOW_ITEM_FRAME,
             EntityType.ARMOR_STAND, EntityType.AREA_EFFECT_CLOUD, EntityType.ARROW,
@@ -248,10 +250,6 @@ public class SharedGemFunctions { // TODO: Add Gauntlet functionality (and sound
         }
     }
 
-    public static boolean isStackGlowing(ItemStack stack) {
-        return stack.getOrCreateNbt().contains("Enchantments");
-    }
-
     private static void despawnEntity(World world, Entity entity) {
         ServerWorld serverWorld = (ServerWorld) world;
         Objects.requireNonNull(serverWorld.getEntity(entity.getUuid())).remove(Entity.RemovalReason.DISCARDED);
@@ -283,61 +281,82 @@ public class SharedGemFunctions { // TODO: Add Gauntlet functionality (and sound
     }
 
     public static void mindGemUse(World world, PlayerEntity user, boolean gauntlet) {
-        try {
-            System.out.println("Right Clicked Mind Gem");
-            ItemStack stackInHand = user.getStackInHand(user.getActiveHand());
-            if (stackInHand.getItem() instanceof MindGem || stackInHand.getItem() instanceof Gauntlet) {
-                NbtCompound glowingItem = stackInHand.getOrCreateNbt();
-                EntityHitResult entityHitResult;
-                try {
-                    entityHitResult = (EntityHitResult) raycast(user, 32, 2, false, false);
-                    if (!entityHitResult.getType().equals(HitResult.Type.MISS)) {
-                        Entity targetEntity = entityHitResult.getEntity();
-                        if (!glowingItem.contains(MIND_GEM_NBT_ID)) {
-                            if (targetEntity instanceof HostileEntity) {
-                                setStackGlowing(stackInHand, true);
-                                glowingItem.putUuid(MIND_GEM_NBT_ID, targetEntity.getUuid());
-                            }
-                        } else {
-                            if (targetEntity instanceof LivingEntity && !(targetEntity instanceof PlayerEntity)) {
-                                if (!targetEntity.getUuid().equals(glowingItem.getUuid(MIND_GEM_NBT_ID))) {
-                                    user.sendMessage(Text.literal("You have targeted " + targetEntity.getUuidAsString() + "with " + glowingItem.getUuid(MIND_GEM_NBT_ID).toString()));
-                                    ServerWorld serverWorld = (ServerWorld) world;
-                                    if (Objects.requireNonNull(serverWorld.getEntity(glowingItem.getUuid(MIND_GEM_NBT_ID))).isAlive()) {
-                                        HostileEntity entity = (HostileEntity) serverWorld.getEntity(glowingItem.getUuid(MIND_GEM_NBT_ID));
-                                        assert entity != null;
-                                        entity.addCommandTag("MindGemControlled." + targetEntity.getUuidAsString());
-                                        entity.addStatusEffect(new StatusEffectInstance(InfinityGauntlet.targetEntityEffect, StatusEffectInstance.INFINITE));
-                                        entity.setTarget((LivingEntity) targetEntity);
+        if (!gauntlet) {
+            try {
+                System.out.println("Right Clicked Mind Gem");
+                ItemStack stackInHand = user.getStackInHand(user.getActiveHand());
+                if (stackInHand.getItem() instanceof MindGem || stackInHand.getItem() instanceof Gauntlet) {
+                    NbtCompound glowingItem = stackInHand.getOrCreateNbt();
+                    EntityHitResult entityHitResult;
+                    try {
+                        entityHitResult = (EntityHitResult) raycast(user, 32, 2, false, false);
+                        if (!entityHitResult.getType().equals(HitResult.Type.MISS)) {
+                            Entity targetEntity = entityHitResult.getEntity();
+                            if (!glowingItem.contains(MIND_GEM_NBT_ID)) {
+                                if (targetEntity instanceof HostileEntity) {
+                                    setStackGlowing(stackInHand, true);
+                                    glowingItem.putUuid(MIND_GEM_NBT_ID, targetEntity.getUuid());
+                                }
+                            } else {
+                                if (targetEntity instanceof LivingEntity && !(targetEntity instanceof PlayerEntity)) {
+                                    if (!targetEntity.getUuid().equals(glowingItem.getUuid(MIND_GEM_NBT_ID))) {
+                                        user.sendMessage(Text.literal("You have targeted " + targetEntity.getUuidAsString() + "with " + glowingItem.getUuid(MIND_GEM_NBT_ID).toString()));
+                                        ServerWorld serverWorld = (ServerWorld) world;
+                                        if (Objects.requireNonNull(serverWorld.getEntity(glowingItem.getUuid(MIND_GEM_NBT_ID))).isAlive()) {
+                                            HostileEntity entity = (HostileEntity) serverWorld.getEntity(glowingItem.getUuid(MIND_GEM_NBT_ID));
+                                            assert entity != null;
+                                            entity.addCommandTag("MindGemControlled." + targetEntity.getUuidAsString());
+                                            entity.addStatusEffect(new StatusEffectInstance(InfinityGauntlet.targetEntityEffect, StatusEffectInstance.INFINITE));
+                                            entity.setTarget((LivingEntity) targetEntity);
+                                        }
+                                        setStackGlowing(stackInHand, false);
+                                        glowingItem.remove(MIND_GEM_NBT_ID);
                                     }
-                                    setStackGlowing(stackInHand, false);
-                                    glowingItem.remove(MIND_GEM_NBT_ID);
                                 }
                             }
                         }
+                    } catch (NullPointerException ignored) {
+                        glowingItem.remove("Enchantments");
+                        glowingItem.remove(MIND_GEM_NBT_ID);
+                        return;
                     }
+                    stackInHand.setNbt(glowingItem);
                 }
-                catch (NullPointerException ignored){
-                    glowingItem.remove("Enchantments");
-                    glowingItem.remove(MIND_GEM_NBT_ID);
-                    return;
-                }
-                stackInHand.setNbt(glowingItem);
+            } catch (NullPointerException ignored) {
+
             }
         }
-        catch (NullPointerException ignored){
-
+        else {
+            try {
+                EntityHitResult entityHitResult = (EntityHitResult) raycast(user, 32, 2, false, false);
+                if (!entityHitResult.getType().equals(HitResult.Type.MISS)) {
+                    if (entityHitResult.getEntity() instanceof PlayerEntity targetEntity) {
+                        StatusEffectInstance weakness = new StatusEffectInstance(StatusEffects.WEAKNESS, 3600, 255, false, true);
+                        StatusEffectInstance nausea = new StatusEffectInstance(StatusEffects.NAUSEA, 3600, 255, false, true);
+                        StatusEffectInstance blindness = new StatusEffectInstance(StatusEffects.BLINDNESS, 1200, 255, false, true);
+                        targetEntity.removeStatusEffect(StatusEffects.WEAKNESS);
+                        targetEntity.removeStatusEffect(StatusEffects.NAUSEA);
+                        targetEntity.removeStatusEffect(StatusEffects.BLINDNESS);
+                        targetEntity.addStatusEffect(weakness);
+                        targetEntity.addStatusEffect(nausea);
+                        targetEntity.addStatusEffect(blindness);
+                    }
+                }
+            }
+            catch (NullPointerException ignored) {}
         }
-        /*
+        /* GEM SHOULD BE FINISHED
          * right click = control hostile mob to attack another mob (WORKS)
          * (after command given, no more agro from that specific mob) (NOT WORKING BUT MIGHT NOT BE NECESSARY)
+         * TODO: CHECK IF THERE IS A SHIFT-RIGHT-CLICK THING
          *
+         * With Gauntlet: Gives 3 minutes of weakness and nausea and 1 minute of blindness (WORKS)
          */
     }
 
     public static void powerGemUse(World world, PlayerEntity user, boolean gauntlet) {
         StatusEffectInstance strength = new StatusEffectInstance(StatusEffects.STRENGTH, 9600, 4, false, true);
-        StatusEffectInstance resistance = new StatusEffectInstance(StatusEffects.RESISTANCE, 9600, 254, false, true);
+        StatusEffectInstance resistance = new StatusEffectInstance(StatusEffects.RESISTANCE, 9600, 255, false, true);
         if (!gauntlet) {
             if (user.isSneaking()) {
                 System.out.println("Shift Right Clicked Power Gem");
@@ -349,27 +368,42 @@ public class SharedGemFunctions { // TODO: Add Gauntlet functionality (and sound
                 System.out.println("Right Clicked Power Gem");
                 HitResult target = raycast(user, 64, 3, true, true);
                 Vec3d targetPos = target.getPos();
-                if (target.getType().equals(HitResult.Type.BLOCK)) {
-                    System.out.println("BLOCK");
-                    DamageSource damageSource = new DamageSource(world.getRegistryManager().get(RegistryKeys.DAMAGE_TYPE).entryOf(DamageTypes.EXPLOSION), user);
-                    user.setInvulnerable(true);
-                    world.createExplosion(null, damageSource, new ExplosionBehavior(), targetPos, 5.0F, false, World.ExplosionSourceType.BLOCK);
-                    user.setInvulnerable(false);
-                } else if (target.getType().equals(HitResult.Type.ENTITY)) {
-                    System.out.println("ENTITY");
-                    EntityHitResult entityTarget = (EntityHitResult) target;
-                    entityTarget.getEntity().damage(entityTarget.getEntity().getDamageSources().playerAttack(user), 1000.0F);
+                if (!target.getType().equals(HitResult.Type.MISS)) {
+                    if (target.getType().equals(HitResult.Type.BLOCK)) {
+                        System.out.println("BLOCK");
+                        DamageSource damageSource = new DamageSource(world.getRegistryManager().get(RegistryKeys.DAMAGE_TYPE).entryOf(DamageTypes.EXPLOSION), user);
+                        user.setInvulnerable(true);
+                        world.createExplosion(null, damageSource, new ExplosionBehavior(), targetPos, 5.0F, false, World.ExplosionSourceType.BLOCK);
+                        user.setInvulnerable(false);
+                    } else if (target.getType().equals(HitResult.Type.ENTITY)) {
+                        System.out.println("ENTITY");
+                        EntityHitResult entityTarget = (EntityHitResult) target;
+                        entityTarget.getEntity().damage(entityTarget.getEntity().getDamageSources().playerAttack(user), 1000.0F);
+                    }
+                    world.playSound(null, user.getBlockPos(), SoundEvents.ENTITY_GHAST_SHOOT, SoundCategory.HOSTILE);
                 }
             }
         }
         else {
             Box box = new Box(user.getBlockPos()).expand(64);
-            Predicate<Entity> predicate = entity -> entity != user;
+            Predicate<Entity> predicate = entity -> {
+                if (entity instanceof PlayerEntity) {
+                    if (entity == user){
+                        return false;
+                    }
+                    return !((PlayerEntity) entity).isCreative();
+                }
+                return true;
+            };
             world.getEntitiesByClass(LivingEntity.class, box, predicate).forEach(targetEntity -> {
                 LightningEntity lightning = EntityType.LIGHTNING_BOLT.create(world);
                 assert lightning != null;
                 lightning.refreshPositionAfterTeleport(targetEntity.getX(), targetEntity.getY(), targetEntity.getZ());
                 world.spawnEntity(lightning);
+                if (targetEntity.isAlive()) {
+                    DamageSource damageSource = new DamageSource(world.getRegistryManager().get(RegistryKeys.DAMAGE_TYPE).entryOf(InfinityGauntlet.POWER_GEM_DAMAGE_TYPE), user);
+                    targetEntity.damage(damageSource, 10000f);
+                }
             });
         }
         /* GEM SHOULD BE FINISHED
@@ -486,6 +520,7 @@ public class SharedGemFunctions { // TODO: Add Gauntlet functionality (and sound
                         ((ServerWorld) world).spawnParticles(ParticleTypes.PORTAL, user.getX(), user.getY() + 1, user.getZ(), 40, 0.5, 0.5, 0.5, 0.0);
                         user.requestTeleport(targetPos.getX(), targetPos.getY() + 1, targetPos.getZ());
                         ((ServerWorld) world).spawnParticles(ParticleTypes.PORTAL, targetPos.getX(), targetPos.getY() + 1, targetPos.getZ(), 40, 0.5, 0.5, 0.5, 0.0);
+                        user.playSound(SoundEvents.ENTITY_PLAYER_TELEPORT, SoundCategory.BLOCKS, 1, 1);
                     }
                 } catch (NullPointerException e) {
                     System.out.println("Raycast error in space gem action: " + e);
@@ -579,13 +614,8 @@ public class SharedGemFunctions { // TODO: Add Gauntlet functionality (and sound
             try {
                 EntityHitResult entityHitResult = (EntityHitResult) raycast(user, 32, 2, false, false);
                 if (!entityHitResult.getType().equals(HitResult.Type.MISS)) {
-                    if (entityHitResult.getEntity() instanceof PlayerEntity) {
-                        BlockPos spawnPos = Objects.requireNonNull(user.getServer()).getOverworld().getSpawnPos();
-                        entityHitResult.getEntity().teleport(Objects.requireNonNull(user.getServer()).getOverworld(), spawnPos.getX(), spawnPos.getY(), spawnPos.getZ(), new HashSet<>(), 0, 0);
-                    }
-                    else {
-                        entityHitResult.getEntity().remove(Entity.RemovalReason.DISCARDED);
-                    }
+                    BlockPos spawnPos = Objects.requireNonNull(user.getServer()).getOverworld().getSpawnPos();
+                    entityHitResult.getEntity().teleport(Objects.requireNonNull(user.getServer()).getOverworld(), spawnPos.getX(), spawnPos.getY(), spawnPos.getZ(), new HashSet<>(), 0, 0);
                 }
             }
             catch (NullPointerException ignored) {}
