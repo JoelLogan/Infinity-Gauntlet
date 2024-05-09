@@ -19,7 +19,7 @@ public class InfinityGauntletClient implements ClientModInitializer {
             if (InfinityGauntletKeybinds.CHANGE_POWER.isPressed()) {
                 if (!isKeyPressed) {
                     assert client.player != null;
-                    if (client.player.getStackInHand(client.player.getActiveHand()).getItem() instanceof Gauntlet){
+                    if (client.player.getMainHandStack().getItem() instanceof Gauntlet || client.player.getOffHandStack().getItem() instanceof Gauntlet){
                         ClientPlayNetworking.send(NetworkingConstants.GAUNTLET_PACKET_ID, swapPowerPacket);
                     }
                     isKeyPressed = true;

@@ -38,7 +38,7 @@ public class SpaceGem extends Item {
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
         if (!world.isClient()) {
-            spaceGemUse(world, user);
+            spaceGemUse(world, user, false);
         }
         return TypedActionResult.pass(user.getStackInHand(hand));
     }

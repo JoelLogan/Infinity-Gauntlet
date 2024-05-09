@@ -29,6 +29,8 @@
   "item.infinitygauntlet.mind.gem": "Mind Gem",
   "item.infinitygauntlet.mind.gemreplica": "Mind Gem",
   "item.infinitygauntlet.mind.gemreplica.tooltip": "Replica",
+  "item.infinitygauntlet.souldimensionblock": "Soul Dimension Block",
+  "block.infinitygauntlet.souldimensionblock": "Soul Dimension Block",
   "key.category.infinitygauntlet": "Infinity Gauntlet",
   "key.infinitygauntlet.changepower": "Change Gem Mode",
   "effect.infinitygauntlet.targeteffect": "Mind Gem Controlled"

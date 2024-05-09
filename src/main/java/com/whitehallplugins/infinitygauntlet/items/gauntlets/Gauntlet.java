@@ -32,11 +32,11 @@ public class Gauntlet extends BowItem {
         if (user instanceof PlayerEntity) {
             int charge = (getMaxUseTime(stack) - remainingUseTicks);
             if (world.isClient()) {
-                if (charge >= 0 && charge <= 30) {
+                if (charge >= 0 && charge <= 30) { //TODO: Make scaling for the different charge times
                     stack.setDamage(stack.getMaxDamage() - (int) Math.min(charge * 3.33, stack.getMaxDamage() - 1));
                 }
             } else {
-                if (charge == getChargeTime(stack)) {
+                if (charge == getChargeTime(stack)) { // TODO: MOVE HIDE DURATION BAR TO HERE
                     world.playSound(null, user.getX(), user.getY(), user.getZ(), SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.PLAYERS, 0.75f, 2.0f);
                 }
             }
@@ -68,33 +68,35 @@ public class Gauntlet extends BowItem {
 
     @Override
     public void onStoppedUsing(ItemStack stack, World world, LivingEntity user, int remainingUseTicks) {
-        if (!world.isClient()) {
-            int charge = getMaxUseTime(stack) - remainingUseTicks;
+        if (world.isClient()){
             setHideDurabilityBar(stack, true);
+        }
+        else {
+            int charge = getMaxUseTime(stack) - remainingUseTicks;
+            boolean charged = false;
             if (charge >= getChargeTime(stack)) {
-                user.sendMessage(Text.literal("You fully charged the gauntlet. (REMOVE ME)"));
+                user.sendMessage(Text.literal("You fully charged the gauntlet")); // TODO: REMOVE ME
+                charged = true;
             }
-            else {
-                switch (getCustomModelData(stack)) {
-                    case 0: // POWER
-                        powerGemUse(world, (PlayerEntity) user);
-                        break;
-                    case 1: // SPACE
-                        spaceGemUse(world, (PlayerEntity) user);
-                        break;
-                    case 2: // TIME
-                        timeGemUse(world, (PlayerEntity) user);
-                        break;
-                    case 3: // MIND
-                        mindGemUse(world, (PlayerEntity) user);
-                        break;
-                    case 4: // REALITY
-                        realityGemUse(world, (PlayerEntity) user);
-                        break;
-                    case 5: // SOUL
-                        soulGemUse(world, (PlayerEntity) user);
-                        break;
-                }
+            switch (getCustomModelData(stack)) {
+                case 0: // POWER
+                    powerGemUse(world, (PlayerEntity) user, charged);
+                    break;
+                case 1: // SPACE
+                    spaceGemUse(world, (PlayerEntity) user, charged);
+                    break;
+                case 2: // TIME
+                    timeGemUse(world, (PlayerEntity) user, charged);
+                    break;
+                case 3: // MIND
+                    mindGemUse(world, (PlayerEntity) user, charged);
+                    break;
+                case 4: // REALITY
+                    realityGemUse(world, (PlayerEntity) user, charged);
+                    break;
+                case 5: // SOUL
+                    soulGemUse(world, (PlayerEntity) user, charged);
+                    break;
             }
         }
     }
@@ -106,8 +108,6 @@ public class Gauntlet extends BowItem {
         if (world.isClient()) {
             stack.setDamage(100);
             System.out.println("Gauntlet used by " + player.getName().toString());
-        }
-        else {
             setHideDurabilityBar(stack, false);
         }
         return TypedActionResult.consume(stack);

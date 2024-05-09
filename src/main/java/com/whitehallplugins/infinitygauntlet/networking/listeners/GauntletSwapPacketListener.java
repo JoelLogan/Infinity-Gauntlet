@@ -18,6 +18,9 @@ public class GauntletSwapPacketListener implements PlayChannelHandler {
                 if (player.getMainHandStack().getItem() instanceof Gauntlet) {
                     Gauntlet.swapPower(player, player.getMainHandStack());
                 }
+                else if (player.getOffHandStack().getItem() instanceof Gauntlet) {
+                    Gauntlet.swapPower(player, player.getOffHandStack());
+                }
             }
         }
     }

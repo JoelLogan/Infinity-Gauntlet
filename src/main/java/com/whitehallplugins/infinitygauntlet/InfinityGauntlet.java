@@ -15,7 +15,11 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
+import net.minecraft.block.Block;
 import net.minecraft.entity.effect.StatusEffect;
+import net.minecraft.item.BlockItem;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroups;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
@@ -44,6 +48,8 @@ public class InfinityGauntlet implements ModInitializer {
     public static final TimeGemReplica TIME_GEM_REPLICA = new TimeGemReplica(new FabricItemSettings().rarity(Rarity.EPIC).maxCount(1).fireproof());
 
     private final Identifier[] itemIdentifiers = new Identifier[14];
+
+    public static final Block SOUL_DIMENSION_BLOCK = new Block(FabricBlockSettings.create().strength(-1.0f));
 
     public static final StatusEffect targetEntityEffect = new TargetEntityEffect();
 
@@ -89,13 +95,12 @@ public class InfinityGauntlet implements ModInitializer {
             content.add(TIME_GEM_REPLICA);
         });
 
+        Registry.register(Registries.BLOCK, new Identifier("infinitygauntlet", "souldimensionblock"), SOUL_DIMENSION_BLOCK);
+        Registry.register(Registries.ITEM, new Identifier("infinitygauntlet", "souldimensionblock"), new BlockItem(SOUL_DIMENSION_BLOCK, new Item.Settings()));
+
         Registry.register(Registries.STATUS_EFFECT, new Identifier("infinitygauntlet", "targeteffect"), targetEntityEffect);
 
         KeyBindingHelper.registerKeyBinding(InfinityGauntletKeybinds.CHANGE_POWER);
-
-        //CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> mycommand.register(dispatcher));
-
-        //ServerLifecycleEvents.SERVER_STARTED.register(new serverStartCallback());
 
         ServerEntityEvents.ENTITY_LOAD.register(new ItemLoadEvent());
 

@@ -38,7 +38,7 @@ public class MindGem extends Item {
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
         if (!world.isClient()) {
-            mindGemUse(world, user);
+            mindGemUse(world, user, false);
         }
         return TypedActionResult.pass(user.getStackInHand(hand));
     }

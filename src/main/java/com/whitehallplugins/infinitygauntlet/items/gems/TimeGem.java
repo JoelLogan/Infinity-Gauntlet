@@ -38,7 +38,7 @@ public class TimeGem extends Item {
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
         if (!world.isClient()) {
-            timeGemUse(world, user);
+            timeGemUse(world, user, false);
         }
         return TypedActionResult.pass(user.getStackInHand(hand));
     }
