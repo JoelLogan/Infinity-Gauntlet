@@ -5,6 +5,7 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectCategory;
 import net.minecraft.entity.mob.HostileEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 
 import java.util.Objects;
@@ -31,6 +32,12 @@ public class TargetEntityEffect extends StatusEffect {
                             UUID uuid = UUID.fromString(s.split("\\.")[1]);
                             if (Objects.requireNonNull(serverWorld.getEntity(uuid)).isAlive()) {
                                 ((HostileEntity) entity).setTarget((LivingEntity) serverWorld.getEntity(uuid));
+                                if (serverWorld.getEntity(uuid) instanceof PlayerEntity) {
+                                    if (((PlayerEntity) Objects.requireNonNull(serverWorld.getEntity(uuid))).isCreative() || (Objects.requireNonNull(serverWorld.getEntity(uuid))).isSpectator()){
+                                        entity.removeStatusEffect(InfinityGauntlet.targetEntityEffect);
+                                        entity.removeCommandTag(s);
+                                    }
+                                }
                             }
                             else {
                                 entity.removeStatusEffect(InfinityGauntlet.targetEntityEffect);

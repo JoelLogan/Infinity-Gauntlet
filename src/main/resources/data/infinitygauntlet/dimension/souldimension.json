@@ -1,0 +1,11 @@
+{
+  "type": "infinitygauntlet:souldimension_type",
+  "generator": {
+    "type": "minecraft:noise",
+    "settings": "infinitygauntlet:souldimensionnoise",
+    "biome_source": {
+      "type": "minecraft:fixed",
+      "biome": "infinitygauntlet:soulbiome"
+    }
+  }
+}

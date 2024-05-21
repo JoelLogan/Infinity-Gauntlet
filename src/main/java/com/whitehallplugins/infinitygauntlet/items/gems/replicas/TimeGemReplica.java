@@ -32,13 +32,4 @@ public class TimeGemReplica extends Item {
         super.appendTooltip(stack, world, tooltip, context);
     }
 
-    @Override
-    public int getEnchantability() {
-        return 0;
-    }
-
-    @Override
-    public boolean canRepair(ItemStack stack, ItemStack ingredient) {
-        return false;
-    }
 }

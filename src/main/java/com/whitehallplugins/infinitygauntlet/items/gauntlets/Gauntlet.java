@@ -32,12 +32,16 @@ public class Gauntlet extends BowItem {
         if (user instanceof PlayerEntity) {
             int charge = (getMaxUseTime(stack) - remainingUseTicks);
             if (world.isClient()) {
-                if (charge >= 0 && charge <= 30) { //TODO: Make scaling for the different charge times
-                    stack.setDamage(stack.getMaxDamage() - (int) Math.min(charge * 3.33, stack.getMaxDamage() - 1));
+                if (charge >= 0 && charge < getChargeTime(stack)) {
+                    double chargingIncrement = (double) stack.getMaxDamage() / getChargeTime(stack);
+                    stack.setDamage(stack.getMaxDamage() - (int) Math.min(charge * chargingIncrement, stack.getMaxDamage() - 1));
+                }
+                else if (charge == getChargeTime(stack)){
+                    setHideDurabilityBar(stack, true);
                 }
             } else {
-                if (charge == getChargeTime(stack)) { // TODO: MOVE HIDE DURATION BAR TO HERE
-                    world.playSound(null, user.getX(), user.getY(), user.getZ(), SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.PLAYERS, 0.75f, 2.0f);
+                if (charge == getChargeTime(stack)) {
+                    world.playSound(null, user.getX(), user.getY(), user.getZ(), SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.PLAYERS, 0.75f, 0.0f);
                 }
             }
         }
@@ -45,13 +49,13 @@ public class Gauntlet extends BowItem {
     }
 
     private int getChargeTime(ItemStack stack) {
-        return switch (getCustomModelData(stack)) { // TODO: Find Correct Values
-            case 0 -> 30; // POWER
-            case 1 -> 31; // SPACE
-            case 2 -> 32; // TIME
-            case 3 -> 33; // MIND
-            case 4 -> 34; // REALITY
-            case 5 -> 35; // SOUL
+        return switch (getCustomModelData(stack)) {
+            case 0 -> 200; // POWER
+            case 1 -> 20; // SPACE
+            case 2 -> 40; // TIME
+            case 3 -> 20; // MIND
+            case 4 -> 40; // REALITY
+            case 5 -> 40; // SOUL
             default -> 0;
         };
     }
@@ -63,7 +67,7 @@ public class Gauntlet extends BowItem {
 
     @Override
     public float getMiningSpeedMultiplier(ItemStack stack, BlockState state) {
-        return 150.0f;
+        return 200.0f;
     }
 
     @Override
@@ -73,11 +77,7 @@ public class Gauntlet extends BowItem {
         }
         else {
             int charge = getMaxUseTime(stack) - remainingUseTicks;
-            boolean charged = false;
-            if (charge >= getChargeTime(stack)) {
-                user.sendMessage(Text.literal("You fully charged the gauntlet")); // TODO: REMOVE ME
-                charged = true;
-            }
+            boolean charged = charge >= getChargeTime(stack);
             switch (getCustomModelData(stack)) {
                 case 0: // POWER
                     powerGemUse(world, (PlayerEntity) user, charged);
@@ -121,9 +121,12 @@ public class Gauntlet extends BowItem {
         stack.setNbt(nbt);
     }
 
-    public static void setCustomModelData(ItemStack stack, int customModelData) {
+    public static void setCustomModelData(PlayerEntity player, ItemStack stack, int customModelData) {
         NbtCompound tag = stack.getOrCreateNbt();
         tag.putInt("CustomModelData", customModelData);
+        if (stack.getItem() instanceof BowItem){
+            player.clearActiveItem();
+        }
         stack.setNbt(tag);
     }
 
@@ -157,7 +160,7 @@ public class Gauntlet extends BowItem {
     public void onCraftByPlayer(ItemStack stack, World world, PlayerEntity player) {
         if (!world.isClient()) {
             setHideDurabilityBar(stack, true);
-            setCustomModelData(stack, 0);
+            setCustomModelData(player, stack, 0);
         }
         super.onCraftByPlayer(stack, world, player);
     }
@@ -184,7 +187,7 @@ public class Gauntlet extends BowItem {
     public static void swapPower(PlayerEntity player, ItemStack stack) {
         switch(getCustomModelData(stack)){
             case 1: // FROM SPACE TO TIME
-                setCustomModelData(stack, 2);
+                setCustomModelData(player, stack, 2);
                 sendCurrentMode(player, 2);
                 break;
             case 2: // FROM TIME TO MIND
@@ -196,12 +199,12 @@ public class Gauntlet extends BowItem {
                     }
                     catch (NullPointerException ignored) {}
                 }
-                setCustomModelData(stack, 3);
+                setCustomModelData(player, stack, 3);
                 sendCurrentMode(player, 3);
                 break;
             case 3: // FROM MIND TO REALITY
                 setStackGlowing(stack, false);
-                setCustomModelData(stack, 4);
+                setCustomModelData(player, stack, 4);
                 sendCurrentMode(player, 4);
                 break;
             case 4: // FROM REALITY TO SOUL
@@ -214,16 +217,16 @@ public class Gauntlet extends BowItem {
                     }
                     catch (NullPointerException ignored) {}
                 }
-                setCustomModelData(stack, 5);
+                setCustomModelData(player, stack, 5);
                 sendCurrentMode(player, 5);
                 break;
             case 5: // FROM SOUL TO POWER
                 setStackGlowing(stack, false);
-                setCustomModelData(stack, 0);
+                setCustomModelData(player, stack, 0);
                 sendCurrentMode(player, 0);
                 break;
             default: // FROM POWER TO SPACE
-                setCustomModelData(stack, 1);
+                setCustomModelData(player, stack, 1);
                 sendCurrentMode(player, 1);
                 break;
         }

@@ -3,7 +3,6 @@ package com.whitehallplugins.infinitygauntlet.items.gems;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
@@ -16,19 +15,10 @@ public class MindGem extends Item {
     }
 
     @Override
-    public int getEnchantability() {
-        return 0;
-    }
-
-    @Override
-    public boolean canRepair(ItemStack stack, ItemStack ingredient) {
-        return false;
-    }
-
-    @Override
     public boolean isDamageable() {
         return false;
     }
+
 
     @Override
     public boolean allowContinuingBlockBreaking(PlayerEntity player, ItemStack oldStack, ItemStack newStack) {

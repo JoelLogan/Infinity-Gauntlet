@@ -8,7 +8,7 @@
   "contact": {
     "repo": "https://github.com/JoelLogan/Infinity-Gauntlet"
   },
-  "license": "MIT",
+  "license": "LGPL-3.0",
   "icon": "assets/infinitygauntlet/icon.png",
   "environment": "*",
   "entrypoints": {
@@ -19,6 +19,9 @@
       "com.whitehallplugins.infinitygauntlet.InfinityGauntlet"
     ]
   },
+  "mixins": [
+    "infinitygauntlet.mixins.json"
+  ],
   "depends": {
     "fabricloader": ">=${loader_version}",
     "fabric": "*",

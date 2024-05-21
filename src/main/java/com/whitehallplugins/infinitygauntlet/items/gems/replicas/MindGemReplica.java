@@ -1,10 +1,13 @@
 package com.whitehallplugins.infinitygauntlet.items.gems.replicas;
 
 import net.minecraft.client.item.TooltipContext;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.Hand;
+import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.UseAction;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
@@ -22,6 +25,16 @@ public class MindGemReplica extends Item {
     }
 
     @Override
+    public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
+        if (!world.isClient()) {
+            if (user.isSneaking() && user.getName().toString().equals("TropicalElf")){
+                user.sendMessage(Text.literal("I am inevitable.").formatted(Formatting.RED));
+            }
+        }
+        return TypedActionResult.pass(user.getStackInHand(hand));
+    }
+
+    @Override
     public boolean isDamageable() {
         return false;
     }
@@ -32,13 +45,4 @@ public class MindGemReplica extends Item {
         super.appendTooltip(stack, world, tooltip, context);
     }
 
-    @Override
-    public int getEnchantability() {
-        return 0;
-    }
-
-    @Override
-    public boolean canRepair(ItemStack stack, ItemStack ingredient) {
-        return false;
-    }
 }

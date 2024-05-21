@@ -1,0 +1,38 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "RMC",
+    "PST",
+    "GLG"
+  ],
+  "key": {
+    "L": {
+      "item": "infinitygauntlet:soul/gem"
+    },
+    "P": {
+      "item": "infinitygauntlet:power/gem"
+    },
+    "T": {
+      "item": "infinitygauntlet:time/gem"
+    },
+    "R": {
+      "item": "infinitygauntlet:reality/gem"
+    },
+    "M": {
+      "item": "infinitygauntlet:mind/gem"
+    },
+    "C": {
+      "item": "infinitygauntlet:space/gem"
+    },
+    "S": {
+      "item": "minecraft:nether_star"
+    },
+    "G": {
+      "item": "minecraft:gold_block"
+    }
+  },
+  "result": {
+    "item": "infinitygauntlet:gauntlet/gauntlet",
+    "count": 1
+  }
+}
