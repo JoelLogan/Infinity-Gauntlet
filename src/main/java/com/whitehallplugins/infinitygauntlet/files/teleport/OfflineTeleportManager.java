@@ -1,4 +1,4 @@
-package com.whitehallplugins.infinitygauntlet.files;
+package com.whitehallplugins.infinitygauntlet.files.teleport;
 
 import com.google.gson.*;
 import net.fabricmc.loader.api.FabricLoader;
@@ -8,13 +8,18 @@ import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Logger;
+
+import static com.whitehallplugins.infinitygauntlet.InfinityGauntlet.MOD_ID;
 
 public class OfflineTeleportManager {
-    private static final File TELEPORT_DATA_FILE = new File(FabricLoader.getInstance().getConfigDir().resolve("offline_teleport_data.json").toString());
+
+    private static final File TELEPORT_DATA_FILE = new File(FabricLoader.getInstance().getConfigDir().resolve(MOD_ID + "/offline_teleport_data.json").toString());
     private static final Map<UUID, NbtCompound> teleportDataMap = new HashMap<>();
 
     public static void loadTeleportData() {
         if (!TELEPORT_DATA_FILE.exists()) {
+            new File(FabricLoader.getInstance().getConfigDir().resolve(MOD_ID).toString()).mkdir();
             return;
         }
 
@@ -26,7 +31,7 @@ public class OfflineTeleportManager {
                 teleportDataMap.put(uuid, nbt);
             }
         } catch (IOException e) {
-            System.out.println("Error loading teleport data: " + e.getMessage());
+            Logger.getLogger(MOD_ID).warning("Error loading teleport data: " + e.getMessage());
         }
     }
 
@@ -40,7 +45,7 @@ public class OfflineTeleportManager {
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
             gson.toJson(json, writer);
         } catch (IOException e) {
-            System.out.println("Error saving teleport data: " + e.getMessage());
+            Logger.getLogger(MOD_ID).warning("Error saving teleport data: " + e.getMessage());
         }
     }
 

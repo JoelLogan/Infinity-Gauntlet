@@ -1,4 +1,4 @@
-package com.whitehallplugins.infinitygauntlet.files;
+package com.whitehallplugins.infinitygauntlet.files.teleport;
 
 import net.minecraft.nbt.*;
 import com.google.gson.JsonObject;

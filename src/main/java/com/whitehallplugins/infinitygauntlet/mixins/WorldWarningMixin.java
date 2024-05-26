@@ -8,25 +8,14 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 @Mixin(IntegratedServerLoader.class)
 public abstract class WorldWarningMixin {
 
-    // Set canShowBackupPrompt = false
-    @ModifyVariable(
-            method = "start(Lnet/minecraft/world/level/storage/LevelStorage$Session;Lcom/mojang/serialization/Dynamic;ZZLjava/lang/Runnable;)V",
-            at = @At("HEAD"),
-            argsOnly = true,
-            index = 4
-    )
-    private boolean removeAdviceOnLoad(boolean original) {
+    @ModifyVariable(method = "start(Lnet/minecraft/world/level/storage/LevelStorage$Session;Lcom/mojang/serialization/Dynamic;ZZLjava/lang/Runnable;)V",
+            at = @At("HEAD"), argsOnly = true, index = 4)
+    private boolean removeWarningOnLoad(boolean original) {
         return false;
     }
 
-    // Set bypassWarnings = true
-    @ModifyVariable(
-            method = "tryLoad",
-            at = @At("HEAD"),
-            argsOnly = true,
-            index = 4
-    )
-    private static boolean removeAdviceOnCreation(boolean original) {
+    @ModifyVariable(method = "tryLoad", at = @At("HEAD"), argsOnly = true, index = 4)
+    private static boolean removeWarningOnCreation(boolean original) {
         return true;
     }
 }

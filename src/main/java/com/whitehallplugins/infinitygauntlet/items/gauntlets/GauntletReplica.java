@@ -32,14 +32,4 @@ public class GauntletReplica extends Item {
         tooltip.add(Text.translatable("item.infinitygauntlet.gauntlet.gauntletreplica.tooltip").formatted(Formatting.GRAY));
         super.appendTooltip(stack, world, tooltip, context);
     }
-
-    @Override
-    public int getEnchantability() {
-        return 0;
-    }
-
-    @Override
-    public boolean canRepair(ItemStack stack, ItemStack ingredient) {
-        return false;
-    }
 }

@@ -1,5 +1,7 @@
 package com.whitehallplugins.infinitygauntlet.items.gauntlets;
 
+import com.whitehallplugins.infinitygauntlet.InfinityGauntlet;
+import com.whitehallplugins.infinitygauntlet.files.config.DefaultModConfig;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.item.TooltipContext;
 import net.minecraft.entity.Entity;
@@ -50,12 +52,12 @@ public class Gauntlet extends BowItem {
 
     private int getChargeTime(ItemStack stack) {
         return switch (getCustomModelData(stack)) {
-            case 0 -> 200; // POWER
-            case 1 -> 20; // SPACE
-            case 2 -> 40; // TIME
-            case 3 -> 20; // MIND
-            case 4 -> 40; // REALITY
-            case 5 -> 40; // SOUL
+            case 0 -> InfinityGauntlet.CONFIG.getOrDefault("powerGauntletChargeTime", DefaultModConfig.powerGauntletChargeTime); // POWER
+            case 1 -> InfinityGauntlet.CONFIG.getOrDefault("spaceGauntletChargeTime", DefaultModConfig.spaceGauntletChargeTime);  // SPACE
+            case 2 -> InfinityGauntlet.CONFIG.getOrDefault("timeGauntletChargeTime", DefaultModConfig.timeGauntletChargeTime);  // TIME
+            case 3 -> InfinityGauntlet.CONFIG.getOrDefault("mindGauntletChargeTime", DefaultModConfig.mindGauntletChargeTime);  // MIND
+            case 4 -> InfinityGauntlet.CONFIG.getOrDefault("realityGauntletChargeTime", DefaultModConfig.realityGauntletChargeTime);  // REALITY
+            case 5 -> InfinityGauntlet.CONFIG.getOrDefault("soulGauntletChargeTime", DefaultModConfig.soulGauntletChargeTime);  // SOUL
             default -> 0;
         };
     }
@@ -67,7 +69,7 @@ public class Gauntlet extends BowItem {
 
     @Override
     public float getMiningSpeedMultiplier(ItemStack stack, BlockState state) {
-        return 200.0f;
+        return InfinityGauntlet.CONFIG.getOrDefault("infinityGauntletMineSpeed", DefaultModConfig.infinityGauntletMineSpeed);
     }
 
     @Override
@@ -107,14 +109,12 @@ public class Gauntlet extends BowItem {
         ItemStack stack = player.getStackInHand(hand);
         if (world.isClient()) {
             stack.setDamage(100);
-            System.out.println("Gauntlet used by " + player.getName().toString());
             setHideDurabilityBar(stack, false);
         }
         return TypedActionResult.consume(stack);
     }
 
     public static void setHideDurabilityBar(ItemStack stack, boolean hide) {
-        System.out.println("setHideDurabilityBar called: " + hide);
         NbtCompound nbt = stack.getOrCreateNbt();
         nbt.putBoolean("Unbreakable", hide);
         nbt.putInt("HideFlags", 4);

@@ -4,12 +4,12 @@
   "package": "com.whitehallplugins.infinitygauntlet.mixins",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "FurnaceBlockEntityMixin",
     "PlayerManagerMixin"
   ],
   "client": [
     "WorldWarningMixin"
   ],
-  "server": [],
   "injectors": {
     "defaultRequire": 1
   }

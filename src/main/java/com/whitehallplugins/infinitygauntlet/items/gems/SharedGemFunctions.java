@@ -1,7 +1,8 @@
 package com.whitehallplugins.infinitygauntlet.items.gems;
 
 import com.whitehallplugins.infinitygauntlet.InfinityGauntlet;
-import com.whitehallplugins.infinitygauntlet.files.OfflineTeleportManager;
+import com.whitehallplugins.infinitygauntlet.files.config.DefaultModConfig;
+import com.whitehallplugins.infinitygauntlet.files.teleport.OfflineTeleportManager;
 import com.whitehallplugins.infinitygauntlet.items.gauntlets.Gauntlet;
 import net.fabricmc.fabric.api.dimension.v1.FabricDimensions;
 import net.minecraft.block.*;
@@ -48,7 +49,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Predicate;
+import java.util.logging.Logger;
 
+import static com.whitehallplugins.infinitygauntlet.InfinityGauntlet.MOD_ID;
+import static com.whitehallplugins.infinitygauntlet.InfinityGauntlet.CONFIG;
 import static com.whitehallplugins.infinitygauntlet.InfinityGauntlet.SOUL_DIMENSION;
 
 public class SharedGemFunctions {
@@ -74,11 +78,11 @@ public class SharedGemFunctions {
             Blocks.GRAY_STAINED_GLASS, Blocks.LIGHT_GRAY_STAINED_GLASS, Blocks.CYAN_STAINED_GLASS,
             Blocks.PURPLE_STAINED_GLASS, Blocks.BLUE_STAINED_GLASS, Blocks.BROWN_STAINED_GLASS,
             Blocks.GREEN_STAINED_GLASS, Blocks.RED_STAINED_GLASS, Blocks.BLACK_STAINED_GLASS);
-    private static final int MAX_DESPAWNED_ENTITIES = 25;
-    private static final int BLOCK_CHANGE_RADIUS = 32;
-    private static final int BLOCK_CHANGE_THREAD_TIME = 10;
-    private static final int THREAD_POOL_SIZE = 5;
-    private static final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(THREAD_POOL_SIZE);
+    private static final int ENTITY_RAYCAST_DISTANCE = CONFIG.getOrDefault("raycastEntityDistance", DefaultModConfig.raycastEntityDistance);
+    private static final int BLOCK_RAYCAST_DISTANCE = CONFIG.getOrDefault("raycastBlocksDistance", DefaultModConfig.raycastBlocksDistance);
+    private static final int COMBINED_RAYCAST_DISTANCE = CONFIG.getOrDefault("raycastCombinedDistance", DefaultModConfig.raycastCombinedDistance);
+    private static final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(CONFIG.getOrDefault(
+            "realityGauntletConcurrentThreads", DefaultModConfig.realityGauntletConcurrentThreads));
     private static final ThreadPoolExecutor threadPoolExecutor = (ThreadPoolExecutor) executorService;
     public static final String SOUL_GEM_NBT_ID = "SoulGemEntities";
     public static final String MIND_GEM_NBT_ID = "HostileEntity";
@@ -172,7 +176,6 @@ public class SharedGemFunctions {
 
         for (Entity entity : world.getOtherEntities(player, box, (entity) ->
                 (!entity.isSpectator() && !disallowedEntities.contains(entity.getType())))) {
-            System.out.println("Entity: " + entity.getType().getName() + " " + entity.getUuidAsString());
             Box entityBox = entity.getBoundingBox();
 
             // Check each face of the hitbox
@@ -239,7 +242,7 @@ public class SharedGemFunctions {
 
     private static void createExplosionParticles(ServerWorld world, Vec3d start, Vec3d end, boolean explosion) {
         double distance = start.distanceTo(end);
-        int numParticles = (int) distance;
+        int numParticles = (int) (distance * 0.85);
 
         Vec3d step = end.subtract(start).multiply(1.0 / numParticles);
 
@@ -261,7 +264,7 @@ public class SharedGemFunctions {
                 }
                 break;
             }
-            world.spawnParticles(ParticleTypes.FLAME, particlePos.x, particlePos.y, particlePos.z, 1, 0.25, 0.25, 0.25, 0.5);
+            world.spawnParticles(ParticleTypes.FLAME, particlePos.x, particlePos.y, particlePos.z, 1, 0.25, 0.25, 0.25, 0.4);
         }
     }
 
@@ -285,7 +288,6 @@ public class SharedGemFunctions {
         else {
             targetEntity.saveNbt(entityDataForList);
         }
-        System.out.println("Despawned Entity: " + targetEntity.getType().getName());
         entityList.add(entityDataForList);
         glowingItem.put(SOUL_GEM_NBT_ID, entityList);
     }
@@ -299,32 +301,30 @@ public class SharedGemFunctions {
         NbtCompound lastDespawnedEntity = (NbtCompound) entityList.get(entityList.size() - 1);
         if (lastDespawnedEntity != null) {
             try {
-                BlockHitResult result = (BlockHitResult) raycast(summoner, 64, 1, false, false);
+                BlockHitResult result = (BlockHitResult) raycast(summoner, BLOCK_RAYCAST_DISTANCE, 1, false, false);
                 Vec3d targetPos = result.getPos();
-                if (lastDespawnedEntity.getString("id").equals(SOUL_PLAYER_NBT_ID)) {
-                    if (gauntlet) {
-                        UUID targetUUID = lastDespawnedEntity.getUuid("UUID");
-                        if (Objects.requireNonNull(world.getServer()).getPlayerManager().getPlayer(targetUUID) != null) {
-                            ServerPlayerEntity player = Objects.requireNonNull(world.getServer()).getPlayerManager().getPlayer(Objects.requireNonNull(lastDespawnedEntity.getUuid("UUID")));
-                            assert player != null;
-                            player.setSpawnPoint(summoner.getWorld().getRegistryKey(), new BlockPos((int) targetPos.getX(), (int) targetPos.getY(), (int) targetPos.getZ()), 0, true, false);
-                            spawnPortalParticles((ServerWorld) world, targetPos, true);
-                            TeleportTarget target = new TeleportTarget(targetPos, player.getVelocity(), player.getYaw(), player.getPitch());
-                            FabricDimensions.teleport(player, (ServerWorld) summoner.getWorld(), target);
-                        }
-                        else {
-                            NbtCompound teleportData = new NbtCompound();
-                            teleportData.putDouble("TargetX", targetPos.getX());
-                            teleportData.putDouble("TargetY", targetPos.getY());
-                            teleportData.putDouble("TargetZ", targetPos.getZ());
-                            teleportData.putString("World", summoner.getWorld().getRegistryKey().getValue().toString());
-
-                            OfflineTeleportManager.setTeleportData(targetUUID, teleportData);
-                            summoner.sendMessage(Text.literal("The stored player is offline. They will spawn" +
-                                    " at the targeted location when they log in"));
-                        }
-                        entityList.remove(entityList.size() - 1);
+                if (lastDespawnedEntity.getString("id").equals(SOUL_PLAYER_NBT_ID) && gauntlet) {
+                    UUID targetUUID = lastDespawnedEntity.getUuid("UUID");
+                    if (Objects.requireNonNull(world.getServer()).getPlayerManager().getPlayer(targetUUID) != null) {
+                        ServerPlayerEntity player = Objects.requireNonNull(world.getServer()).getPlayerManager().getPlayer(Objects.requireNonNull(lastDespawnedEntity.getUuid("UUID")));
+                        assert player != null;
+                        player.setSpawnPoint(summoner.getWorld().getRegistryKey(), new BlockPos((int) targetPos.getX(), (int) targetPos.getY(), (int) targetPos.getZ()), 0, true, false);
+                        spawnPortalParticles((ServerWorld) world, targetPos, true);
+                        TeleportTarget target = new TeleportTarget(targetPos, player.getVelocity(), player.getYaw(), player.getPitch());
+                        FabricDimensions.teleport(player, (ServerWorld) summoner.getWorld(), target);
                     }
+                    else {
+                        NbtCompound teleportData = new NbtCompound();
+                        teleportData.putDouble("TargetX", targetPos.getX());
+                        teleportData.putDouble("TargetY", targetPos.getY());
+                        teleportData.putDouble("TargetZ", targetPos.getZ());
+                        teleportData.putString("World", summoner.getWorld().getRegistryKey().getValue().toString());
+
+                        OfflineTeleportManager.setTeleportData(targetUUID, teleportData);
+                        summoner.sendMessage(Text.literal("The stored player is offline. They will spawn" +
+                                " at the targeted location when they log in"));
+                    }
+                    entityList.remove(entityList.size() - 1);
                 }
                 else {
                     Optional<EntityType<?>> nbtType = EntityType.fromNbt(lastDespawnedEntity);
@@ -352,7 +352,8 @@ public class SharedGemFunctions {
     }
 
     private static boolean isThreadPoolBusy() {
-        return threadPoolExecutor.getActiveCount() >= THREAD_POOL_SIZE;
+        return threadPoolExecutor.getActiveCount() >= CONFIG.getOrDefault("realityGauntletConcurrentThreads",
+                DefaultModConfig.realityGauntletConcurrentThreads);
     }
 
     private static void changeBlocksInSphereRecursive(PlayerEntity user, World world, BlockPos centerPos, BlockState targetBlock, Block changeTo) {
@@ -369,7 +370,8 @@ public class SharedGemFunctions {
 
             while (!queue.isEmpty()) {
                 long currentTime = System.currentTimeMillis();
-                if (currentTime - lastIterationTime < BLOCK_CHANGE_THREAD_TIME) {
+                if (currentTime - lastIterationTime < CONFIG.getOrDefault("realityGauntletBlockChangeThreadTime",
+                        DefaultModConfig.realityGauntletBlockChangeThreadTime)) {
                     continue;
                 }
                 BlockPos currentPos = queue.poll();
@@ -383,7 +385,8 @@ public class SharedGemFunctions {
                                 for (int zOffset = -1; zOffset <= 1; zOffset++) {
                                     assert currentPos != null;
                                     BlockPos neighborPos = currentPos.add(xOffset, yOffset, zOffset);
-                                    if (!visited.contains(neighborPos) && diamondDistance(centerPos, neighborPos) <= BLOCK_CHANGE_RADIUS) {
+                                    if (!visited.contains(neighborPos) && diamondDistance(centerPos, neighborPos) <=
+                                            CONFIG.getOrDefault("realityGemBlockRadius", DefaultModConfig.realityGauntletBlockRadius)) {
                                         queue.add(neighborPos);
                                     }
                                     // CIRCLE MODE: centerPos.getSquaredDistance(neighborPos) <= BLOCK_CHANGE_RADIUS * BLOCK_CHANGE_RADIUS
@@ -414,72 +417,70 @@ public class SharedGemFunctions {
     }
 
     public static void spawnPortalParticles(ServerWorld world, Vec3d pos, boolean plusOne) {
-        double y = pos.getY();
         if (plusOne) {
-            y += 1;
+            pos.add(0,1,0);
         }
-        world.spawnParticles(ParticleTypes.PORTAL, pos.getX(), y, pos.getZ(), 60, 0.5, 0.5, 0.5, 0.0);
+        world.spawnParticles(ParticleTypes.PORTAL, pos.getX(), pos.getY(), pos.getZ(), 60, 0.5, 0.5, 0.5, 0.0);
     }
 
     public static void mindGemUse(World world, PlayerEntity user, boolean gauntlet) {
         if (!gauntlet) {
-            try {
-                System.out.println("Right Clicked Mind Gem");
-                ItemStack stackInHand = user.getStackInHand(user.getActiveHand());
-                if (stackInHand.getItem() instanceof MindGem || stackInHand.getItem() instanceof Gauntlet) {
-                    NbtCompound glowingItem = stackInHand.getOrCreateNbt();
-                    EntityHitResult entityHitResult;
-                    try {
-                        entityHitResult = (EntityHitResult) raycast(user, 64, 2, false, false);
-                        if (!entityHitResult.getType().equals(HitResult.Type.MISS)) {
-                            Entity targetEntity = entityHitResult.getEntity();
-                            if (!glowingItem.contains(MIND_GEM_NBT_ID)) {
-                                if (targetEntity instanceof HostileEntity) {
+            if (CONFIG.getOrDefault("isMindGemEnabled", DefaultModConfig.isMindGemEnabled)) {
+                try {
+                    ItemStack stackInHand = user.getStackInHand(user.getActiveHand());
+                    if (stackInHand.getItem() instanceof MindGem || stackInHand.getItem() instanceof Gauntlet) {
+                        NbtCompound glowingItem = stackInHand.getOrCreateNbt();
+                        EntityHitResult entityHitResult;
+                        try {
+                            entityHitResult = (EntityHitResult) raycast(user, ENTITY_RAYCAST_DISTANCE, 2, false, false);
+                            if (!entityHitResult.getType().equals(HitResult.Type.MISS)) {
+                                Entity targetEntity = entityHitResult.getEntity();
+                                if (!glowingItem.contains(MIND_GEM_NBT_ID) && targetEntity instanceof HostileEntity) {
                                     setStackGlowing(stackInHand, true);
                                     glowingItem.putUuid(MIND_GEM_NBT_ID, targetEntity.getUuid());
-                                }
-                            } else {
-                                if (targetEntity instanceof LivingEntity) { // && !(targetEntity instanceof PlayerEntity) - Remove players from the list (If wanted)
-                                    if (targetEntity instanceof PlayerEntity){
-                                        if (((PlayerEntity) targetEntity).isCreative() || targetEntity.isSpectator()){
+                                } else {
+                                    if (targetEntity instanceof LivingEntity) { // && !(targetEntity instanceof PlayerEntity) - Remove players from the list (If wanted)
+                                        if (targetEntity instanceof PlayerEntity && ((PlayerEntity) targetEntity).isCreative() || targetEntity.isSpectator()) {
                                             return;
                                         }
-                                    }
-                                    if (!targetEntity.getUuid().equals(glowingItem.getUuid(MIND_GEM_NBT_ID))) {
-                                        user.sendMessage(Text.literal("You have targeted " + targetEntity.getUuidAsString() + "with " + glowingItem.getUuid(MIND_GEM_NBT_ID).toString()));
-                                        ServerWorld serverWorld = (ServerWorld) world;
-                                        if (Objects.requireNonNull(serverWorld.getEntity(glowingItem.getUuid(MIND_GEM_NBT_ID))).isAlive()) {
-                                            HostileEntity entity = (HostileEntity) serverWorld.getEntity(glowingItem.getUuid(MIND_GEM_NBT_ID));
-                                            assert entity != null;
-                                            for (String tag : entity.getCommandTags()){
-                                                if (tag.startsWith("MindGemControlled")){
-                                                    entity.removeCommandTag(tag);
+                                        if (!targetEntity.getUuid().equals(glowingItem.getUuid(MIND_GEM_NBT_ID))) {
+                                            ServerWorld serverWorld = (ServerWorld) world;
+                                            if (Objects.requireNonNull(serverWorld.getEntity(glowingItem.getUuid(MIND_GEM_NBT_ID))).isAlive()) {
+                                                HostileEntity entity = (HostileEntity) serverWorld.getEntity(glowingItem.getUuid(MIND_GEM_NBT_ID));
+                                                assert entity != null;
+                                                for (String tag : entity.getCommandTags()) {
+                                                    if (tag.startsWith("MindGemControlled")) {
+                                                        entity.removeCommandTag(tag);
+                                                    }
                                                 }
+                                                entity.setPersistent();
+                                                entity.addCommandTag("MindGemControlled." + targetEntity.getUuidAsString());
+                                                entity.addStatusEffect(new StatusEffectInstance(InfinityGauntlet.targetEntityEffect, StatusEffectInstance.INFINITE));
+                                                entity.setTarget((LivingEntity) targetEntity);
                                             }
-                                            entity.addCommandTag("MindGemControlled." + targetEntity.getUuidAsString());
-                                            entity.addStatusEffect(new StatusEffectInstance(InfinityGauntlet.targetEntityEffect, StatusEffectInstance.INFINITE));
-                                            entity.setTarget((LivingEntity) targetEntity);
+                                            setStackGlowing(stackInHand, false);
+                                            glowingItem.remove(MIND_GEM_NBT_ID);
                                         }
-                                        setStackGlowing(stackInHand, false);
-                                        glowingItem.remove(MIND_GEM_NBT_ID);
                                     }
                                 }
                             }
+                        } catch (NullPointerException ignored) {
+                            glowingItem.remove("Enchantments");
+                            glowingItem.remove(MIND_GEM_NBT_ID);
+                            return;
                         }
-                    } catch (NullPointerException ignored) {
-                        glowingItem.remove("Enchantments");
-                        glowingItem.remove(MIND_GEM_NBT_ID);
-                        return;
+                        stackInHand.setNbt(glowingItem);
                     }
-                    stackInHand.setNbt(glowingItem);
+                } catch (NullPointerException e) {
+                    Logger.getLogger(MOD_ID).warning("Raycast error in mind gem action: " + e);
                 }
-            } catch (NullPointerException ignored) {}
+            }
         }
         else {
-            try {
-                EntityHitResult entityHitResult = (EntityHitResult) raycast(user, 64, 2, false, false);
-                if (!entityHitResult.getType().equals(HitResult.Type.MISS)) {
-                    if (entityHitResult.getEntity() instanceof PlayerEntity targetEntity) {
+            if (CONFIG.getOrDefault("isMindGemGauntletEnabled", DefaultModConfig.isMindGemGauntletEnabled)) {
+                try {
+                    EntityHitResult entityHitResult = (EntityHitResult) raycast(user, ENTITY_RAYCAST_DISTANCE, 2, false, false);
+                    if (!entityHitResult.getType().equals(HitResult.Type.MISS) && entityHitResult.getEntity() instanceof PlayerEntity targetEntity) {
                         StatusEffectInstance weakness = new StatusEffectInstance(StatusEffects.WEAKNESS, 3600, 255, false, true);
                         StatusEffectInstance nausea = new StatusEffectInstance(StatusEffects.NAUSEA, 3600, 255, false, true);
                         StatusEffectInstance blindness = new StatusEffectInstance(StatusEffects.BLINDNESS, 1200, 255, false, true);
@@ -491,9 +492,10 @@ public class SharedGemFunctions {
                         targetEntity.addStatusEffect(blindness);
                         targetEntity.addExperienceLevels(-Integer.MAX_VALUE);
                     }
+                } catch (NullPointerException e) {
+                    Logger.getLogger(MOD_ID).warning("Raycast error in mind gem action: " + e);
                 }
             }
-            catch (NullPointerException ignored) {}
         }
         /* GEM SHOULD BE FINISHED
          * right click = control hostile mob to attack another mob, resets target's xp levels (WORKS)
@@ -507,60 +509,61 @@ public class SharedGemFunctions {
         StatusEffectInstance strength = new StatusEffectInstance(StatusEffects.STRENGTH, 9600, 4, false, true);
         StatusEffectInstance resistance = new StatusEffectInstance(StatusEffects.RESISTANCE, 9600, 255, false, true);
         if (!gauntlet) {
-            if (user.isSneaking()) {
-                System.out.println("Shift Right Clicked Power Gem");
-                user.removeStatusEffect(StatusEffects.STRENGTH);
-                user.removeStatusEffect(StatusEffects.RESISTANCE);
-                user.addStatusEffect(strength);
-                user.addStatusEffect(resistance);
-            } else {
-                System.out.println("Right Clicked Power Gem");
-                HitResult target = raycast(user, 64, 3, true, true);
-                if (!target.getType().equals(HitResult.Type.MISS)) {
-                    if (target.getType().equals(HitResult.Type.BLOCK)) {
-                        System.out.println("BLOCK");
-                        Vec3d targetPos = target.getPos();
-                        for (BlockPos blockPos : BlockPos.iterateOutwards(((BlockHitResult) target).getBlockPos(), 1, 1, 1)) {
-                            if (world.getBlockState(blockPos).getBlock().equals(Blocks.WATER)){
-                                targetPos = ((BlockHitResult) target).getBlockPos().toCenterPos();
-                                break;
+            if (CONFIG.getOrDefault("isPowerGemEnabled", DefaultModConfig.isPowerGemEnabled)) {
+                if (user.isSneaking()) {
+                    user.removeStatusEffect(StatusEffects.STRENGTH);
+                    user.removeStatusEffect(StatusEffects.RESISTANCE);
+                    user.addStatusEffect(strength);
+                    user.addStatusEffect(resistance);
+                } else {
+                    HitResult target = raycast(user, COMBINED_RAYCAST_DISTANCE, 3, true, true);
+                    if (!target.getType().equals(HitResult.Type.MISS)) {
+                        if (target.getType().equals(HitResult.Type.BLOCK)) {
+                            Vec3d targetPos = target.getPos();
+                            for (BlockPos blockPos : BlockPos.iterateOutwards(((BlockHitResult) target).getBlockPos(), 1, 1, 1)) {
+                                if (world.getBlockState(blockPos).getBlock().equals(Blocks.WATER)) {
+                                    targetPos = ((BlockHitResult) target).getBlockPos().toCenterPos();
+                                    break;
+                                }
                             }
+                            DamageSource damageSource = new DamageSource(world.getRegistryManager().get(RegistryKeys.DAMAGE_TYPE).entryOf(DamageTypes.EXPLOSION), user);
+                            user.setInvulnerable(true);
+                            world.createExplosion(null, damageSource, new ExplosionBehavior(), targetPos,
+                                    CONFIG.getOrDefault("powerGemExplosionPower", DefaultModConfig.powerGemExplosionPower), false, World.ExplosionSourceType.BLOCK);
+                            user.setInvulnerable(false);
+                        } else if (target.getType().equals(HitResult.Type.ENTITY)) {
+                            EntityHitResult entityTarget = (EntityHitResult) target;
+                            DamageSource damageSource = new DamageSource(world.getRegistryManager().get(RegistryKeys.DAMAGE_TYPE).entryOf(InfinityGauntlet.POWER_GEM_DAMAGE_TYPE), user);
+                            entityTarget.getEntity().damage(damageSource, Float.MAX_VALUE);
                         }
-                        DamageSource damageSource = new DamageSource(world.getRegistryManager().get(RegistryKeys.DAMAGE_TYPE).entryOf(DamageTypes.EXPLOSION), user);
-                        user.setInvulnerable(true);
-                        world.createExplosion(null, damageSource, new ExplosionBehavior(), targetPos, 4.0F, false, World.ExplosionSourceType.BLOCK);
-                        user.setInvulnerable(false);
-                    } else if (target.getType().equals(HitResult.Type.ENTITY)) {
-                        System.out.println("ENTITY");
-                        EntityHitResult entityTarget = (EntityHitResult) target;
-                        DamageSource damageSource = new DamageSource(world.getRegistryManager().get(RegistryKeys.DAMAGE_TYPE).entryOf(InfinityGauntlet.POWER_GEM_DAMAGE_TYPE), user);
-                        entityTarget.getEntity().damage(damageSource, Float.MAX_VALUE);
+                        world.playSound(null, user.getBlockPos(), SoundEvents.ENTITY_GHAST_SHOOT, SoundCategory.HOSTILE);
                     }
-                    world.playSound(null, user.getBlockPos(), SoundEvents.ENTITY_GHAST_SHOOT, SoundCategory.HOSTILE);
                 }
             }
         }
         else {
-            Box box = new Box(user.getBlockPos()).expand(64);
-            Predicate<Entity> predicate = entity -> {
-                if (entity instanceof PlayerEntity) {
-                    if (entity == user){
-                        return false;
+            if (CONFIG.getOrDefault("isPowerGemGauntletEnabled", DefaultModConfig.isPowerGemGauntletEnabled)) {
+                Box box = new Box(user.getBlockPos()).expand(64);
+                Predicate<Entity> predicate = entity -> {
+                    if (entity instanceof PlayerEntity) {
+                        if (entity == user) {
+                            return false;
+                        }
+                        return (!((PlayerEntity) entity).isCreative() && !entity.isSpectator());
                     }
-                    return (!((PlayerEntity) entity).isCreative() && !entity.isSpectator());
-                }
-                return true;
-            };
-            world.getEntitiesByClass(LivingEntity.class, box, predicate).forEach(targetEntity -> {
-                LightningEntity lightning = EntityType.LIGHTNING_BOLT.create(world);
-                assert lightning != null;
-                lightning.refreshPositionAfterTeleport(targetEntity.getX(), targetEntity.getY(), targetEntity.getZ());
-                world.spawnEntity(lightning);
-                if (targetEntity.isAlive()) {
-                    DamageSource damageSource = new DamageSource(world.getRegistryManager().get(RegistryKeys.DAMAGE_TYPE).entryOf(InfinityGauntlet.POWER_GEM_DAMAGE_TYPE), user);
-                    targetEntity.damage(damageSource, Float.MAX_VALUE);
-                }
-            });
+                    return true;
+                };
+                world.getEntitiesByClass(LivingEntity.class, box, predicate).forEach(targetEntity -> {
+                    LightningEntity lightning = EntityType.LIGHTNING_BOLT.create(world);
+                    assert lightning != null;
+                    lightning.refreshPositionAfterTeleport(targetEntity.getX(), targetEntity.getY(), targetEntity.getZ());
+                    world.spawnEntity(lightning);
+                    if (targetEntity.isAlive()) {
+                        DamageSource damageSource = new DamageSource(world.getRegistryManager().get(RegistryKeys.DAMAGE_TYPE).entryOf(InfinityGauntlet.POWER_GEM_DAMAGE_TYPE), user);
+                        targetEntity.damage(damageSource, Float.MAX_VALUE);
+                    }
+                });
+            }
         }
         /* GEM SHOULD BE FINISHED
          * Right click gem = explosion/instakill (max 64 blocks distance) (traced particles) (WORKING)
@@ -571,14 +574,11 @@ public class SharedGemFunctions {
     }
 
     public static void realityGemUse(World world, PlayerEntity user, boolean gauntlet) {
-        if (user.isSneaking()) {
-            System.out.println("Shift Right Clicked Reality Gem");
-            if (user.hasPermissionLevel(4)) {
-                ((ServerPlayerEntity) user).changeGameMode(user.isCreative() ? GameMode.SURVIVAL : GameMode.CREATIVE);
-            }
+        if (user.isSneaking() && user.hasPermissionLevel(4) &&
+                CONFIG.getOrDefault("isRealityGemEnabled", DefaultModConfig.isRealityGemEnabled)) {
+            ((ServerPlayerEntity) user).changeGameMode(user.isCreative() ? GameMode.SURVIVAL : GameMode.CREATIVE);
         } else {
-            System.out.println("Right Clicked Reality Gem");
-            BlockHitResult target = (BlockHitResult) raycast(user, 64, 1, false, false);
+            BlockHitResult target = (BlockHitResult) raycast(user, BLOCK_RAYCAST_DISTANCE, 1, false, false);
             BlockPos targetPos = target.getBlockPos();
             if (!world.getBlockState(targetPos).isAir()) {
                 int currentSlot = user.getInventory().selectedSlot;
@@ -593,11 +593,10 @@ public class SharedGemFunctions {
                 }
                 BlockState targetBlock = world.getBlockState(targetPos);
                 if (!targetBlock.isOf(changeToBlock) && !disallowedBlocks.contains(targetBlock.getBlock())){
-                    if (gauntlet){
-                        System.out.println("STARTING");
-                        changeBlocksInSphereRecursive(user, world, targetPos, world.getBlockState(targetPos), changeToBlock);
+                    if (gauntlet && CONFIG.getOrDefault("isRealityGemGauntletEnabled", DefaultModConfig.isRealityGemGauntletEnabled)){
+                        changeBlocksInSphereRecursive(user, world, targetPos, targetBlock, changeToBlock);
                     }
-                    else {
+                    else if (CONFIG.getOrDefault("isRealityGemEnabled", DefaultModConfig.isRealityGemEnabled)){
                         world.breakBlock(targetPos, false);
                         world.setBlockState(targetPos, changeToBlock.getDefaultState());
                     }
@@ -622,52 +621,49 @@ public class SharedGemFunctions {
                 entityList = glowingItem.getList(SOUL_GEM_NBT_ID, NbtElement.COMPOUND_TYPE);
             }
             if (!user.isSneaking()) {
-                System.out.println("Right Clicked Soul Gem");
-                if (entityList.size() < MAX_DESPAWNED_ENTITIES) {
+                if (entityList.size() < CONFIG.getOrDefault("maxNumberofEntitesInSoulGem", DefaultModConfig.maxNumberofEntitesInSoulGem)) {
                     EntityHitResult entityHitResult;
                     try {
-                        entityHitResult = (EntityHitResult) raycast(user, 64, 2, false, false);
+                        entityHitResult = (EntityHitResult) raycast(user, ENTITY_RAYCAST_DISTANCE, 2, false, false);
                         if (entityHitResult != null && !entityHitResult.getType().equals(HitResult.Type.MISS)) {
                             Entity targetEntity = entityHitResult.getEntity();
                             if (targetEntity instanceof LivingEntity && !disallowedEntities.contains(targetEntity.getType())) {
-                                if (!(targetEntity instanceof PlayerEntity)) {
+                                if (!(targetEntity instanceof PlayerEntity) && CONFIG.getOrDefault("isSoulGemEnabled", DefaultModConfig.isSoulGemEnabled)) {
                                     addToNbtList((LivingEntity) targetEntity, entityList, glowingItem);
                                     setStackGlowing(stackInHand, true);
                                     despawnEntity(world, targetEntity);
-                                } else {
-                                    if (gauntlet) {
-                                        addToNbtList((LivingEntity) targetEntity, entityList, glowingItem);
-                                        setStackGlowing(stackInHand, true);
-                                        spawnPortalParticles((ServerWorld) world, targetEntity.getPos(), true);
-                                        ((PlayerEntity) targetEntity).getInventory().dropAll();
-                                        ServerWorld soulDimension = Objects.requireNonNull(world.getServer()).getWorld(RegistryKey.of(RegistryKeys.WORLD, SOUL_DIMENSION));
-                                        assert soulDimension != null;
-                                        Vec3d spawnPos = soulDimension.getSpawnPos().toCenterPos();
-                                        if (!world.getBlockState(soulDimension.getSpawnPos()).isAir()){
-                                            for (BlockPos p : BlockPos.iterateOutwards(soulDimension.getSpawnPos(), 12, 200, 12)){
-                                                if (world.getBlockState(p).isAir() && world.getBlockState(p.up(1)).isAir()){
-                                                    spawnPos = p.toCenterPos();
-                                                    break;
-                                                }
+                                } else if (gauntlet && CONFIG.getOrDefault("isSoulGemGauntletEnabled", DefaultModConfig.isSoulGemGauntletEnabled)){
+                                    addToNbtList((LivingEntity) targetEntity, entityList, glowingItem);
+                                    setStackGlowing(stackInHand, true);
+                                    spawnPortalParticles((ServerWorld) world, targetEntity.getPos(), true);
+                                    ((PlayerEntity) targetEntity).getInventory().dropAll();
+                                    ServerWorld soulDimension = Objects.requireNonNull(world.getServer()).getWorld(RegistryKey.of(RegistryKeys.WORLD, SOUL_DIMENSION));
+                                    assert soulDimension != null;
+                                    Vec3d spawnPos = soulDimension.getSpawnPos().toCenterPos();
+                                    if (!world.getBlockState(soulDimension.getSpawnPos()).isAir()){
+                                        for (BlockPos p : BlockPos.iterateOutwards(soulDimension.getSpawnPos(), 12, 200, 12)){
+                                            if (world.getBlockState(p).isAir() && world.getBlockState(p.up(1)).isAir()){
+                                                spawnPos = p.toCenterPos();
+                                                break;
                                             }
                                         }
-                                        Objects.requireNonNull(world.getServer().getPlayerManager().getPlayer(targetEntity.getUuid())).setSpawnPoint(
-                                                RegistryKey.of(RegistryKeys.WORLD, SOUL_DIMENSION), new BlockPos((int) spawnPos.getX(), (int) spawnPos.getY(), (int) spawnPos.getZ()), 0, true, false);
-                                        TeleportTarget target = new TeleportTarget(spawnPos, targetEntity.getVelocity(), targetEntity.getYaw(), targetEntity.getPitch());
-                                        FabricDimensions.teleport(targetEntity, soulDimension, target);
                                     }
+                                    Objects.requireNonNull(world.getServer().getPlayerManager().getPlayer(targetEntity.getUuid())).setSpawnPoint(
+                                            RegistryKey.of(RegistryKeys.WORLD, SOUL_DIMENSION), new BlockPos((int) spawnPos.getX(), (int) spawnPos.getY(), (int) spawnPos.getZ()), 0, true, false);
+                                    TeleportTarget target = new TeleportTarget(spawnPos, targetEntity.getVelocity(), targetEntity.getYaw(), targetEntity.getPitch());
+                                    FabricDimensions.teleport(targetEntity, soulDimension, target);
                                 }
                             }
                         }
-                    } catch (NullPointerException ignored) {}
+                    } catch (NullPointerException e) {
+                        Logger.getLogger(MOD_ID).warning("Raycast error in soul gem action: " + e);
+                    }
                 }
             }
             else {
-                System.out.println("Soul Gem Shift Right Clicked");
-                if (!entityList.isEmpty()) {
+                if (!entityList.isEmpty() && CONFIG.getOrDefault("isSoulGemEnabled", DefaultModConfig.isSoulGemEnabled)) {
                     try {
                         if (((NbtCompound) entityList.get(entityList.size() - 1)).get("id") != null) {
-                            System.out.println("Saved Entity: " + Objects.requireNonNull(((NbtCompound) entityList.get(entityList.size() - 1)).get("id")));
                             resummonEntity(world, user, entityList, stackInHand, gauntlet);
                         }
                         else {
@@ -677,7 +673,9 @@ public class SharedGemFunctions {
                             }
                         }
                     }
-                    catch (NullPointerException ignored) {}
+                    catch (NullPointerException e) {
+                        Logger.getLogger(MOD_ID).warning("Raycast error in soul gem action: " + e);
+                    }
                 }
             }
         }
@@ -693,55 +691,59 @@ public class SharedGemFunctions {
 
     public static void spaceGemUse(World world, PlayerEntity user, boolean gauntlet) {
         if (!gauntlet) {
-            if (user.isSneaking()) {
-                System.out.println("Shift Right Clicked Space Gem");
-                user.openHandledScreen(new SimpleNamedScreenHandlerFactory(
-                        (syncId, inventory, playerEntity) -> GenericContainerScreenHandler.createGeneric9x3(
-                                syncId, inventory, playerEntity.getEnderChestInventory()
-                        ),
-                        Text.translatable("item.infinitygauntlet.space.enderchest")
-                ));
-                user.incrementStat(Stats.OPEN_ENDERCHEST);
-            } else {
-                System.out.println("Right Clicked Space Gem");
-                try {
-                    Vec3d targetPos = raycast(user, 64, 1, false, false).getPos();
-                    BlockPos blockPos = new BlockPos((int) targetPos.getX(), (int) targetPos.getY(), (int) targetPos.getZ());
-                    boolean validTeleport = false;
-                    for (BlockPos pos : BlockPos.iterateOutwards(blockPos, 1, 1, 1)) {
-                        if (!world.getBlockState(pos).isAir()) {
-                            validTeleport = true;
-                            break;
+            if (CONFIG.getOrDefault("isSpaceGemEnabled", DefaultModConfig.isSpaceGemEnabled)) {
+                if (user.isSneaking()) {
+                    user.openHandledScreen(new SimpleNamedScreenHandlerFactory(
+                            (syncId, inventory, playerEntity) -> GenericContainerScreenHandler.createGeneric9x3(
+                                    syncId, inventory, playerEntity.getEnderChestInventory()
+                            ),
+                            Text.translatable("item.infinitygauntlet.space.enderchest")
+                    ));
+                    user.incrementStat(Stats.OPEN_ENDERCHEST);
+                } else {
+                    try {
+                        Vec3d targetPos = raycast(user, BLOCK_RAYCAST_DISTANCE, 1, false, false).getPos();
+                        BlockPos blockPos = new BlockPos((int) targetPos.getX(), (int) targetPos.getY(), (int) targetPos.getZ());
+                        boolean validTeleport = false;
+                        for (BlockPos pos : BlockPos.iterateOutwards(blockPos, 1, 1, 1)) {
+                            if (!world.getBlockState(pos).isAir()) {
+                                validTeleport = true;
+                                break;
+                            }
                         }
+                        if (validTeleport) {
+                            spawnPortalParticles((ServerWorld) world, user.getPos(), true);
+                            user.requestTeleport(targetPos.getX(), targetPos.getY() + 1, targetPos.getZ());
+                            spawnPortalParticles((ServerWorld) world, targetPos, true);
+                            user.playSound(SoundEvents.ENTITY_PLAYER_TELEPORT, SoundCategory.BLOCKS, 1, 1);
+                        }
+                    } catch (NullPointerException e) {
+                        Logger.getLogger(MOD_ID).warning("Raycast error in space gem action: " + e);
                     }
-                    if (validTeleport) {
-                        spawnPortalParticles((ServerWorld) world, user.getPos(), true);
-                        user.requestTeleport(targetPos.getX(), targetPos.getY() + 1, targetPos.getZ());
-                        spawnPortalParticles((ServerWorld) world, targetPos, true);
-                        user.playSound(SoundEvents.ENTITY_PLAYER_TELEPORT, SoundCategory.BLOCKS, 1, 1);
-                    }
-                } catch (NullPointerException e) {
-                    System.out.println("Raycast error in space gem action: " + e);
                 }
             }
         }
         else {
-            if (world.getDimensionKey().equals(DimensionTypes.OVERWORLD)){
-                ServerWorld nether = Objects.requireNonNull(user.getServer()).getWorld(World.NETHER);
-                assert nether != null;
-                double x = user.getX(); double y = user.getY(); double z = user.getZ();
-                for (BlockPos pos : BlockPos.iterateOutwards(user.getBlockPos(), 1, 128, 1)){
-                    if (nether.getBlockState(pos).isAir() && nether.getBlockState(pos.up()).isAir() && nether.getBlockState(pos.down()).isSolidBlock(nether, pos.down()) && pos.getY() < 128){
-                        x = pos.getX(); y = pos.getY(); z = pos.getZ();
+            if (CONFIG.getOrDefault("isSpaceGemGauntletEnabled", DefaultModConfig.isSpaceGemGauntletEnabled)) {
+                if (world.getDimensionKey().equals(DimensionTypes.OVERWORLD)) {
+                    ServerWorld nether = Objects.requireNonNull(user.getServer()).getWorld(World.NETHER);
+                    assert nether != null;
+                    double x = user.getX();
+                    double y = user.getY();
+                    double z = user.getZ();
+                    for (BlockPos pos : BlockPos.iterateOutwards(user.getBlockPos(), 1, 128, 1)) {
+                        if (nether.getBlockState(pos).isAir() && nether.getBlockState(pos.up()).isAir() && nether.getBlockState(pos.down()).isSolidBlock(nether, pos.down()) && pos.getY() < 128) {
+                            x = pos.getX();
+                            y = pos.getY();
+                            z = pos.getZ();
+                        }
                     }
+                    user.teleport(nether, x, y, z, new HashSet<>(), 0, 0);
+                } else if (world.getDimensionKey().equals(DimensionTypes.THE_NETHER)) {
+                    user.moveToWorld(Objects.requireNonNull(user.getServer()).getWorld(World.END));
+                } else if (world.getDimensionKey().equals(DimensionTypes.THE_END)) {
+                    user.teleport(Objects.requireNonNull(user.getServer()).getWorld(World.OVERWORLD), user.getX(), user.getY(), user.getZ(), new HashSet<>(), 0, 0);
                 }
-                user.teleport(nether, x, y, z, new HashSet<>(), 0, 0);
-            }
-            else if (world.getDimensionKey().equals(DimensionTypes.THE_NETHER)){
-                user.moveToWorld(Objects.requireNonNull(user.getServer()).getWorld(World.END));
-            }
-            else if (world.getDimensionKey().equals(DimensionTypes.THE_END)){
-                user.teleport(Objects.requireNonNull(user.getServer()).getWorld(World.OVERWORLD), user.getX(), user.getY(), user.getZ(), new HashSet<>(), 0, 0);
             }
         }
         /* GEM SHOULD BE FINISHED
@@ -760,66 +762,68 @@ public class SharedGemFunctions {
         StatusEffectInstance speed = new StatusEffectInstance(StatusEffects.SPEED, 9000, 9, false, true);
         StatusEffectInstance haste = new StatusEffectInstance(StatusEffects.HASTE, 9000, 2, false, true);
         if (!gauntlet) {
-            if (user.isSneaking()) {
-                System.out.println("Shift Right Clicked Time Gem");
-                user.removeStatusEffect(StatusEffects.SPEED);
-                user.removeStatusEffect(StatusEffects.HASTE);
-                user.addStatusEffect(speed);
-                user.addStatusEffect(haste);
-            }
-            try {
-                HitResult target = raycast(user, 64, 3, false, true);
-                Vec3d targetPos = target.getPos();
-                if (target.getType().equals(HitResult.Type.BLOCK)) {
-                    System.out.println("BLOCK");
-                    BlockPos blockTarget = new BlockPos((int) targetPos.getX(), (int) targetPos.getY(), (int) targetPos.getZ());
-                    boolean validBlock = false;
-                    if (!(world.getBlockState(blockTarget).getBlock() instanceof Fertilizable)) {
-                        for (BlockPos pos : BlockPos.iterateOutwards(blockTarget, 0, 1, 0)) {
-                            if (pos.equals(blockTarget)) {
-                                continue;
-                            }
-                            if (world.getBlockState(pos).getBlock() instanceof Fertilizable) {
-                                blockTarget = pos;
-                                validBlock = true;
-                                break;
-                            }
-                        }
-                    } else {
-                        validBlock = true;
-                    }
-                    if (validBlock) {
-                        BlockState nearbyBlockState = world.getBlockState(blockTarget);
-                        ((Fertilizable) nearbyBlockState.getBlock()).grow((ServerWorld) world, world.random, blockTarget, nearbyBlockState);
-                        ((ServerWorld) world).spawnParticles(ParticleTypes.HAPPY_VILLAGER, targetPos.getX(), targetPos.getY() + 0.5, targetPos.getZ(), 8, 0.35, 0.15, 0.35, 0.0);
-                    }
+            if (CONFIG.getOrDefault("isTimeGemEnabled", DefaultModConfig.isTimeGemEnabled)) {
+                if (user.isSneaking()) {
+                    user.removeStatusEffect(StatusEffects.SPEED);
+                    user.removeStatusEffect(StatusEffects.HASTE);
+                    user.addStatusEffect(speed);
+                    user.addStatusEffect(haste);
                 }
-                else if (target.getType().equals(HitResult.Type.ENTITY)) {
-                    EntityHitResult entityHitResult = (EntityHitResult) target;
-                    if (entityHitResult.getEntity() instanceof PassiveEntity passiveEntity) {
-                        if (passiveEntity.isBaby()){
-                            passiveEntity.setBaby(false);
-                            return;
+                try {
+                    HitResult target = raycast(user, COMBINED_RAYCAST_DISTANCE, 3, false, true);
+                    Vec3d targetPos = target.getPos();
+                    if (target.getType().equals(HitResult.Type.BLOCK)) {
+                        BlockPos blockTarget = new BlockPos((int) targetPos.getX(), (int) targetPos.getY(), (int) targetPos.getZ());
+                        boolean validBlock = false;
+                        if (!(world.getBlockState(blockTarget).getBlock() instanceof Fertilizable)) {
+                            for (BlockPos pos : BlockPos.iterateOutwards(blockTarget, 0, 1, 0)) {
+                                if (pos.equals(blockTarget)) {
+                                    continue;
+                                }
+                                if (world.getBlockState(pos).getBlock() instanceof Fertilizable) {
+                                    blockTarget = pos;
+                                    validBlock = true;
+                                    break;
+                                }
+                            }
+                        } else {
+                            validBlock = true;
                         }
-                        passiveEntity.setBaby(true);
+                        if (validBlock) {
+                            BlockState nearbyBlockState = world.getBlockState(blockTarget);
+                            ((Fertilizable) nearbyBlockState.getBlock()).grow((ServerWorld) world, world.random, blockTarget, nearbyBlockState);
+                            ((ServerWorld) world).spawnParticles(ParticleTypes.HAPPY_VILLAGER, targetPos.getX(), targetPos.getY() + 0.5, targetPos.getZ(), 8, 0.35, 0.15, 0.35, 0.0);
+                        }
+                    } else if (target.getType().equals(HitResult.Type.ENTITY)) {
+                        EntityHitResult entityHitResult = (EntityHitResult) target;
+                        if (entityHitResult.getEntity() instanceof PassiveEntity passiveEntity) {
+                            if (passiveEntity.isBaby()) {
+                                passiveEntity.setBaby(false);
+                                return;
+                            }
+                            passiveEntity.setBaby(true);
+                        }
                     }
+                } catch (NullPointerException e) {
+                    Logger.getLogger(MOD_ID).warning("Raycast error in time gem action: " + e);
                 }
-            } catch (NullPointerException e) {
-                System.out.println("Raycast error in time gem action: " + e);
             }
         }
         else {
-            try {
-                EntityHitResult entityHitResult = (EntityHitResult) raycast(user, 64, 2, false, false);
-                if (!entityHitResult.getType().equals(HitResult.Type.MISS)) {
-                    Vec3d targetPos = entityHitResult.getPos();
-                    spawnPortalParticles((ServerWorld) world, targetPos, true);
-                    BlockPos spawnPos = Objects.requireNonNull(user.getServer()).getOverworld().getSpawnPos();
-                    entityHitResult.getEntity().teleport(Objects.requireNonNull(user.getServer()).getOverworld(), spawnPos.getX(), spawnPos.getY(), spawnPos.getZ(), new HashSet<>(), 0, 0);
-                    spawnPortalParticles((ServerWorld) world, spawnPos.toCenterPos(), true);
+            if (CONFIG.getOrDefault("isTimeGemGauntletEnabled", DefaultModConfig.isTimeGemGauntletEnabled)) {
+                try {
+                    EntityHitResult entityHitResult = (EntityHitResult) raycast(user, ENTITY_RAYCAST_DISTANCE, 2, false, false);
+                    if (!entityHitResult.getType().equals(HitResult.Type.MISS)) {
+                        Vec3d targetPos = entityHitResult.getPos();
+                        spawnPortalParticles((ServerWorld) world, targetPos, true);
+                        BlockPos spawnPos = Objects.requireNonNull(user.getServer()).getOverworld().getSpawnPos();
+                        entityHitResult.getEntity().teleport(Objects.requireNonNull(user.getServer()).getOverworld(), spawnPos.getX(), spawnPos.getY(), spawnPos.getZ(), new HashSet<>(), 0, 0);
+                        spawnPortalParticles((ServerWorld) world, spawnPos.toCenterPos(), true);
+                    }
+                } catch (NullPointerException e) {
+                    Logger.getLogger(MOD_ID).warning("Raycast error in time gem action: " + e);
                 }
             }
-            catch (NullPointerException ignored) {}
         }
         /*   GEM SHOULD BE FINISHED
          * right click = if blocks - bone meal, if entity - baby/adult (up to 32 blocks) (WORKS)

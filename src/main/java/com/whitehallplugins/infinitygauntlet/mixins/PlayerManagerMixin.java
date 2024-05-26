@@ -1,6 +1,6 @@
 package com.whitehallplugins.infinitygauntlet.mixins;
 
-import com.whitehallplugins.infinitygauntlet.files.OfflineTeleportManager;
+import com.whitehallplugins.infinitygauntlet.files.teleport.OfflineTeleportManager;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.registry.RegistryKey;
