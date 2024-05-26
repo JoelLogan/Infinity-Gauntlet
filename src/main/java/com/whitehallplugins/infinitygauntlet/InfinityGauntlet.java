@@ -1,7 +1,5 @@
 package com.whitehallplugins.infinitygauntlet;
 
-import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.context.CommandContext;
 import com.whitehallplugins.infinitygauntlet.effects.TargetEntityEffect;
 import com.whitehallplugins.infinitygauntlet.files.config.DefaultModConfig;
 import com.whitehallplugins.infinitygauntlet.files.teleport.OfflineTeleportManager;
@@ -13,7 +11,6 @@ import com.whitehallplugins.infinitygauntlet.items.gems.*;
 import com.whitehallplugins.infinitygauntlet.networking.NetworkingConstants;
 import com.whitehallplugins.infinitygauntlet.networking.listeners.GauntletSwapPacketListener;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
@@ -36,9 +33,6 @@ import net.minecraft.loot.entry.ItemEntry;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Rarity;
 import net.minecraft.registry.Registry;
@@ -91,8 +85,6 @@ public class InfinityGauntlet implements ModInitializer {
     public void onInitialize() {
         OfflineTeleportManager.loadTeleportData();
         CONFIG = SimpleConfig.of("IGConfig").provider(DefaultModConfig::getConfig).request();
-
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> registerCommands(dispatcher));
 
         itemIdentifiers[0] = new Identifier(MOD_ID, "gauntlet/gauntlet");
         itemIdentifiers[1] = new Identifier(MOD_ID, "mind/gem");
@@ -194,18 +186,6 @@ public class InfinityGauntlet implements ModInitializer {
                 }
             }
         });
-    }
-
-    private void registerCommands(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(CommandManager.literal("test")
-                .requires(source -> source.hasPermissionLevel(2)) // Requires operator level 2 (typically admin/op)
-                .executes(this::runTestCommand));
-    }
-
-    private int runTestCommand(CommandContext<ServerCommandSource> context) {
-        ServerCommandSource source = context.getSource();
-        source.sendMessage(Text.literal("Test Response " + CONFIG.getOrDefault("isMindGemEnabled", true) + CONFIG.getOrDefault("isMindGemGauntletEnabled", true)));
-        return 1;
     }
 
     private static LootPool.Builder getPoolBuilder(Item gem, int weightMax) {
