@@ -12,8 +12,6 @@ import net.minecraft.server.world.ServerWorld;
 
 import java.util.UUID;
 
-import static com.whitehallplugins.infinitygauntlet.InfinityGauntlet.CONFIG;
-
 public class TargetEntityEffect extends StatusEffect {
 
     public TargetEntityEffect() {
@@ -27,35 +25,32 @@ public class TargetEntityEffect extends StatusEffect {
 
     @Override
     public void applyUpdateEffect(LivingEntity entity, int amplifier) {
-        try {
-            if (entity.getWorld() instanceof ServerWorld serverWorld && entity instanceof HostileEntity) {
-                for (String s : entity.getCommandTags()) {
-                    if (s.split("\\.")[0].equals("MindGemControlled")) {
-                        UUID uuid = UUID.fromString(s.split("\\.")[1]);
-                        Entity target = serverWorld.getEntity(uuid);
-                        assert target != null;
-                        if (target.isAlive() && isCloseEnough(entity, (LivingEntity) target)) {
-                            ((HostileEntity) entity).setTarget((LivingEntity) target);
-                            if (target.isPlayer()) {
-                                if (((PlayerEntity) target).isCreative() || target.isSpectator()){
-                                    entity.removeCommandTag(s);
-                                    entity.removeStatusEffect(InfinityGauntlet.targetEntityEffect);
-                                }
+        if (entity.getWorld() instanceof ServerWorld serverWorld && entity instanceof HostileEntity) {
+            for (String s : entity.getCommandTags()) {
+                if (s.split("\\.")[0].equals("MindGemControlled")) {
+                    UUID uuid = UUID.fromString(s.split("\\.")[1]);
+                    Entity target = serverWorld.getEntity(uuid);
+                    assert target != null;
+                    if (target.isAlive() && isCloseEnough(entity, (LivingEntity) target)) {
+                        ((HostileEntity) entity).setTarget((LivingEntity) target);
+                        if (target.isPlayer()) {
+                            if (((PlayerEntity) target).isCreative() || target.isSpectator()){
+                                entity.removeCommandTag(s);
+                                entity.removeStatusEffect(InfinityGauntlet.targetEntityEffect);
                             }
                         }
-                        else {
-                            entity.removeCommandTag(s);
-                            entity.removeStatusEffect(InfinityGauntlet.targetEntityEffect);
-                        }
+                    }
+                    else {
+                        entity.removeCommandTag(s);
+                        entity.removeStatusEffect(InfinityGauntlet.targetEntityEffect);
                     }
                 }
             }
         }
-        catch (Exception ignored) {}
     }
 
     private boolean isCloseEnough(LivingEntity entity, LivingEntity target) {
-        int range = CONFIG.getOrDefault("mindGemMaxAgroDistance", DefaultModConfig.mindGemMaxAgroDistance);
+        int range = InfinityGauntlet.CONFIG.getOrDefault("mindGemMaxAgroDistance", DefaultModConfig.mindGemMaxAgroDistance);
         return entity.squaredDistanceTo(target) < (range * range);
     }
 }

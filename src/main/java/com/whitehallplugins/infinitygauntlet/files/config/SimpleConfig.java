@@ -33,13 +33,12 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Scanner;
 
-import static com.whitehallplugins.infinitygauntlet.files.config.DefaultModConfig.VALID_INTEGER_RANGES;
-import static com.whitehallplugins.infinitygauntlet.files.config.DefaultModConfig.VALID_FLOAT_RANGES;
+public final class SimpleConfig {
 
-public class SimpleConfig {
-
+    private final DefaultModConfig defaultModConfig = new DefaultModConfig(true);
     private static final Logger LOGGER = LogManager.getLogger(InfinityGauntlet.MOD_ID);
     private final HashMap<String, String> config = new HashMap<>();
     private final ConfigRequest request;
@@ -108,11 +107,12 @@ public class SimpleConfig {
         return new ConfigRequest( path.resolve( filename + ".properties" ).toFile(), filename );
     }
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
     private void createConfig() throws IOException {
 
         // try creating missing files
-        request.file.getParentFile().mkdirs();
+        if (!request.file.getParentFile().mkdirs()){
+            LOGGER.info("Failed to create parent directories for config file! (Probably Already Exists)");
+        }
         Files.createFile( request.file.toPath() );
 
         // write default config data
@@ -123,7 +123,7 @@ public class SimpleConfig {
     }
 
     private void loadConfig() throws IOException {
-        Scanner reader = new Scanner( request.file );
+        Scanner reader = new Scanner( request.file, StandardCharsets.UTF_8 );
         for( int line = 1; reader.hasNextLine(); line ++ ) {
             parseConfigEntry( reader.nextLine(), line );
         }
@@ -137,25 +137,33 @@ public class SimpleConfig {
                 String key = parts[0];
                 String value = parts[1];
 
-                if (VALID_INTEGER_RANGES.containsKey(key)) {
-                    Pair<Integer, Integer> range = VALID_INTEGER_RANGES.get(key);
+                if (defaultModConfig.getValidBooleanVerification().contains(key) && !Boolean.parseBoolean(value)){
+                    throw new RuntimeException("Value for key '" + key + "' on line " + line + " is not a boolean!");
+                }
+                else if (defaultModConfig.getValidStringListVerification().contains(key)) {
+                    if (!value.startsWith("[") || !value.endsWith("]")) {
+                        throw new RuntimeException("Value for key '" + key + "' on line " + line + " is not a string list!");
+                    }
+                }
+                else if (defaultModConfig.getValidIntegerRanges().containsKey(key)) {
+                    Pair<Integer, Integer> range = defaultModConfig.getValidIntegerRanges().get(key);
+                    int intValue;
                     try {
-                        Integer.parseInt(value);
+                        intValue = Integer.parseInt(value);
                     } catch (Exception e) {
                         throw new RuntimeException("Value for key '" + key + "' on line " + line + " is not an integer!");
                     }
-                    int intValue = Integer.parseInt(value);
                     if (intValue < range.first() || intValue > range.second()) {
                         throw new RuntimeException("Value out of range for key '" + key + "' on line " + line + "!");
                     }
-                } else if (VALID_FLOAT_RANGES.containsKey(key)) {
-                    Pair<Float, Float> range = VALID_FLOAT_RANGES.get(key);
+                } else if (defaultModConfig.getValidFloatRanges().containsKey(key)) {
+                    Pair<Float, Float> range = defaultModConfig.getValidFloatRanges().get(key);
+                    float floatValue;
                     try {
-                        Float.parseFloat(value);
+                        floatValue = Float.parseFloat(value);
                     } catch (Exception e) {
                         throw new RuntimeException("Value for key '" + key + "' on line " + line + " is not a float!");
                     }
-                    float floatValue = Float.parseFloat(value);
                     if (floatValue < range.first() || floatValue > range.second()) {
                         throw new RuntimeException("Value out of range for key '" + key + "' on line " + line + "!");
                     }
@@ -168,7 +176,7 @@ public class SimpleConfig {
         }
     }
 
-    private SimpleConfig( ConfigRequest request ) {
+    private SimpleConfig(ConfigRequest request) {
         this.request = request;
         String identifier = "Config '" + request.filename + "'";
 
@@ -191,6 +199,7 @@ public class SimpleConfig {
                 LOGGER.error("{} failed to load!", identifier);
                 LOGGER.trace( e );
                 broken = true;
+                throw new RuntimeException("Failed to load InfinityGauntlet config file! " + e.getMessage());
             }
         }
 
@@ -277,6 +286,21 @@ public class SimpleConfig {
     public float getOrDefault( String key, float def ) {
         try {
             return Float.parseFloat( get(key) );
+        } catch (Exception e) {
+            return def;
+        }
+    }
+
+    /**
+     * Returns String List value from config corresponding to the given
+     * key, or the default string if the key is missing or invalid.
+     *
+     * @return  value corresponding to the given key, or the default value
+     */
+    @SuppressWarnings("unused")
+    public List<String> getOrDefault( String key, List<String> def ) {
+        try {
+            return List.of(get(key));
         } catch (Exception e) {
             return def;
         }

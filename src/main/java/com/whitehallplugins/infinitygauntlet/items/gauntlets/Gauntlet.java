@@ -99,6 +99,8 @@ public class Gauntlet extends BowItem {
                 case 5: // SOUL
                     soulGemUse(world, (PlayerEntity) user, charged);
                     break;
+                default:
+                    break;
             }
         }
     }
@@ -194,10 +196,12 @@ public class Gauntlet extends BowItem {
                 if (stack.hasNbt()){
                     try {
                         assert stack.getNbt() != null;
-                        Objects.requireNonNull(stack.getNbt().getUuid(MIND_GEM_NBT_ID));
-                        setStackGlowing(stack, true);
+                        if (stack.getNbt().containsUuid(MIND_GEM_NBT_ID)) {
+                            Objects.requireNonNull(stack.getNbt().getUuid(MIND_GEM_NBT_ID));
+                            setStackGlowing(stack, true);
+                        }
                     }
-                    catch (NullPointerException ignored) {}
+                    catch (IllegalArgumentException ignored) {}
                 }
                 setCustomModelData(player, stack, 3);
                 sendCurrentMode(player, 3);
@@ -209,13 +213,11 @@ public class Gauntlet extends BowItem {
                 break;
             case 4: // FROM REALITY TO SOUL
                 if (stack.hasNbt()){
-                    try {
-                        assert stack.getNbt() != null;
-                        if (!Objects.requireNonNull(stack.getNbt().getList(SOUL_GEM_NBT_ID, NbtElement.COMPOUND_TYPE)).isEmpty()) {
-                            setStackGlowing(stack, true);
-                        }
+                    assert stack.getNbt() != null;
+                    if (stack.getNbt().contains(SOUL_GEM_NBT_ID, NbtElement.LIST_TYPE) &&
+                            !Objects.requireNonNull(stack.getNbt().getList(SOUL_GEM_NBT_ID, NbtElement.COMPOUND_TYPE)).isEmpty()) {
+                        setStackGlowing(stack, true);
                     }
-                    catch (NullPointerException ignored) {}
                 }
                 setCustomModelData(player, stack, 5);
                 sendCurrentMode(player, 5);

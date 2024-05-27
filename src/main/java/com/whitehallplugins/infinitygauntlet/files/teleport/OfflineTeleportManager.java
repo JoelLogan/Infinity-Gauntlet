@@ -5,6 +5,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.nbt.NbtCompound;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -19,11 +20,9 @@ public class OfflineTeleportManager {
 
     public static void loadTeleportData() {
         if (!TELEPORT_DATA_FILE.exists()) {
-            new File(FabricLoader.getInstance().getConfigDir().resolve(MOD_ID).toString()).mkdir();
             return;
         }
-
-        try (Reader reader = new FileReader(TELEPORT_DATA_FILE)) {
+        try (Reader reader = new FileReader(TELEPORT_DATA_FILE, StandardCharsets.UTF_8)) {
             JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
             for (Map.Entry<String, JsonElement> entry : json.entrySet()) {
                 UUID uuid = UUID.fromString(entry.getKey());
@@ -40,8 +39,7 @@ public class OfflineTeleportManager {
         for (Map.Entry<UUID, NbtCompound> entry : teleportDataMap.entrySet()) {
             json.add(entry.getKey().toString(), NbtUtils.toJson(entry.getValue()));
         }
-
-        try (Writer writer = new FileWriter(TELEPORT_DATA_FILE)) {
+        try (Writer writer = new FileWriter(TELEPORT_DATA_FILE, StandardCharsets.UTF_8)) {
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
             gson.toJson(json, writer);
         } catch (IOException e) {

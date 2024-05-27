@@ -1,40 +1,73 @@
 package com.whitehallplugins.infinitygauntlet.files.config;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class DefaultModConfig {
 
-    public static final Map<String, SimpleConfig.Pair<Integer, Integer>> VALID_INTEGER_RANGES = new HashMap<>();
-    public static final Map<String, SimpleConfig.Pair<Float, Float>> VALID_FLOAT_RANGES = new HashMap<>();
+    private final List<String> VALID_BOOLEAN_VERIFICATION = new ArrayList<>();
+    private final List<String> VALID_STRING_LIST_VERIFICATION = new ArrayList<>();
+    private final Map<String, SimpleConfig.Pair<Integer, Integer>> VALID_INTEGER_RANGES = new HashMap<>();
+    private final Map<String, SimpleConfig.Pair<Float, Float>> VALID_FLOAT_RANGES = new HashMap<>();
 
-    static {
-        VALID_INTEGER_RANGES.put("infinityGauntletBurnTime", new SimpleConfig.Pair<>(0, 72000));
-        VALID_FLOAT_RANGES.put("infinityGauntletMineSpeed", new SimpleConfig.Pair<>(0f, 2147483647f));
-        VALID_INTEGER_RANGES.put("mindGauntletChargeTime", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-        VALID_INTEGER_RANGES.put("mindGemMaxAgroDistance", new SimpleConfig.Pair<>(0, 64));
-        VALID_INTEGER_RANGES.put("mindGemRarity", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-        VALID_INTEGER_RANGES.put("powerGauntletChargeTime", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-        VALID_FLOAT_RANGES.put("powerGemExplosionPower", new SimpleConfig.Pair<>(0f, 10f));
-        VALID_INTEGER_RANGES.put("powerGemBurnTime", new SimpleConfig.Pair<>(0, 72000));
-        VALID_INTEGER_RANGES.put("powerGemRarityWarden", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-        VALID_INTEGER_RANGES.put("powerGemRarityAncientCity", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-        VALID_INTEGER_RANGES.put("realityGauntletChargeTime", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-        VALID_INTEGER_RANGES.put("realityGemBlockRadius", new SimpleConfig.Pair<>(0, 64));
-        VALID_INTEGER_RANGES.put("realityGemBlockChangeThreadTime", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-        VALID_INTEGER_RANGES.put("realityGemConcurrentThreads", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-        VALID_INTEGER_RANGES.put("realityGemRarity", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-        VALID_INTEGER_RANGES.put("soulGauntletChargeTime", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-        VALID_INTEGER_RANGES.put("maxNumberofEntitesInSoulGem", new SimpleConfig.Pair<>(0, 100));
-        VALID_INTEGER_RANGES.put("soulGemRarity", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-        VALID_INTEGER_RANGES.put("spaceGauntletChargeTime", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-        VALID_INTEGER_RANGES.put("spaceGemRarityDragon", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-        VALID_INTEGER_RANGES.put("spaceGemRarityEndCity", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-        VALID_INTEGER_RANGES.put("timeGauntletChargeTime", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-        VALID_INTEGER_RANGES.put("timeGemRarity", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-        VALID_INTEGER_RANGES.put("raycastEntityDistance", new SimpleConfig.Pair<>(0, 64));
-        VALID_INTEGER_RANGES.put("raycastBlocksDistance", new SimpleConfig.Pair<>(0, 64));
-        VALID_INTEGER_RANGES.put("raycastCombinedDistance", new SimpleConfig.Pair<>(0, 64));
+    public List<String> getValidBooleanVerification() {
+        return Collections.unmodifiableList(VALID_BOOLEAN_VERIFICATION);
+    }
+
+    public List<String> getValidStringListVerification() {
+        return Collections.unmodifiableList(VALID_STRING_LIST_VERIFICATION);
+    }
+
+    public Map<String, SimpleConfig.Pair<Integer, Integer>> getValidIntegerRanges() {
+        return Collections.unmodifiableMap(VALID_INTEGER_RANGES);
+    }
+
+    public Map<String, SimpleConfig.Pair<Float, Float>> getValidFloatRanges() {
+        return Collections.unmodifiableMap(VALID_FLOAT_RANGES);
+    }
+
+    public DefaultModConfig(boolean verifications) {
+        if (verifications) {
+            VALID_BOOLEAN_VERIFICATION.add("isMindGemEnabled");
+            VALID_BOOLEAN_VERIFICATION.add("isMindGemGauntletEnabled");
+            VALID_BOOLEAN_VERIFICATION.add("isPowerGemEnabled");
+            VALID_BOOLEAN_VERIFICATION.add("isPowerGemGauntletEnabled");
+            VALID_BOOLEAN_VERIFICATION.add("isRealityGemEnabled");
+            VALID_BOOLEAN_VERIFICATION.add("isRealityGemGauntletEnabled");
+            VALID_BOOLEAN_VERIFICATION.add("isSoulGemEnabled");
+            VALID_BOOLEAN_VERIFICATION.add("isSoulGemGauntletEnabled");
+            VALID_BOOLEAN_VERIFICATION.add("isSpaceGemEnabled");
+            VALID_BOOLEAN_VERIFICATION.add("isSpaceGemGauntletEnabled");
+            VALID_BOOLEAN_VERIFICATION.add("isTimeGemEnabled");
+            VALID_BOOLEAN_VERIFICATION.add("isTimeGemGauntletEnabled");
+            VALID_STRING_LIST_VERIFICATION.add("realityGauntletBlockBlacklist");
+            VALID_STRING_LIST_VERIFICATION.add("realityGauntletChangeBlockBlacklist");
+            VALID_INTEGER_RANGES.put("infinityGauntletBurnTime", new SimpleConfig.Pair<>(0, 72000));
+            VALID_FLOAT_RANGES.put("infinityGauntletMineSpeed", new SimpleConfig.Pair<>(0f, 2147483647f));
+            VALID_INTEGER_RANGES.put("mindGauntletChargeTime", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
+            VALID_INTEGER_RANGES.put("mindGemMaxAgroDistance", new SimpleConfig.Pair<>(0, 64));
+            VALID_INTEGER_RANGES.put("mindGemRarity", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
+            VALID_INTEGER_RANGES.put("powerGauntletChargeTime", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
+            VALID_FLOAT_RANGES.put("powerGemExplosionPower", new SimpleConfig.Pair<>(0f, 10f));
+            VALID_INTEGER_RANGES.put("powerGemBurnTime", new SimpleConfig.Pair<>(0, 72000));
+            VALID_INTEGER_RANGES.put("powerGemRarityWarden", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
+            VALID_INTEGER_RANGES.put("powerGemRarityAncientCity", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
+            VALID_INTEGER_RANGES.put("realityGauntletChargeTime", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
+            VALID_INTEGER_RANGES.put("realityGemBlockRadius", new SimpleConfig.Pair<>(0, 64));
+            VALID_INTEGER_RANGES.put("realityGemBlockChangeThreadTime", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
+            VALID_INTEGER_RANGES.put("realityGemConcurrentThreads", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
+            VALID_INTEGER_RANGES.put("realityGemRarity", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
+            VALID_INTEGER_RANGES.put("soulGauntletChargeTime", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
+            VALID_INTEGER_RANGES.put("maxNumberofEntitesInSoulGem", new SimpleConfig.Pair<>(0, 100));
+            VALID_INTEGER_RANGES.put("soulGemRarity", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
+            VALID_INTEGER_RANGES.put("spaceGauntletChargeTime", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
+            VALID_INTEGER_RANGES.put("spaceGemRarityDragon", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
+            VALID_INTEGER_RANGES.put("spaceGemRarityEndCity", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
+            VALID_INTEGER_RANGES.put("timeGauntletChargeTime", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
+            VALID_INTEGER_RANGES.put("timeGemRarity", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
+            VALID_INTEGER_RANGES.put("raycastEntityDistance", new SimpleConfig.Pair<>(0, 64));
+            VALID_INTEGER_RANGES.put("raycastBlocksDistance", new SimpleConfig.Pair<>(0, 64));
+            VALID_INTEGER_RANGES.put("raycastCombinedDistance", new SimpleConfig.Pair<>(0, 64));
+        }
     }
 
     public static final boolean isMindGemEnabled = true;
@@ -49,7 +82,7 @@ public class DefaultModConfig {
     public static final boolean isSpaceGemGauntletEnabled = true;
     public static final boolean isTimeGemEnabled = true;
     public static final boolean isTimeGemGauntletEnabled = true;
-    // TODO: LOOK INTO STRING LISTS FOR BLOCK BLACKLISTS/WHTIELISTS
+
     public static final int infinityGauntletBurnTime = 1600;
     public static final float infinityGauntletMineSpeed = 200f;
 
@@ -65,6 +98,30 @@ public class DefaultModConfig {
     public static final int realityGauntletBlockRadius = 32;
     public static final int realityGauntletConcurrentThreads = 5;
     public static final int realityGauntletBlockChangeThreadTime = 25;
+    public static final List<String> realityGauntletTargetBlockBlacklist = List.of(
+            "minecraft:bedrock",
+            "minecraft:barrier",
+            "minecraft:command_block",
+            "minecraft:chain_command_block",
+            "minecraft:repeating_command_block",
+            "minecraft:structure_block",
+            "minecraft:structure_void",
+            "minecraft:air",
+            "minecraft:cave_air",
+            "minecraft:void_air",
+            "minecraft:water",
+            "minecraft:lava",
+            "minecraft:flowing_water",
+            "minecraft:flowing_lava",
+            "minecraft:fire",
+            "minecraft:soul_fire",
+            "minecraft:portal",
+            "minecraft:end_portal",
+            "minecraft:end_portal_frame",
+            "minecraft:nether_portal",
+            "minecraft:dragon_egg",
+            "minecraft:light");
+    public static final List<String> realityGauntletChangeBlockBlacklist = Collections.unmodifiableList(new ArrayList<>());
     public static final int realityGemRarity = 5;
     public static final int soulGauntletChargeTime = 40;
     public static final int maxNumberofEntitesInSoulGem = 25;
@@ -81,7 +138,7 @@ public class DefaultModConfig {
 
     public static String getConfig(String filename) {
          return  "# InfinityGauntlet Configuration File: " + filename + "\n\n" +
-                 "# All configurable rarities are 1 out of the number chance to spawn." +
+                 "# All configurable rarities are 1 out of the number chance to spawn.\n\n" +
                  "# isMindGemEnabled: Determines if the Mind Gem is enabled. [true/false]\n" +
                  "isMindGemEnabled=" + isMindGemEnabled + "\n" +
                  "# isMindGemGauntletEnabled: Determines if the Mind Gem Gauntlet is enabled. [true/false]\n" +
@@ -134,6 +191,10 @@ public class DefaultModConfig {
                  "realityGemBlockChangeThreadTime=" + realityGauntletBlockChangeThreadTime + "\n" +
                  "# realityGemConcurrentThreads: Determines the number of concurrent block change threads of the Reality Gem. [0-2147483647]\n" +
                  "realityGemConcurrentThreads=" + realityGauntletConcurrentThreads + "\n" +
+                 "# realityGemBlockBlacklist: Determines the target block change blacklist of the Reality Gem. [minecraft:block, minecraft:otherblock]\n" +
+                 "realityGauntletBlockBlacklist=" + realityGauntletTargetBlockBlacklist + "\n" +
+                 "# realityGemChangeBlockBlacklist: Determines the held block change blacklist of the Reality Gem. [minecraft:block, minecraft:otherblock]\n" +
+                 "realityGauntletChangeBlockBlacklist=" + realityGauntletChangeBlockBlacklist + "\n" +
                  "# realityGemRarity: Determines the rarity of the Reality Gem. [0-2147483647]\n" +
                  "realityGemRarity=" + realityGemRarity + "\n" +
                  "# soulGauntletChargeTime: Determines the charge time in ticks of the Soul Gauntlet. [0-2147483647]\n" +

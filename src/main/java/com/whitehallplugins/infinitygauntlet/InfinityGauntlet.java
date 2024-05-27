@@ -60,7 +60,7 @@ public class InfinityGauntlet implements ModInitializer {
     public static final SpaceGemReplica SPACE_GEM_REPLICA = new SpaceGemReplica(new FabricItemSettings().rarity(Rarity.EPIC).maxCount(1).fireproof());
     public static final TimeGemReplica TIME_GEM_REPLICA = new TimeGemReplica(new FabricItemSettings().rarity(Rarity.EPIC).maxCount(1).fireproof());
 
-    public static final Identifier[] itemIdentifiers = new Identifier[14];
+    private static final Identifier[] itemIdentifiers = new Identifier[14];
     
     public static final Identifier SOUL_DIMENSION = new Identifier(MOD_ID, "souldimension");
 
@@ -79,12 +79,11 @@ public class InfinityGauntlet implements ModInitializer {
     private static final Identifier END_CITY_LOOT_TABLE_ID = new Identifier("minecraft", "chests/end_city_treasure");
     private static final Identifier WOODLAND_MANSION_LOOT_TABLE_ID = new Identifier("minecraft", "chests/woodland_mansion");
 
-    public static SimpleConfig CONFIG;
+    public static final SimpleConfig CONFIG = SimpleConfig.of("IGConfig").provider(DefaultModConfig::getConfig).request();
 
     @Override
     public void onInitialize() {
         OfflineTeleportManager.loadTeleportData();
-        CONFIG = SimpleConfig.of("IGConfig").provider(DefaultModConfig::getConfig).request();
 
         itemIdentifiers[0] = new Identifier(MOD_ID, "gauntlet/gauntlet");
         itemIdentifiers[1] = new Identifier(MOD_ID, "mind/gem");
