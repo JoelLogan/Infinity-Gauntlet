@@ -30,5 +30,9 @@ public class InfinityGauntletClient implements ClientModInitializer {
                 isKeyPressed = false;
             }
         });
+        ClientPlayNetworking.registerGlobalReceiver(NetworkingConstants.VERSION_PACKET_ID, (client, handler, buf, responseSender) -> {
+            PacketByteBuf modVersionPacket = PacketByteBufs.create().writeIntArray(NetworkingConstants.modVersion());
+            client.execute(() -> responseSender.sendPacket(NetworkingConstants.VERSION_PACKET_ID, modVersionPacket));
+        });
     }
 }

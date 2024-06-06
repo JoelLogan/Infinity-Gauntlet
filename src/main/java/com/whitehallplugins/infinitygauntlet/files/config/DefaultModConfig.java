@@ -60,6 +60,7 @@ public class DefaultModConfig {
             VALID_INTEGER_RANGES.put("maxNumberofEntitesInSoulGem", new SimpleConfig.Pair<>(0, 100));
             VALID_INTEGER_RANGES.put("soulGemRarity", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
             VALID_INTEGER_RANGES.put("spaceGauntletChargeTime", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
+            VALID_INTEGER_RANGES.put("spaceGemTeleportCooldown", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
             VALID_INTEGER_RANGES.put("spaceGemRarityDragon", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
             VALID_INTEGER_RANGES.put("spaceGemRarityEndCity", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
             VALID_INTEGER_RANGES.put("timeGauntletChargeTime", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
@@ -69,6 +70,8 @@ public class DefaultModConfig {
             VALID_INTEGER_RANGES.put("raycastCombinedDistance", new SimpleConfig.Pair<>(0, 64));
         }
     }
+
+    public static final String configVersion = "1.0.0";
 
     public static final boolean isMindGemEnabled = true;
     public static final boolean isMindGemGauntletEnabled = true;
@@ -121,12 +124,15 @@ public class DefaultModConfig {
             "minecraft:nether_portal",
             "minecraft:dragon_egg",
             "minecraft:light");
-    public static final List<String> realityGauntletChangeBlockBlacklist = Collections.unmodifiableList(new ArrayList<>());
+    public static final List<String> realityGauntletChangeBlockBlacklist = List.of(
+            "minecraft:enchanting_table"
+    );
     public static final int realityGemRarity = 5;
     public static final int soulGauntletChargeTime = 40;
     public static final int maxNumberofEntitesInSoulGem = 25;
     public static final int soulGemRarity = 5;
     public static final int spaceGauntletChargeTime = 20;
+    public static final int spaceGemTeleportCooldown = 250;
     public static final int spaceGemRarityDragon = 5;
     public static final int spaceGemRarityEndCity = 4;
     public static final int timeGauntletChargeTime = 40;
@@ -137,7 +143,8 @@ public class DefaultModConfig {
     public static final int raycastCombinedDistance = 64;
 
     public static String getConfig(String filename) {
-         return  "# InfinityGauntlet Configuration File: " + filename + "\n\n" +
+         return  "# InfinityGauntlet Configuration File: " + filename + "\n" +
+                 "configVersion=" + configVersion + "\n\n" +
                  "# All configurable rarities are 1 out of the number chance to spawn.\n\n" +
                  "# isMindGemEnabled: Determines if the Mind Gem is enabled. [true/false]\n" +
                  "isMindGemEnabled=" + isMindGemEnabled + "\n" +
@@ -179,21 +186,21 @@ public class DefaultModConfig {
                  "powerGemExplosionPower=" + powerGemExplosionPower + "\n" +
                  "# powerGemBurnTime: Determines the burn time in ticks of the Power Gem. [0-72000]\n" +
                  "powerGemBurnTime=" + powerGemBurnTime + "\n" +
-                 "# powerGemRarity: Determines the rarity of the Power Gem from a Warden. [0-2147483647]\n" +
+                 "# powerGemRarityWarden: Determines the rarity of the Power Gem from a Warden. [0-2147483647]\n" +
                  "powerGemRarityWarden=" + powerGemRarityWarden + "\n" +
-                 "# powerGemRarity: Determines the rarity of the Power Gem from a City. [0-2147483647]\n" +
+                 "# powerGemRarityAncientCity: Determines the rarity of the Power Gem from a City. [0-2147483647]\n" +
                  "powerGemRarityAncientCity=" + powerGemRarityAncientCity + "\n" +
                  "# realityGauntletChargeTime: Determines the charge time in ticks of the Reality Gauntlet. [0-2147483647]\n" +
                  "realityGauntletChargeTime=" + realityGauntletChargeTime + "\n" +
-                 "# realityGemBlockRadius: Determines the block radius of the Reality Gem. [0-64]\n" +
-                 "realityGemBlockRadius=" + realityGauntletBlockRadius + "\n" +
-                 "# realityGemBlockChangeThreadTime: Determines the delay in ms between each thread tick of the Reality Gem. [0-2147483647]\n" +
-                 "realityGemBlockChangeThreadTime=" + realityGauntletBlockChangeThreadTime + "\n" +
-                 "# realityGemConcurrentThreads: Determines the number of concurrent block change threads of the Reality Gem. [0-2147483647]\n" +
-                 "realityGemConcurrentThreads=" + realityGauntletConcurrentThreads + "\n" +
-                 "# realityGemBlockBlacklist: Determines the target block change blacklist of the Reality Gem. [minecraft:block, minecraft:otherblock]\n" +
-                 "realityGauntletBlockBlacklist=" + realityGauntletTargetBlockBlacklist + "\n" +
-                 "# realityGemChangeBlockBlacklist: Determines the held block change blacklist of the Reality Gem. [minecraft:block, minecraft:otherblock]\n" +
+                 "# realityGauntletBlockRadius: Determines the block radius of the Reality Gem. [0-64]\n" +
+                 "realityGauntletBlockRadius=" + realityGauntletBlockRadius + "\n" +
+                 "# realityGauntletBlockChangeThreadTime: Determines the delay in ms between each thread tick of the Reality Gem. [0-2147483647]\n" +
+                 "realityGauntletBlockChangeThreadTime=" + realityGauntletBlockChangeThreadTime + "\n" +
+                 "# realityGauntletConcurrentThreads: Determines the number of concurrent block change threads of the Reality Gem. [0-2147483647]\n" +
+                 "realityGauntletConcurrentThreads=" + realityGauntletConcurrentThreads + "\n" +
+                 "# realityGauntletTargetBlockBlacklist: Determines the target block change blacklist of the Reality Gem. [minecraft:block, minecraft:otherblock]\n" +
+                 "realityGauntletTargetBlockBlacklist=" + realityGauntletTargetBlockBlacklist + "\n" +
+                 "# realityGauntletChangeBlockBlacklist: Determines the held block change blacklist of the Reality Gem. [minecraft:block, minecraft:otherblock]\n" +
                  "realityGauntletChangeBlockBlacklist=" + realityGauntletChangeBlockBlacklist + "\n" +
                  "# realityGemRarity: Determines the rarity of the Reality Gem. [0-2147483647]\n" +
                  "realityGemRarity=" + realityGemRarity + "\n" +
@@ -205,9 +212,11 @@ public class DefaultModConfig {
                  "soulGemRarity=" + soulGemRarity + "\n" +
                  "# spaceGauntletChargeTime: Determines the charge time in ticks of the Space Gauntlet. [0-2147483647]\n" +
                  "spaceGauntletChargeTime=" + spaceGauntletChargeTime + "\n" +
-                 "# spaceGemRarity: Determines the rarity of the Space Gem from an Ender Dragon. [0-2147483647]\n" +
+                 "# spaceGemTeleportCooldown: Determines the teleport cooldown in ms of the Space Gem. [0-2147483647]\n" +
+                 "spaceGemTeleportCooldown=" + spaceGemTeleportCooldown + "\n" +
+                 "# spaceGemRarityDragon: Determines the rarity of the Space Gem from an Ender Dragon. [0-2147483647]\n" +
                  "spaceGemRarityDragon=" + spaceGemRarityDragon + "\n" +
-                 "# spaceGemRarity: Determines the rarity of the Space Gem from an End City. [0-2147483647]\n" +
+                 "# spaceGemRarityEndCity: Determines the rarity of the Space Gem from an End City. [0-2147483647]\n" +
                  "spaceGemRarityEndCity=" + spaceGemRarityEndCity + "\n" +
                  "# timeGauntletChargeTime: Determines the charge time in ticks of the Time Gauntlet. [0-2147483647]\n" +
                  "timeGauntletChargeTime=" + timeGauntletChargeTime + "\n" +

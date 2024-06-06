@@ -33,6 +33,7 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.stat.Stats;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.hit.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
@@ -50,9 +51,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Predicate;
+import java.util.logging.Logger;
 
-import static com.whitehallplugins.infinitygauntlet.InfinityGauntlet.CONFIG;
-import static com.whitehallplugins.infinitygauntlet.InfinityGauntlet.SOUL_DIMENSION;
+import static com.whitehallplugins.infinitygauntlet.InfinityGauntlet.*;
 
 public class SharedGemFunctions {
     private static final List<EntityType<?>> disallowedEntities = List.of(EntityType.ITEM,
@@ -73,6 +74,7 @@ public class SharedGemFunctions {
             Blocks.GRAY_STAINED_GLASS, Blocks.LIGHT_GRAY_STAINED_GLASS, Blocks.CYAN_STAINED_GLASS,
             Blocks.PURPLE_STAINED_GLASS, Blocks.BLUE_STAINED_GLASS, Blocks.BROWN_STAINED_GLASS,
             Blocks.GREEN_STAINED_GLASS, Blocks.RED_STAINED_GLASS, Blocks.BLACK_STAINED_GLASS);
+    private static final HashMap<PlayerEntity, Long> cooldown = new HashMap<>();
     private static final int ENTITY_RAYCAST_DISTANCE = CONFIG.getOrDefault("raycastEntityDistance", DefaultModConfig.raycastEntityDistance);
     private static final int BLOCK_RAYCAST_DISTANCE = CONFIG.getOrDefault("raycastBlocksDistance", DefaultModConfig.raycastBlocksDistance);
     private static final int COMBINED_RAYCAST_DISTANCE = CONFIG.getOrDefault("raycastCombinedDistance", DefaultModConfig.raycastCombinedDistance);
@@ -317,8 +319,7 @@ public class SharedGemFunctions {
                         teleportData.putString("World", summoner.getWorld().getRegistryKey().getValue().toString());
 
                         OfflineTeleportManager.setTeleportData(targetUUID, teleportData);
-                        summoner.sendMessage(Text.literal("The stored player is offline. They will spawn" +
-                                " at the targeted location when they log in"));
+                        summoner.sendMessage(Text.translatable("infinitygauntlet.warning.playeroffline"));
                     }
                     entityList.remove(entityList.size() - 1);
                 }
@@ -337,7 +338,9 @@ public class SharedGemFunctions {
                     resetSoulGem(stack);
                 }
             }
-            catch (NoSuchElementException ignored) {}
+            catch (NoSuchElementException ignored) {
+                Logger.getLogger(MOD_ID).warning(Text.translatable("infinitygauntlet.error.nbtentity").getString());
+            }
         }
     }
 
@@ -354,7 +357,7 @@ public class SharedGemFunctions {
 
     private static void changeBlocksInSphereRecursive(PlayerEntity user, World world, BlockPos centerPos, BlockState targetBlock, Block changeTo) {
         if (isThreadPoolBusy()) {
-            user.sendMessage(Text.literal("All threads are busy. The next reality gem task will have to wait."));
+            user.sendMessage(Text.translatable("infinitygauntlet.warning.busythreads"));
         }
 
         executorService.submit(() -> {
@@ -696,20 +699,26 @@ public class SharedGemFunctions {
                     ));
                     user.incrementStat(Stats.OPEN_ENDERCHEST);
                 } else {
-                    Vec3d targetPos = raycast(user, BLOCK_RAYCAST_DISTANCE, 1, false, false).getPos();
-                    BlockPos blockPos = new BlockPos((int) targetPos.getX(), (int) targetPos.getY(), (int) targetPos.getZ());
-                    boolean validTeleport = false;
-                    for (BlockPos pos : BlockPos.iterateOutwards(blockPos, 1, 1, 1)) {
-                        if (!world.getBlockState(pos).isAir()) {
-                            validTeleport = true;
-                            break;
+                    if (cooldown.containsKey(user) && cooldown.get(user) > System.currentTimeMillis()) {
+                        user.sendMessage(Text.translatable("infinitygauntlet.warning.teleportcooldown").formatted(Formatting.GRAY));
+                    } else {
+                        cooldown.put(user, System.currentTimeMillis() + CONFIG.getOrDefault(
+                                "spaceGemTeleportCooldown", DefaultModConfig.spaceGemTeleportCooldown));
+                        Vec3d targetPos = raycast(user, BLOCK_RAYCAST_DISTANCE, 1, false, false).getPos();
+                        BlockPos blockPos = new BlockPos((int) targetPos.getX(), (int) targetPos.getY(), (int) targetPos.getZ());
+                        boolean validTeleport = false;
+                        for (BlockPos pos : BlockPos.iterateOutwards(blockPos, 1, 1, 1)) {
+                            if (!world.getBlockState(pos).isAir()) {
+                                validTeleport = true;
+                                break;
+                            }
                         }
-                    }
-                    if (validTeleport) {
-                        spawnPortalParticles((ServerWorld) world, user.getPos(), true);
-                        user.requestTeleport(targetPos.getX(), targetPos.getY() + 1, targetPos.getZ());
-                        spawnPortalParticles((ServerWorld) world, targetPos, true);
-                        user.playSound(SoundEvents.ENTITY_PLAYER_TELEPORT, SoundCategory.BLOCKS, 1, 1);
+                        if (validTeleport) {
+                            spawnPortalParticles((ServerWorld) world, user.getPos(), true);
+                            user.requestTeleport(targetPos.getX(), targetPos.getY() + 1, targetPos.getZ());
+                            spawnPortalParticles((ServerWorld) world, targetPos, true);
+                            user.playSound(SoundEvents.ENTITY_PLAYER_TELEPORT, SoundCategory.BLOCKS, 1, 1);
+                        }
                     }
                 }
             }

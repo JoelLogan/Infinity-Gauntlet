@@ -32,7 +32,7 @@ public class PlayerManagerMixin {
         assert server != null;
         ServerPlayerEntity existingPlayer = server.getPlayerManager().getPlayer(playerUUID);
         if (existingPlayer != null) {
-            existingPlayer.networkHandler.disconnect(Text.literal("You logged in from another location"));
+            existingPlayer.networkHandler.disconnect(Text.translatable("infinitygauntlet.error.loggedinfromanotherlocation"));
             server.getPlayerManager().remove(existingPlayer);
         }
     }

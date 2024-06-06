@@ -20,7 +20,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Logger;
 
+import static com.whitehallplugins.infinitygauntlet.InfinityGauntlet.MOD_ID;
 import static com.whitehallplugins.infinitygauntlet.items.gems.SharedGemFunctions.*;
 
 public class Gauntlet extends BowItem {
@@ -201,7 +203,9 @@ public class Gauntlet extends BowItem {
                             setStackGlowing(stack, true);
                         }
                     }
-                    catch (IllegalArgumentException ignored) {}
+                    catch (IllegalArgumentException exception) {
+                        Logger.getLogger(MOD_ID).warning(Text.translatable("infinitygauntlet.error.mindgemuuid").getString());
+                    }
                 }
                 setCustomModelData(player, stack, 3);
                 sendCurrentMode(player, 3);

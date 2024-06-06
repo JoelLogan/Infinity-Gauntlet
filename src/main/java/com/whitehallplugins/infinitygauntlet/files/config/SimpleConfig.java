@@ -21,7 +21,6 @@ package com.whitehallplugins.infinitygauntlet.files.config;
  * THE SOFTWARE.
  */
 
-import com.whitehallplugins.infinitygauntlet.InfinityGauntlet;
 import net.fabricmc.loader.api.FabricLoader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -34,12 +33,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.Scanner;
+
+import static com.whitehallplugins.infinitygauntlet.InfinityGauntlet.MOD_ID;
 
 public final class SimpleConfig {
 
     private final DefaultModConfig defaultModConfig = new DefaultModConfig(true);
-    private static final Logger LOGGER = LogManager.getLogger(InfinityGauntlet.MOD_ID);
+    private static final Logger LOGGER = LogManager.getLogger(MOD_ID);
     private final HashMap<String, String> config = new HashMap<>();
     private final ConfigRequest request;
     private boolean broken = false;
@@ -103,7 +105,7 @@ public final class SimpleConfig {
      * @return new config request object
      */
     public static ConfigRequest of( String filename ) {
-        Path path = FabricLoader.getInstance().getConfigDir().resolve(InfinityGauntlet.MOD_ID);
+        Path path = FabricLoader.getInstance().getConfigDir().resolve(MOD_ID);
         return new ConfigRequest( path.resolve( filename + ".properties" ).toFile(), filename );
     }
 
@@ -111,7 +113,7 @@ public final class SimpleConfig {
 
         // try creating missing files
         if (!request.file.getParentFile().mkdirs()){
-            LOGGER.info("Failed to create parent directories for config file! (Probably Already Exists)");
+            LOGGER.info(MOD_ID + ": Failed to create parent directories for config file! (Probably Already Exists)");
         }
         Files.createFile( request.file.toPath() );
 
@@ -137,12 +139,15 @@ public final class SimpleConfig {
                 String key = parts[0];
                 String value = parts[1];
 
+                if (Objects.equals(key, "configVersion") && !Objects.equals(value, DefaultModConfig.configVersion)) {
+                    LOGGER.warn(MOD_ID + ": Config version mismatch! Consider regenerating your config file...");
+                }
                 if (defaultModConfig.getValidBooleanVerification().contains(key) && !Boolean.parseBoolean(value)){
-                    throw new RuntimeException("Value for key '" + key + "' on line " + line + " is not a boolean!");
+                    throw new RuntimeException(MOD_ID + ": Value for key '" + key + "' on line " + line + " is not a boolean!");
                 }
                 else if (defaultModConfig.getValidStringListVerification().contains(key)) {
                     if (!value.startsWith("[") || !value.endsWith("]")) {
-                        throw new RuntimeException("Value for key '" + key + "' on line " + line + " is not a string list!");
+                        throw new RuntimeException(MOD_ID + ": Value for key '" + key + "' on line " + line + " is not a string list!");
                     }
                 }
                 else if (defaultModConfig.getValidIntegerRanges().containsKey(key)) {
@@ -151,10 +156,10 @@ public final class SimpleConfig {
                     try {
                         intValue = Integer.parseInt(value);
                     } catch (Exception e) {
-                        throw new RuntimeException("Value for key '" + key + "' on line " + line + " is not an integer!");
+                        throw new RuntimeException(MOD_ID + ": Value for key '" + key + "' on line " + line + " is not an integer!");
                     }
                     if (intValue < range.first() || intValue > range.second()) {
-                        throw new RuntimeException("Value out of range for key '" + key + "' on line " + line + "!");
+                        throw new RuntimeException(MOD_ID + ": Value out of range for key '" + key + "' on line " + line + "!");
                     }
                 } else if (defaultModConfig.getValidFloatRanges().containsKey(key)) {
                     Pair<Float, Float> range = defaultModConfig.getValidFloatRanges().get(key);
@@ -162,16 +167,16 @@ public final class SimpleConfig {
                     try {
                         floatValue = Float.parseFloat(value);
                     } catch (Exception e) {
-                        throw new RuntimeException("Value for key '" + key + "' on line " + line + " is not a float!");
+                        throw new RuntimeException(MOD_ID + ": Value for key '" + key + "' on line " + line + " is not a float!");
                     }
                     if (floatValue < range.first() || floatValue > range.second()) {
-                        throw new RuntimeException("Value out of range for key '" + key + "' on line " + line + "!");
+                        throw new RuntimeException(MOD_ID + ": Value out of range for key '" + key + "' on line " + line + "!");
                     }
                 }
 
                 config.put(key, value);
             } else {
-                throw new RuntimeException("Syntax error in config file on line " + line + "!");
+                throw new RuntimeException(MOD_ID + ": Syntax error in config file on line " + line + "!");
             }
         }
     }
@@ -181,12 +186,12 @@ public final class SimpleConfig {
         String identifier = "Config '" + request.filename + "'";
 
         if( !request.file.exists() ) {
-            LOGGER.info("{} is missing, generating default one...", identifier);
+            LOGGER.info(MOD_ID + ": {} is missing, generating default one...", identifier);
 
             try {
                 createConfig();
             } catch (IOException e) {
-                LOGGER.error("{} failed to generate!", identifier);
+                LOGGER.error(MOD_ID + ": {} failed to generate!", identifier);
                 LOGGER.trace( e );
                 broken = true;
             }
@@ -196,10 +201,10 @@ public final class SimpleConfig {
             try {
                 loadConfig();
             } catch (Exception e) {
-                LOGGER.error("{} failed to load!", identifier);
+                LOGGER.error(MOD_ID + ": {} failed to load!", identifier);
                 LOGGER.trace( e );
                 broken = true;
-                throw new RuntimeException("Failed to load InfinityGauntlet config file! " + e.getMessage());
+                throw new RuntimeException(MOD_ID + ": Failed to load config file! " + e.getMessage());
             }
         }
 
@@ -325,7 +330,7 @@ public final class SimpleConfig {
      */
     @SuppressWarnings("unused")
     public boolean delete() {
-        LOGGER.warn("Config '{}' was removed from existence! Restart the game to regenerate it.", request.filename);
+        LOGGER.warn(MOD_ID + ": Config '{}' was removed from existence! Restart the game to regenerate it.", request.filename);
         return request.file.delete();
     }
 }
