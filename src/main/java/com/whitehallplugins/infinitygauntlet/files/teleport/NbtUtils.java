@@ -8,7 +8,7 @@ import com.google.gson.JsonElement;
 import java.util.Map;
 import java.util.Objects;
 
-public class NbtUtils {
+public final class NbtUtils {
 
     private NbtUtils() {
         throw new IllegalStateException("Utility class");

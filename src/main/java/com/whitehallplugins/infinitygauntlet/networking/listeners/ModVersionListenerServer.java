@@ -14,7 +14,7 @@ import java.util.Arrays;
 
 import static com.whitehallplugins.infinitygauntlet.InfinityGauntlet.*;
 
-public class ModVersionListenerServer implements PlayChannelHandler {
+public final class ModVersionListenerServer implements PlayChannelHandler {
 
     @Override
     public void receive(MinecraftServer server, ServerPlayerEntity player, ServerPlayNetworkHandler handler, PacketByteBuf buf, PacketSender responseSender) {

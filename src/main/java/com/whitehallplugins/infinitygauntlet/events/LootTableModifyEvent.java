@@ -14,7 +14,7 @@ import net.minecraft.loot.entry.ItemEntry;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 
-public class LootTableModifyEvent implements Modify {
+public final class LootTableModifyEvent implements Modify {
 
     private static final String MC_ID = "minecraft";
 

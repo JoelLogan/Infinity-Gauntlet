@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class GauntletReplica extends Item {
+public final class GauntletReplica extends Item {
 
     public GauntletReplica(Settings settings) {
         super(settings);

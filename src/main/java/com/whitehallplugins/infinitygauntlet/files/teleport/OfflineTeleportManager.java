@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 
 import static com.whitehallplugins.infinitygauntlet.InfinityGauntlet.MOD_ID;
 
-public class OfflineTeleportManager {
+public final class OfflineTeleportManager {
 
     private static final File TELEPORT_DATA_FILE = new File(FabricLoader.getInstance().getConfigDir().resolve(MOD_ID + "/OfflineTeleportData.json").toString());
     private static final Map<UUID, NbtCompound> teleportDataMap = new HashMap<>();

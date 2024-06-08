@@ -25,7 +25,7 @@ import java.util.logging.Logger;
 import static com.whitehallplugins.infinitygauntlet.InfinityGauntlet.MOD_ID;
 import static com.whitehallplugins.infinitygauntlet.items.gems.SharedGemFunctions.*;
 
-public class Gauntlet extends BowItem {
+public final class Gauntlet extends BowItem {
 
     private static final String CUSTOM_MODEL_DATA_NBT = "CustomModelData";
 

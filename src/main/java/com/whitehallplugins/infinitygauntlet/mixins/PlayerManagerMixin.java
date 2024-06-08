@@ -24,7 +24,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Mixin(PlayerManager.class)
-public class PlayerManagerMixin {
+public abstract class PlayerManagerMixin {
     @Inject(method = "onPlayerConnect", at = @At("HEAD"))
     private void onPlayerConnectPre(ClientConnection connection, ServerPlayerEntity player, ConnectedClientData clientData, CallbackInfo ci) {
         MinecraftServer server = player.getServer();

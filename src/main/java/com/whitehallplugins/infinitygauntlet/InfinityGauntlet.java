@@ -8,8 +8,8 @@ import com.whitehallplugins.infinitygauntlet.files.teleport.OfflineTeleportManag
 import com.whitehallplugins.infinitygauntlet.files.config.SimpleConfig;
 import com.whitehallplugins.infinitygauntlet.items.gauntlets.Gauntlet;
 import com.whitehallplugins.infinitygauntlet.items.gauntlets.GauntletReplica;
-import com.whitehallplugins.infinitygauntlet.items.gems.replicas.*;
-import com.whitehallplugins.infinitygauntlet.items.gems.*;
+import com.whitehallplugins.infinitygauntlet.items.gems.replicas.ReplicaGems.*;
+import com.whitehallplugins.infinitygauntlet.items.gems.Gems.*;
 import com.whitehallplugins.infinitygauntlet.networking.NetworkingConstants;
 import com.whitehallplugins.infinitygauntlet.networking.listeners.GauntletSwapPacketListener;
 import com.whitehallplugins.infinitygauntlet.networking.listeners.ModVersionListenerServer;
@@ -43,14 +43,14 @@ import java.util.List;
 
 import static com.whitehallplugins.infinitygauntlet.items.gems.SharedGemFunctions.initThreadShutdownHook;
 
-public class InfinityGauntlet implements ModInitializer {
+public final class InfinityGauntlet implements ModInitializer {
 
     /**
      * TODO: Get gauntlet models
      */
     
     public static final String MOD_ID = "infinitygauntlet";
-    
+
     public static final Gauntlet GAUNTLET_ITEM = new Gauntlet(new FabricItemSettings().rarity(Rarity.EPIC).maxCount(1).fireproof().maxDamage(100));
     public static final MindGem MIND_GEM = new MindGem(new FabricItemSettings().rarity(Rarity.EPIC).maxCount(1).fireproof());
     public static final PowerGem POWER_GEM = new PowerGem(new FabricItemSettings().rarity(Rarity.EPIC).maxCount(1).fireproof());

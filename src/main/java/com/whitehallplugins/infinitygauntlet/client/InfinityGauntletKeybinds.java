@@ -3,7 +3,7 @@ package com.whitehallplugins.infinitygauntlet.client;
 import net.minecraft.client.option.KeyBinding;
 import org.lwjgl.glfw.GLFW;
 
-public class InfinityGauntletKeybinds {
+public final class InfinityGauntletKeybinds {
 
     private InfinityGauntletKeybinds() {
         throw new IllegalStateException("Utility class");

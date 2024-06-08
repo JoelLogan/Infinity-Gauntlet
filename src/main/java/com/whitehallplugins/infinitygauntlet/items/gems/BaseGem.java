@@ -5,13 +5,17 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
+import net.minecraft.util.UseAction;
 import net.minecraft.world.World;
 
-import static com.whitehallplugins.infinitygauntlet.items.gems.SharedGemFunctions.powerGemUse;
-
-public class PowerGem extends Item {
-    public PowerGem(Settings settings) {
+public class BaseGem extends Item {
+    public BaseGem(Settings settings) {
         super(settings);
+    }
+
+    @Override
+    public UseAction getUseAction(ItemStack stack) {
+        return UseAction.NONE;
     }
 
     @Override
@@ -26,9 +30,6 @@ public class PowerGem extends Item {
 
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
-        if (!world.isClient()) {
-            powerGemUse(world, user, false);
-        }
-        return TypedActionResult.pass(user.getStackInHand(hand));
+        return null;
     }
 }

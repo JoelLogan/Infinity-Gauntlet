@@ -10,14 +10,12 @@ import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Hand;
 
-public class GauntletSwapPacketListener implements PlayChannelHandler {
+public final class GauntletSwapPacketListener implements PlayChannelHandler {
 
     @Override
     public void receive(MinecraftServer server, ServerPlayerEntity player, ServerPlayNetworkHandler handler, PacketByteBuf buf, PacketSender responseSender) {
-        if (buf.isReadable()) {
-            if (buf.readString().equals(NetworkingConstants.SWAP_POWER_STRING)) {
-                Gauntlet.swapPower(player, player.getStackInHand(getHand(player)));
-            }
+        if (buf.isReadable() && (buf.readString().equals(NetworkingConstants.SWAP_POWER_STRING))) {
+            Gauntlet.swapPower(player, player.getStackInHand(getHand(player)));
         }
     }
 
