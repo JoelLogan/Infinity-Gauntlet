@@ -144,12 +144,14 @@ public final class SimpleConfig {
                 if (Objects.equals(key, "configVersion") && !Objects.equals(value, DefaultModConfig.CONFIG_VERSION)) {
                     LOGGER.warn(MOD_ID + ": Config version mismatch! Consider regenerating your config file...");
                 }
+                String valueKey = ": Value for key '";
+                String onLine = "' on line ";
                 if (defaultModConfig.getValidBooleanVerification().contains(key) && !Boolean.parseBoolean(value)){
-                    throw new InvalidConfigValueException(MOD_ID + ": Value for key '" + key + "' on line " + line + " is not a boolean!");
+                    throw new InvalidConfigValueException(MOD_ID + valueKey + key + onLine + line + " is not a boolean!");
                 }
                 else if (defaultModConfig.getValidStringListVerification().contains(key)) {
                     if (!value.startsWith("[") || !value.endsWith("]")) {
-                        throw new InvalidConfigValueException(MOD_ID + ": Value for key '" + key + "' on line " + line + " is not a string list!");
+                        throw new InvalidConfigValueException(MOD_ID + valueKey + key + onLine + line + " is not a string list!");
                     }
                 }
                 else if (defaultModConfig.getValidIntegerRanges().containsKey(key)) {
@@ -158,10 +160,10 @@ public final class SimpleConfig {
                     try {
                         intValue = Integer.parseInt(value);
                     } catch (Exception e) {
-                        throw new InvalidConfigValueException(MOD_ID + ": Value for key '" + key + "' on line " + line + " is not an integer!");
+                        throw new InvalidConfigValueException(MOD_ID + valueKey + key + onLine + line + " is not an integer!");
                     }
                     if (intValue < range.first() || intValue > range.second()) {
-                        throw new InvalidConfigValueException(MOD_ID + ": Value out of range for key '" + key + "' on line " + line + "!");
+                        throw new InvalidConfigValueException(MOD_ID + ": Value out of range for key '" + key + onLine + line + "!");
                     }
                 } else if (defaultModConfig.getValidFloatRanges().containsKey(key)) {
                     Pair<Float, Float> range = defaultModConfig.getValidFloatRanges().get(key);
@@ -169,10 +171,10 @@ public final class SimpleConfig {
                     try {
                         floatValue = Float.parseFloat(value);
                     } catch (Exception e) {
-                        throw new InvalidConfigValueException(MOD_ID + ": Value for key '" + key + "' on line " + line + " is not a float!");
+                        throw new InvalidConfigValueException(MOD_ID + valueKey + key + onLine + line + " is not a float!");
                     }
                     if (floatValue < range.first() || floatValue > range.second()) {
-                        throw new InvalidConfigValueException(MOD_ID + ": Value out of range for key '" + key + "' on line " + line + "!");
+                        throw new InvalidConfigValueException(MOD_ID + ": Value out of range for key '" + key + onLine + line + "!");
                     }
                 }
 

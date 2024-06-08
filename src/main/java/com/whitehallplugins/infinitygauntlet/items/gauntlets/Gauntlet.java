@@ -27,7 +27,7 @@ import static com.whitehallplugins.infinitygauntlet.items.gems.SharedGemFunction
 
 public class Gauntlet extends BowItem {
 
-    private static final String customModelDataNbt = "CustomModelData";
+    private static final String CUSTOM_MODEL_DATA_NBT = "CustomModelData";
 
     public Gauntlet(Settings settings) {
         super(settings);
@@ -129,7 +129,7 @@ public class Gauntlet extends BowItem {
 
     public static void setCustomModelData(PlayerEntity player, ItemStack stack, int customModelData) {
         NbtCompound tag = stack.getOrCreateNbt();
-        tag.putInt(customModelDataNbt, customModelData);
+        tag.putInt(CUSTOM_MODEL_DATA_NBT, customModelData);
         if (stack.getItem() instanceof BowItem){
             player.clearActiveItem();
         }
@@ -138,7 +138,7 @@ public class Gauntlet extends BowItem {
 
     public static int getCustomModelData(ItemStack stack) {
         NbtCompound tag = stack.getOrCreateNbt();
-        return tag != null && tag.contains(customModelDataNbt) ? tag.getInt(customModelDataNbt) : 0;
+        return tag != null && tag.contains(CUSTOM_MODEL_DATA_NBT) ? tag.getInt(CUSTOM_MODEL_DATA_NBT) : 0;
     }
 
     @Override
@@ -197,20 +197,7 @@ public class Gauntlet extends BowItem {
                 sendCurrentMode(player, 2);
                 break;
             case 2: // FROM TIME TO MIND
-                if (stack.hasNbt()){
-                    try {
-                        if (stack.getNbt() == null){
-                            throw new NullPointerException(stack.getName() + ": NBT is null");
-                        }
-                        if (stack.getNbt().containsUuid(MIND_GEM_NBT_ID)) {
-                            Objects.requireNonNull(stack.getNbt().getUuid(MIND_GEM_NBT_ID));
-                            setStackGlowing(stack, true);
-                        }
-                    }
-                    catch (IllegalArgumentException exception) {
-                        Logger.getLogger(MOD_ID).warning(Text.translatable("infinitygauntlet.error.mindgemuuid").getString());
-                    }
-                }
+                timeToMind(stack);
                 setCustomModelData(player, stack, 3);
                 sendCurrentMode(player, 3);
                 break;
@@ -220,15 +207,7 @@ public class Gauntlet extends BowItem {
                 sendCurrentMode(player, 4);
                 break;
             case 4: // FROM REALITY TO SOUL
-                if (stack.hasNbt()){
-                    if (stack.getNbt() == null){
-                        throw new NullPointerException(stack.getName() + ": NBT is null");
-                    }
-                    if (stack.getNbt().contains(SOUL_GEM_NBT_ID, NbtElement.LIST_TYPE) &&
-                            !Objects.requireNonNull(stack.getNbt().getList(SOUL_GEM_NBT_ID, NbtElement.COMPOUND_TYPE)).isEmpty()) {
-                        setStackGlowing(stack, true);
-                    }
-                }
+                realityToSoul(stack);
                 setCustomModelData(player, stack, 5);
                 sendCurrentMode(player, 5);
                 break;
@@ -241,6 +220,35 @@ public class Gauntlet extends BowItem {
                 setCustomModelData(player, stack, 1);
                 sendCurrentMode(player, 1);
                 break;
+        }
+    }
+
+    private static void timeToMind(ItemStack stack) {
+        if (stack.hasNbt()){
+            try {
+                if (stack.getNbt() == null){
+                    throw new NullPointerException(stack.getName() + ": NBT is null");
+                }
+                if (stack.getNbt().containsUuid(MIND_GEM_NBT_ID)) {
+                    Objects.requireNonNull(stack.getNbt().getUuid(MIND_GEM_NBT_ID));
+                    setStackGlowing(stack, true);
+                }
+            }
+            catch (IllegalArgumentException exception) {
+                Logger.getLogger(MOD_ID).warning(Text.translatable("infinitygauntlet.error.mindgemuuid").getString());
+            }
+        }
+    }
+
+    private static void realityToSoul(ItemStack stack) {
+        if (stack.hasNbt()){
+            if (stack.getNbt() == null){
+                throw new NullPointerException(stack.getName() + ": NBT is null");
+            }
+            if (stack.getNbt().contains(SOUL_GEM_NBT_ID, NbtElement.LIST_TYPE) &&
+                    !Objects.requireNonNull(stack.getNbt().getList(SOUL_GEM_NBT_ID, NbtElement.COMPOUND_TYPE)).isEmpty()) {
+                setStackGlowing(stack, true);
+            }
         }
     }
 }

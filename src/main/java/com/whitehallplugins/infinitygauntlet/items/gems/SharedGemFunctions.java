@@ -85,7 +85,7 @@ public class SharedGemFunctions {
     public static final String SOUL_GEM_NBT_ID = "SoulGemEntities";
     public static final String MIND_GEM_NBT_ID = "HostileEntity";
     private static final String SOUL_PLAYER_NBT_ID = "minecraft:player";
-    private static final String enchantsNbt = "Enchantments";
+    private static final String ENCHANTS_NBT = "Enchantments";
 
     private SharedGemFunctions(){
         throw new IllegalStateException("Utility class");
@@ -267,10 +267,10 @@ public class SharedGemFunctions {
         NbtList glowingTag = new NbtList();
         glowingTag.add(new NbtCompound());
         if (glowing) {
-            stack.getOrCreateNbt().put(enchantsNbt, glowingTag);
+            stack.getOrCreateNbt().put(ENCHANTS_NBT, glowingTag);
         }
         else {
-            stack.getOrCreateNbt().remove(enchantsNbt);
+            stack.getOrCreateNbt().remove(ENCHANTS_NBT);
         }
     }
 
@@ -462,13 +462,13 @@ public class SharedGemFunctions {
                                     }
                                 }
                                 else {
-                                    glowingItem.remove(enchantsNbt);
+                                    glowingItem.remove(ENCHANTS_NBT);
                                     glowingItem.remove(MIND_GEM_NBT_ID);
                                 }
                             }
                         }
                     } catch (IllegalArgumentException ignored) {
-                        glowingItem.remove(enchantsNbt);
+                        glowingItem.remove(ENCHANTS_NBT);
                         glowingItem.remove(MIND_GEM_NBT_ID);
                         return;
                     }
