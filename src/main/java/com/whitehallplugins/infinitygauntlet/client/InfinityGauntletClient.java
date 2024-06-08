@@ -9,7 +9,7 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.network.PacketByteBuf;
 
-public class InfinityGauntletClient implements ClientModInitializer {
+public final class InfinityGauntletClient implements ClientModInitializer {
 
     boolean isKeyPressed = false;
     PacketByteBuf swapPowerPacket = PacketByteBufs.create().writeString(NetworkingConstants.SWAP_POWER_STRING);

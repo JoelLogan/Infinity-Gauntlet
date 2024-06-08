@@ -22,7 +22,7 @@ import java.util.logging.Logger;
 
 import static com.whitehallplugins.infinitygauntlet.InfinityGauntlet.*;
 
-public class PlayerJoinEvent implements Join {
+public final class PlayerJoinEvent implements Join {
 
     private static final ExecutorService executor = Executors.newSingleThreadExecutor();
 

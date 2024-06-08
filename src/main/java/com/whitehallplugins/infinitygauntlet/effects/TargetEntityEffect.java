@@ -12,7 +12,7 @@ import net.minecraft.server.world.ServerWorld;
 
 import java.util.UUID;
 
-public class TargetEntityEffect extends StatusEffect {
+public final class TargetEntityEffect extends StatusEffect {
 
     public TargetEntityEffect() {
         super(StatusEffectCategory.BENEFICIAL, 0x000000);

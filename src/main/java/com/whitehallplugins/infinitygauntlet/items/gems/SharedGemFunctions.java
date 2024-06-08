@@ -55,7 +55,7 @@ import java.util.logging.Logger;
 
 import static com.whitehallplugins.infinitygauntlet.InfinityGauntlet.*;
 
-public class SharedGemFunctions {
+public final class SharedGemFunctions {
     private static final List<EntityType<?>> disallowedEntities = List.of(EntityType.ITEM,
             EntityType.EXPERIENCE_BOTTLE, EntityType.ITEM_FRAME, EntityType.GLOW_ITEM_FRAME,
             EntityType.ARMOR_STAND, EntityType.AREA_EFFECT_CLOUD, EntityType.ARROW,
@@ -427,7 +427,7 @@ public class SharedGemFunctions {
         if (!gauntlet) {
             if (CONFIG.getOrDefault("isMindGemEnabled", DefaultModConfig.IS_MIND_GEM_ENABLED)) {
                 ItemStack stackInHand = user.getStackInHand(user.getActiveHand());
-                if (stackInHand.getItem() instanceof MindGem || stackInHand.getItem() instanceof Gauntlet) {
+                if (stackInHand.getItem() instanceof Gems.MindGem || stackInHand.getItem() instanceof Gauntlet) {
                     NbtCompound glowingItem = stackInHand.getOrCreateNbt();
                     EntityHitResult entityHitResult;
                     try {
@@ -615,7 +615,7 @@ public class SharedGemFunctions {
 
     public static void soulGemUse(World world, PlayerEntity user, boolean gauntlet) {
         ItemStack stackInHand = user.getStackInHand(user.getActiveHand());
-        if (stackInHand.getItem() instanceof SoulGem || stackInHand.getItem() instanceof Gauntlet) {
+        if (stackInHand.getItem() instanceof Gems.SoulGem || stackInHand.getItem() instanceof Gauntlet) {
             NbtCompound glowingItem = stackInHand.getOrCreateNbt();
             NbtList entityList = new NbtList();
             if (glowingItem.contains(SOUL_GEM_NBT_ID, NbtCompound.LIST_TYPE)) {

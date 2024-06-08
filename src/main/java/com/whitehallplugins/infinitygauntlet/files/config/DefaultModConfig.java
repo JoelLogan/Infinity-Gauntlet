@@ -2,7 +2,7 @@ package com.whitehallplugins.infinitygauntlet.files.config;
 
 import java.util.*;
 
-public class DefaultModConfig {
+public final class DefaultModConfig {
 
     private final List<String> validBooleanVerification = new ArrayList<>();
     private final List<String> validStringListVerification = new ArrayList<>();

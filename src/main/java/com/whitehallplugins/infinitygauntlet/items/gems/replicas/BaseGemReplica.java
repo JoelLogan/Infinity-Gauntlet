@@ -11,8 +11,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class PowerGemReplica extends Item {
-    public PowerGemReplica(Settings settings) {
+public class BaseGemReplica extends Item {
+    public BaseGemReplica(Settings settings) {
         super(settings);
     }
 
@@ -28,8 +28,11 @@ public class PowerGemReplica extends Item {
 
     @Override
     public void appendTooltip(ItemStack stack, @Nullable World world, List<Text> tooltip, TooltipContext context) {
-        tooltip.add(Text.translatable("item.infinitygauntlet.power.gemreplica.tooltip").formatted(Formatting.GRAY));
+        tooltip.add(Text.translatable("item.infinitygauntlet." + getGemType() + ".gemreplica.tooltip").formatted(Formatting.GRAY));
         super.appendTooltip(stack, world, tooltip, context);
     }
 
+    protected String getGemType() {
+        return null;
+    }
 }
