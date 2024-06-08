@@ -177,7 +177,6 @@ public final class SimpleConfig {
                         throw new InvalidConfigValueException(MOD_ID + ": Value out of range for key '" + key + onLine + line + "!");
                     }
                 }
-
                 config.put(key, value);
             } else {
                 throw new InvalidConfigValueException(MOD_ID + ": Syntax error in config file on line " + line + "!");
