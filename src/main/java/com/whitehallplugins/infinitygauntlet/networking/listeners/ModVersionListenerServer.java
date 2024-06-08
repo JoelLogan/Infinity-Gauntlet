@@ -1,5 +1,6 @@
 package com.whitehallplugins.infinitygauntlet.networking.listeners;
 
+import com.whitehallplugins.infinitygauntlet.InfinityGauntlet;
 import com.whitehallplugins.infinitygauntlet.networking.NetworkingConstants;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.PlayChannelHandler;
@@ -20,9 +21,8 @@ public class ModVersionListenerServer implements PlayChannelHandler {
         if (buf.isReadable()) {
             int[] versionArray = buf.readIntArray();
             int[] expectedVersionArray = NetworkingConstants.modVersion();
-            assert expectedVersionArray != null;
             server.execute(() -> {
-                authenticatingPlayers.remove(player);
+                InfinityGauntlet.removeAuthenticatingPlayer(player);
                 if (versionArray.length != expectedVersionArray.length || !Arrays.equals(versionArray, expectedVersionArray)) {
                     player.networkHandler.disconnect(Text.translatable("infinitygauntlet.error.modversionmismatch",
                             MOD_ID, Arrays.toString(versionArray).replace(",", ".").replace(" ", ""),

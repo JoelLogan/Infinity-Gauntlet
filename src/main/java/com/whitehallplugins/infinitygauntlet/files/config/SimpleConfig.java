@@ -21,6 +21,8 @@ package com.whitehallplugins.infinitygauntlet.files.config;
  * THE SOFTWARE.
  */
 
+import com.whitehallplugins.infinitygauntlet.files.config.exceptions.ConfigLoadException;
+import com.whitehallplugins.infinitygauntlet.files.config.exceptions.InvalidConfigValueException;
 import net.fabricmc.loader.api.FabricLoader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -139,15 +141,15 @@ public final class SimpleConfig {
                 String key = parts[0];
                 String value = parts[1];
 
-                if (Objects.equals(key, "configVersion") && !Objects.equals(value, DefaultModConfig.configVersion)) {
+                if (Objects.equals(key, "configVersion") && !Objects.equals(value, DefaultModConfig.CONFIG_VERSION)) {
                     LOGGER.warn(MOD_ID + ": Config version mismatch! Consider regenerating your config file...");
                 }
                 if (defaultModConfig.getValidBooleanVerification().contains(key) && !Boolean.parseBoolean(value)){
-                    throw new RuntimeException(MOD_ID + ": Value for key '" + key + "' on line " + line + " is not a boolean!");
+                    throw new InvalidConfigValueException(MOD_ID + ": Value for key '" + key + "' on line " + line + " is not a boolean!");
                 }
                 else if (defaultModConfig.getValidStringListVerification().contains(key)) {
                     if (!value.startsWith("[") || !value.endsWith("]")) {
-                        throw new RuntimeException(MOD_ID + ": Value for key '" + key + "' on line " + line + " is not a string list!");
+                        throw new InvalidConfigValueException(MOD_ID + ": Value for key '" + key + "' on line " + line + " is not a string list!");
                     }
                 }
                 else if (defaultModConfig.getValidIntegerRanges().containsKey(key)) {
@@ -156,10 +158,10 @@ public final class SimpleConfig {
                     try {
                         intValue = Integer.parseInt(value);
                     } catch (Exception e) {
-                        throw new RuntimeException(MOD_ID + ": Value for key '" + key + "' on line " + line + " is not an integer!");
+                        throw new InvalidConfigValueException(MOD_ID + ": Value for key '" + key + "' on line " + line + " is not an integer!");
                     }
                     if (intValue < range.first() || intValue > range.second()) {
-                        throw new RuntimeException(MOD_ID + ": Value out of range for key '" + key + "' on line " + line + "!");
+                        throw new InvalidConfigValueException(MOD_ID + ": Value out of range for key '" + key + "' on line " + line + "!");
                     }
                 } else if (defaultModConfig.getValidFloatRanges().containsKey(key)) {
                     Pair<Float, Float> range = defaultModConfig.getValidFloatRanges().get(key);
@@ -167,16 +169,16 @@ public final class SimpleConfig {
                     try {
                         floatValue = Float.parseFloat(value);
                     } catch (Exception e) {
-                        throw new RuntimeException(MOD_ID + ": Value for key '" + key + "' on line " + line + " is not a float!");
+                        throw new InvalidConfigValueException(MOD_ID + ": Value for key '" + key + "' on line " + line + " is not a float!");
                     }
                     if (floatValue < range.first() || floatValue > range.second()) {
-                        throw new RuntimeException(MOD_ID + ": Value out of range for key '" + key + "' on line " + line + "!");
+                        throw new InvalidConfigValueException(MOD_ID + ": Value out of range for key '" + key + "' on line " + line + "!");
                     }
                 }
 
                 config.put(key, value);
             } else {
-                throw new RuntimeException(MOD_ID + ": Syntax error in config file on line " + line + "!");
+                throw new InvalidConfigValueException(MOD_ID + ": Syntax error in config file on line " + line + "!");
             }
         }
     }
@@ -204,7 +206,7 @@ public final class SimpleConfig {
                 LOGGER.error(MOD_ID + ": {} failed to load!", identifier);
                 LOGGER.trace( e );
                 broken = true;
-                throw new RuntimeException(MOD_ID + ": Failed to load config file! " + e.getMessage());
+                throw new ConfigLoadException(MOD_ID + ": Failed to load config file! " + e.getMessage());
             }
         }
 
@@ -216,9 +218,8 @@ public final class SimpleConfig {
      *
      * @return  value corresponding to the given key
      * @see     SimpleConfig#getOrDefault
+     * @hidden
      */
-    @Deprecated
-    @SuppressWarnings("unused")
     public String get( String key ) {
         return config.get( key );
     }

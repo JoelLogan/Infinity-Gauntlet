@@ -27,6 +27,8 @@ import static com.whitehallplugins.infinitygauntlet.items.gems.SharedGemFunction
 
 public class Gauntlet extends BowItem {
 
+    private static final String customModelDataNbt = "CustomModelData";
+
     public Gauntlet(Settings settings) {
         super(settings);
     }
@@ -54,12 +56,12 @@ public class Gauntlet extends BowItem {
 
     private int getChargeTime(ItemStack stack) {
         return switch (getCustomModelData(stack)) {
-            case 0 -> InfinityGauntlet.CONFIG.getOrDefault("powerGauntletChargeTime", DefaultModConfig.powerGauntletChargeTime); // POWER
-            case 1 -> InfinityGauntlet.CONFIG.getOrDefault("spaceGauntletChargeTime", DefaultModConfig.spaceGauntletChargeTime);  // SPACE
-            case 2 -> InfinityGauntlet.CONFIG.getOrDefault("timeGauntletChargeTime", DefaultModConfig.timeGauntletChargeTime);  // TIME
-            case 3 -> InfinityGauntlet.CONFIG.getOrDefault("mindGauntletChargeTime", DefaultModConfig.mindGauntletChargeTime);  // MIND
-            case 4 -> InfinityGauntlet.CONFIG.getOrDefault("realityGauntletChargeTime", DefaultModConfig.realityGauntletChargeTime);  // REALITY
-            case 5 -> InfinityGauntlet.CONFIG.getOrDefault("soulGauntletChargeTime", DefaultModConfig.soulGauntletChargeTime);  // SOUL
+            case 0 -> InfinityGauntlet.CONFIG.getOrDefault("powerGauntletChargeTime", DefaultModConfig.POWER_GAUNTLET_CHARGE_TIME); // POWER
+            case 1 -> InfinityGauntlet.CONFIG.getOrDefault("spaceGauntletChargeTime", DefaultModConfig.SPACE_GAUNTLET_CHARGE_TIME);  // SPACE
+            case 2 -> InfinityGauntlet.CONFIG.getOrDefault("timeGauntletChargeTime", DefaultModConfig.TIME_GAUNTLET_CHARGE_TIME);  // TIME
+            case 3 -> InfinityGauntlet.CONFIG.getOrDefault("mindGauntletChargeTime", DefaultModConfig.MIND_GAUNTLET_CHARGE_TIME);  // MIND
+            case 4 -> InfinityGauntlet.CONFIG.getOrDefault("realityGauntletChargeTime", DefaultModConfig.REALITY_GAUNTLET_CHARGE_TIME);  // REALITY
+            case 5 -> InfinityGauntlet.CONFIG.getOrDefault("soulGauntletChargeTime", DefaultModConfig.SOUL_GAUNTLET_CHARGE_TIME);  // SOUL
             default -> 0;
         };
     }
@@ -71,7 +73,7 @@ public class Gauntlet extends BowItem {
 
     @Override
     public float getMiningSpeedMultiplier(ItemStack stack, BlockState state) {
-        return InfinityGauntlet.CONFIG.getOrDefault("infinityGauntletMineSpeed", DefaultModConfig.infinityGauntletMineSpeed);
+        return InfinityGauntlet.CONFIG.getOrDefault("infinityGauntletMineSpeed", DefaultModConfig.INFINITY_GAUNTLET_MINE_SPEED);
     }
 
     @Override
@@ -127,7 +129,7 @@ public class Gauntlet extends BowItem {
 
     public static void setCustomModelData(PlayerEntity player, ItemStack stack, int customModelData) {
         NbtCompound tag = stack.getOrCreateNbt();
-        tag.putInt("CustomModelData", customModelData);
+        tag.putInt(customModelDataNbt, customModelData);
         if (stack.getItem() instanceof BowItem){
             player.clearActiveItem();
         }
@@ -136,7 +138,7 @@ public class Gauntlet extends BowItem {
 
     public static int getCustomModelData(ItemStack stack) {
         NbtCompound tag = stack.getOrCreateNbt();
-        return tag != null && tag.contains("CustomModelData") ? tag.getInt("CustomModelData") : 0;
+        return tag != null && tag.contains(customModelDataNbt) ? tag.getInt(customModelDataNbt) : 0;
     }
 
     @Override
@@ -197,7 +199,9 @@ public class Gauntlet extends BowItem {
             case 2: // FROM TIME TO MIND
                 if (stack.hasNbt()){
                     try {
-                        assert stack.getNbt() != null;
+                        if (stack.getNbt() == null){
+                            throw new NullPointerException(stack.getName() + ": NBT is null");
+                        }
                         if (stack.getNbt().containsUuid(MIND_GEM_NBT_ID)) {
                             Objects.requireNonNull(stack.getNbt().getUuid(MIND_GEM_NBT_ID));
                             setStackGlowing(stack, true);
@@ -217,7 +221,9 @@ public class Gauntlet extends BowItem {
                 break;
             case 4: // FROM REALITY TO SOUL
                 if (stack.hasNbt()){
-                    assert stack.getNbt() != null;
+                    if (stack.getNbt() == null){
+                        throw new NullPointerException(stack.getName() + ": NBT is null");
+                    }
                     if (stack.getNbt().contains(SOUL_GEM_NBT_ID, NbtElement.LIST_TYPE) &&
                             !Objects.requireNonNull(stack.getNbt().getList(SOUL_GEM_NBT_ID, NbtElement.COMPOUND_TYPE)).isEmpty()) {
                         setStackGlowing(stack, true);

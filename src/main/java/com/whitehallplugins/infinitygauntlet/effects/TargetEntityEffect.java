@@ -33,11 +33,9 @@ public class TargetEntityEffect extends StatusEffect {
                     assert target != null;
                     if (target.isAlive() && isCloseEnough(entity, (LivingEntity) target)) {
                         ((HostileEntity) entity).setTarget((LivingEntity) target);
-                        if (target.isPlayer()) {
-                            if (((PlayerEntity) target).isCreative() || target.isSpectator()){
-                                entity.removeCommandTag(s);
-                                entity.removeStatusEffect(InfinityGauntlet.targetEntityEffect);
-                            }
+                        if (target.isPlayer() && ((PlayerEntity) target).isCreative() || target.isSpectator()){
+                            entity.removeCommandTag(s);
+                            entity.removeStatusEffect(InfinityGauntlet.targetEntityEffect);
                         }
                     }
                     else {
@@ -50,7 +48,7 @@ public class TargetEntityEffect extends StatusEffect {
     }
 
     private boolean isCloseEnough(LivingEntity entity, LivingEntity target) {
-        int range = InfinityGauntlet.CONFIG.getOrDefault("mindGemMaxAgroDistance", DefaultModConfig.mindGemMaxAgroDistance);
+        int range = InfinityGauntlet.CONFIG.getOrDefault("mindGemMaxAgroDistance", DefaultModConfig.MIND_GEM_MAX_AGRO_DISTANCE);
         return entity.squaredDistanceTo(target) < (range * range);
     }
 }
