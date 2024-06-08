@@ -9,6 +9,11 @@ import java.util.Map;
 import java.util.Objects;
 
 public class NbtUtils {
+
+    private NbtUtils() {
+        throw new IllegalStateException("Utility class");
+    }
+
     public static JsonObject toJson(NbtCompound nbt) {
         JsonObject json = new JsonObject();
         for (String key : nbt.getKeys()) {

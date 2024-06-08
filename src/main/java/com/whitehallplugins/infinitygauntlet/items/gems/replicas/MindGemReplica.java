@@ -26,10 +26,8 @@ public class MindGemReplica extends Item {
 
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
-        if (!world.isClient()) {
-            if (user.isSneaking() && user.getName().toString().equals("TropicalElf")){
-                user.sendMessage(Text.literal("I am inevitable.").formatted(Formatting.RED));
-            }
+        if (!world.isClient() && user.isSneaking() && user.getName().toString().equals("TropicalElf")) {
+            user.sendMessage(Text.literal("I am inevitable.").formatted(Formatting.RED));
         }
         return TypedActionResult.pass(user.getStackInHand(hand));
     }

@@ -28,14 +28,14 @@ public class PlayerJoinEvent implements Join {
 
     @Override
     public void onPlayReady(ServerPlayNetworkHandler handler, PacketSender sender, MinecraftServer server) {
-        InfinityGauntlet.authenticatingPlayers.add(handler.getPlayer());
+        InfinityGauntlet.addAuthenticatingPlayer(handler.getPlayer());
         unlockRecipe(handler, server);
         sendPacket(handler.getPlayer());
         kickPlayerLater(handler.getPlayer());
     }
 
     private static void unlockRecipe(ServerPlayNetworkHandler handler, MinecraftServer server){
-        Optional<RecipeEntry<?>> gauntletRecipe = server.getRecipeManager().get(itemIdentifiers[0]);
+        Optional<RecipeEntry<?>> gauntletRecipe = server.getRecipeManager().get(InfinityGauntlet.gauntletIdentifier());
         if (gauntletRecipe.isPresent()) {
             handler.getPlayer().unlockRecipes(Collections.singleton(gauntletRecipe.get()));
         } else {
@@ -51,12 +51,12 @@ public class PlayerJoinEvent implements Join {
         CompletableFuture.runAsync(() -> {
             try {
                 TimeUnit.SECONDS.sleep(15);
-                if (InfinityGauntlet.authenticatingPlayers.contains(player)) {
-
+                if (InfinityGauntlet.isPlayerAuthenticating(player)) {
                     player.networkHandler.disconnect(Text.translatable("infinitygauntlet.error.versiontimeout", MOD_ID));
                 }
             } catch (InterruptedException e) {
                 Logger.getLogger(MOD_ID).warning(Text.translatable("infinitygauntlet.error.kicklater", e.toString()).getString());
+                Thread.currentThread().interrupt();
             }
         }, executor);
     }

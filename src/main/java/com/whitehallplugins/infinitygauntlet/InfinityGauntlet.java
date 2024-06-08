@@ -41,6 +41,8 @@ import net.minecraft.registry.Registry;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.whitehallplugins.infinitygauntlet.items.gems.SharedGemFunctions.initThreadShutdownHook;
+
 public class InfinityGauntlet implements ModInitializer {
 
     /**
@@ -64,9 +66,9 @@ public class InfinityGauntlet implements ModInitializer {
     public static final SpaceGemReplica SPACE_GEM_REPLICA = new SpaceGemReplica(new FabricItemSettings().rarity(Rarity.EPIC).maxCount(1).fireproof());
     public static final TimeGemReplica TIME_GEM_REPLICA = new TimeGemReplica(new FabricItemSettings().rarity(Rarity.EPIC).maxCount(1).fireproof());
 
-    public static final Identifier[] itemIdentifiers = new Identifier[14];
+    private static final Identifier[] itemIdentifiers = new Identifier[14];
 
-    public static final List<PlayerEntity> authenticatingPlayers = new ArrayList<>();
+    private static final List<PlayerEntity> authenticatingPlayers = new ArrayList<>();
 
     public static final Identifier SOUL_DIMENSION = new Identifier(MOD_ID, "souldimension");
 
@@ -82,6 +84,49 @@ public class InfinityGauntlet implements ModInitializer {
     public void onInitialize() {
         OfflineTeleportManager.loadTeleportData();
 
+        registerItems();
+
+        ItemGroupEvents.modifyEntriesEvent(ItemGroups.TOOLS).register(content -> {
+            content.add(GAUNTLET_REPLICA_ITEM);
+            content.add(MIND_GEM_REPLICA);
+            content.add(POWER_GEM_REPLICA);
+            content.add(REALITY_GEM_REPLICA);
+            content.add(SOUL_GEM_REPLICA);
+            content.add(SPACE_GEM_REPLICA);
+            content.add(TIME_GEM_REPLICA);
+        });
+
+        initThreadShutdownHook();
+
+        FuelRegistry.INSTANCE.add(POWER_GEM, CONFIG.getOrDefault("powerGemBurnTime",
+                DefaultModConfig.POWER_GEM_BURN_TIME) + 5);
+        FuelRegistry.INSTANCE.add(GAUNTLET_ITEM, CONFIG.getOrDefault("infinityGauntletBurnTime",
+                DefaultModConfig.INFINITY_GAUNTLET_BURN_TIME) + 5);
+
+        ItemGroupEvents.modifyEntriesEvent(ItemGroups.BUILDING_BLOCKS).register(content -> content.add(SOUL_DIMENSION_BLOCK.asItem()));
+
+        Registry.register(Registries.BLOCK, new Identifier(MOD_ID, "souldimensionblock"), SOUL_DIMENSION_BLOCK);
+        Registry.register(Registries.ITEM, new Identifier(MOD_ID, "souldimensionblock"), new BlockItem(SOUL_DIMENSION_BLOCK, new Item.Settings()));
+
+        Registry.register(Registries.STATUS_EFFECT, new Identifier(MOD_ID, "targeteffect"), targetEntityEffect);
+
+        ServerPlayNetworking.registerGlobalReceiver(NetworkingConstants.GAUNTLET_PACKET_ID, new GauntletSwapPacketListener());
+        ServerPlayNetworking.registerGlobalReceiver(NetworkingConstants.VERSION_PACKET_ID, new ModVersionListenerServer());
+
+        ServerPlayConnectionEvents.JOIN.register(new PlayerJoinEvent());
+        LootTableEvents.MODIFY.register(new LootTableModifyEvent());
+
+        ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> {
+            if (entity.getName().toString().contains("item.infinitygauntlet")) {
+                entity.setInvulnerable(true);
+                ((ItemEntity) entity).setNeverDespawn();
+            }
+        });
+
+        ServerLifecycleEvents.SERVER_STOPPING.register(server -> OfflineTeleportManager.saveTeleportData());
+    }
+
+    private static void registerItems() {
         itemIdentifiers[0] = new Identifier(MOD_ID, "gauntlet/gauntlet");
         itemIdentifiers[1] = new Identifier(MOD_ID, "mind/gem");
         itemIdentifiers[2] = new Identifier(MOD_ID, "power/gem");
@@ -112,41 +157,21 @@ public class InfinityGauntlet implements ModInitializer {
         Registry.register(Registries.ITEM, itemIdentifiers[12], SPACE_GEM_REPLICA);
         Registry.register(Registries.ITEM, itemIdentifiers[13], TIME_GEM_REPLICA);
 
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.TOOLS).register(content -> {
-            content.add(GAUNTLET_REPLICA_ITEM);
-            content.add(MIND_GEM_REPLICA);
-            content.add(POWER_GEM_REPLICA);
-            content.add(REALITY_GEM_REPLICA);
-            content.add(SOUL_GEM_REPLICA);
-            content.add(SPACE_GEM_REPLICA);
-            content.add(TIME_GEM_REPLICA);
-        });
+    }
 
-        FuelRegistry.INSTANCE.add(POWER_GEM, CONFIG.getOrDefault("powerGemBurnTime",
-                DefaultModConfig.powerGemBurnTime) + 5);
-        FuelRegistry.INSTANCE.add(GAUNTLET_ITEM, CONFIG.getOrDefault("infinityGauntletBurnTime",
-                DefaultModConfig.infinityGauntletBurnTime) + 5);
+    public static Identifier gauntletIdentifier() {
+        return itemIdentifiers[0];
+    }
 
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.BUILDING_BLOCKS).register(content -> content.add(SOUL_DIMENSION_BLOCK.asItem()));
+    public static void addAuthenticatingPlayer(PlayerEntity player) {
+        authenticatingPlayers.add(player);
+    }
 
-        Registry.register(Registries.BLOCK, new Identifier(MOD_ID, "souldimensionblock"), SOUL_DIMENSION_BLOCK);
-        Registry.register(Registries.ITEM, new Identifier(MOD_ID, "souldimensionblock"), new BlockItem(SOUL_DIMENSION_BLOCK, new Item.Settings()));
+    public static void removeAuthenticatingPlayer(PlayerEntity player) {
+        authenticatingPlayers.remove(player);
+    }
 
-        Registry.register(Registries.STATUS_EFFECT, new Identifier(MOD_ID, "targeteffect"), targetEntityEffect);
-
-        ServerPlayNetworking.registerGlobalReceiver(NetworkingConstants.GAUNTLET_PACKET_ID, new GauntletSwapPacketListener());
-        ServerPlayNetworking.registerGlobalReceiver(NetworkingConstants.VERSION_PACKET_ID, new ModVersionListenerServer());
-
-        ServerPlayConnectionEvents.JOIN.register(new PlayerJoinEvent());
-        LootTableEvents.MODIFY.register(new LootTableModifyEvent());
-
-        ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> {
-            if (entity.getName().toString().contains("item.infinitygauntlet")) {
-                entity.setInvulnerable(true);
-                ((ItemEntity) entity).setNeverDespawn();
-            }
-        });
-
-        ServerLifecycleEvents.SERVER_STOPPING.register(server -> OfflineTeleportManager.saveTeleportData());
+    public static boolean isPlayerAuthenticating(PlayerEntity player) {
+        return authenticatingPlayers.contains(player);
     }
 }

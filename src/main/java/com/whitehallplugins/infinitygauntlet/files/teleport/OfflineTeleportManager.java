@@ -19,6 +19,10 @@ public class OfflineTeleportManager {
     private static final File TELEPORT_DATA_FILE = new File(FabricLoader.getInstance().getConfigDir().resolve(MOD_ID + "/OfflineTeleportData.json").toString());
     private static final Map<UUID, NbtCompound> teleportDataMap = new HashMap<>();
 
+    private OfflineTeleportManager() {
+        throw new IllegalStateException("Utility class");
+    }
+
     public static void loadTeleportData() {
         if (!TELEPORT_DATA_FILE.exists()) {
             return;

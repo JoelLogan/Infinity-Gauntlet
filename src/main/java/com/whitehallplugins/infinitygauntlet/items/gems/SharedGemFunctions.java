@@ -75,17 +75,23 @@ public class SharedGemFunctions {
             Blocks.PURPLE_STAINED_GLASS, Blocks.BLUE_STAINED_GLASS, Blocks.BROWN_STAINED_GLASS,
             Blocks.GREEN_STAINED_GLASS, Blocks.RED_STAINED_GLASS, Blocks.BLACK_STAINED_GLASS);
     private static final HashMap<PlayerEntity, Long> cooldown = new HashMap<>();
-    private static final int ENTITY_RAYCAST_DISTANCE = CONFIG.getOrDefault("raycastEntityDistance", DefaultModConfig.raycastEntityDistance);
-    private static final int BLOCK_RAYCAST_DISTANCE = CONFIG.getOrDefault("raycastBlocksDistance", DefaultModConfig.raycastBlocksDistance);
-    private static final int COMBINED_RAYCAST_DISTANCE = CONFIG.getOrDefault("raycastCombinedDistance", DefaultModConfig.raycastCombinedDistance);
+    private static final int ENTITY_RAYCAST_DISTANCE = CONFIG.getOrDefault("raycastEntityDistance", DefaultModConfig.RAYCAST_ENTITY_DISTANCE);
+    private static final int BLOCK_RAYCAST_DISTANCE = CONFIG.getOrDefault("raycastBlocksDistance", DefaultModConfig.RAYCAST_BLOCKS_DISTANCE);
+    private static final int COMBINED_RAYCAST_DISTANCE = CONFIG.getOrDefault("raycastCombinedDistance", DefaultModConfig.RAYCAST_COMBINED_DISTANCE);
     private static final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(CONFIG.getOrDefault(
-            "realityGauntletConcurrentThreads", DefaultModConfig.realityGauntletConcurrentThreads));
+            "realityGauntletConcurrentThreads", DefaultModConfig.REALITY_GAUNTLET_CONCURRENT_THREADS));
     private static final ThreadPoolExecutor threadPoolExecutor = (ThreadPoolExecutor) executorService;
+    private static final Object lockObj = new Object();
     public static final String SOUL_GEM_NBT_ID = "SoulGemEntities";
     public static final String MIND_GEM_NBT_ID = "HostileEntity";
     private static final String SOUL_PLAYER_NBT_ID = "minecraft:player";
+    private static final String ENCHANTS_NBT = "Enchantments";
 
-    public SharedGemFunctions(){
+    private SharedGemFunctions(){
+        throw new IllegalStateException("Utility class");
+    }
+
+    public static void initThreadShutdownHook() {
         Runtime.getRuntime().addShutdownHook(new Thread(executorService::shutdown));
     }
 
@@ -199,31 +205,22 @@ public class SharedGemFunctions {
                 // Calculate intersection point with the face
                 Vec3d startToVertex = vertex.subtract(start);
                 double dot = faceNormal.dotProduct(lookDirection);
-
-                // Check if ray and face are parallel
-                if (Math.abs(dot) < 1e-6) {
-                    continue; // Ray and face are parallel, no intersection
-                }
-
                 double t = faceNormal.dotProduct(startToVertex) / dot;
 
-                // Check if intersection is behind the ray origin
-                if (t < 0) {
-                    continue; // Intersection point is behind the ray origin
+                // Check if ray and face are parallel and if intersection is behind the ray of origin
+                if (Math.abs(dot) < 1e-6 && t < 0) {
+                    continue;
                 }
 
                 Vec3d intersection = start.add(lookDirection.multiply(t));
 
                 // Check if the intersection point is within the face
-                if (isPointInsideFace(intersection, vertex, nextVertex, faceNormal)) {
-                    // Check if the intersection point is within the hitbox
-                    if (entityBox.contains(intersection)) {
-                        // Calculate squared distance to intersection point
-                        double distanceSq = start.squaredDistanceTo(intersection);
-                        if (distanceSq < closestDistanceSq) {
-                            closestDistanceSq = distanceSq;
-                            result = new EntityHitResult(entity, intersection);
-                        }
+                if (isPointInsideFace(intersection, vertex, nextVertex, faceNormal) && entityBox.contains(intersection)) {
+                    // Calculate squared distance to intersection point
+                    double distanceSq = start.squaredDistanceTo(intersection);
+                    if (distanceSq < closestDistanceSq) {
+                        closestDistanceSq = distanceSq;
+                        result = new EntityHitResult(entity, intersection);
                     }
                 }
             }
@@ -270,10 +267,10 @@ public class SharedGemFunctions {
         NbtList glowingTag = new NbtList();
         glowingTag.add(new NbtCompound());
         if (glowing) {
-            stack.getOrCreateNbt().put("Enchantments", glowingTag);
+            stack.getOrCreateNbt().put(ENCHANTS_NBT, glowingTag);
         }
         else {
-            stack.getOrCreateNbt().remove("Enchantments");
+            stack.getOrCreateNbt().remove(ENCHANTS_NBT);
         }
     }
 
@@ -352,7 +349,7 @@ public class SharedGemFunctions {
 
     private static boolean isThreadPoolBusy() {
         return threadPoolExecutor.getActiveCount() >= CONFIG.getOrDefault("realityGauntletConcurrentThreads",
-                DefaultModConfig.realityGauntletConcurrentThreads);
+                DefaultModConfig.REALITY_GAUNTLET_CONCURRENT_THREADS);
     }
 
     private static void changeBlocksInSphereRecursive(PlayerEntity user, World world, BlockPos centerPos, BlockState targetBlock, Block changeTo) {
@@ -370,12 +367,12 @@ public class SharedGemFunctions {
             while (!queue.isEmpty()) {
                 long currentTime = System.currentTimeMillis();
                 if (currentTime - lastIterationTime < CONFIG.getOrDefault("realityGauntletBlockChangeThreadTime",
-                        DefaultModConfig.realityGauntletBlockChangeThreadTime)) {
+                        DefaultModConfig.REALITY_GAUNTLET_BLOCK_CHANGE_THREAD_TIME)) {
                     continue;
                 }
                 BlockPos currentPos = queue.poll();
                 visited.add(currentPos);
-                synchronized (world) {
+                synchronized (lockObj) {
                     if (world.getBlockState(currentPos).getBlock() == targetBlock.getBlock()) {
                         world.breakBlock(currentPos, false);
                         world.setBlockState(currentPos, changeTo.getDefaultState());
@@ -385,7 +382,7 @@ public class SharedGemFunctions {
                                     assert currentPos != null;
                                     BlockPos neighborPos = currentPos.add(xOffset, yOffset, zOffset);
                                     if (!visited.contains(neighborPos) && diamondDistance(centerPos, neighborPos) <=
-                                            CONFIG.getOrDefault("realityGemBlockRadius", DefaultModConfig.realityGauntletBlockRadius)) {
+                                            CONFIG.getOrDefault("realityGauntletBlockRadius", DefaultModConfig.REALITY_GAUNTLET_BLOCK_RADIUS)) {
                                         queue.add(neighborPos);
                                     }
                                     // CIRCLE MODE: centerPos.getSquaredDistance(neighborPos) <= BLOCK_CHANGE_RADIUS * BLOCK_CHANGE_RADIUS
@@ -411,8 +408,7 @@ public class SharedGemFunctions {
                 return true;
             }
             if (CONFIG.getOrDefault("realityGauntletChangeBlockBlacklist",
-                    DefaultModConfig.realityGauntletTargetBlockBlacklist).toString().contains(block.toString().substring(6, block.toString().length() - 1))) {
-                System.out.println("FALSE");
+                    DefaultModConfig.REALITY_GAUNTLET_CHANGE_BLOCK_BLACKLIST).toString().contains(block.toString().substring(6, block.toString().length() - 1))) {
                 return false;
             }
             return state.isOpaque() || state.isFullCube(null, null);
@@ -429,7 +425,7 @@ public class SharedGemFunctions {
 
     public static void mindGemUse(World world, PlayerEntity user, boolean gauntlet) {
         if (!gauntlet) {
-            if (CONFIG.getOrDefault("isMindGemEnabled", DefaultModConfig.isMindGemEnabled)) {
+            if (CONFIG.getOrDefault("isMindGemEnabled", DefaultModConfig.IS_MIND_GEM_ENABLED)) {
                 ItemStack stackInHand = user.getStackInHand(user.getActiveHand());
                 if (stackInHand.getItem() instanceof MindGem || stackInHand.getItem() instanceof Gauntlet) {
                     NbtCompound glowingItem = stackInHand.getOrCreateNbt();
@@ -466,13 +462,13 @@ public class SharedGemFunctions {
                                     }
                                 }
                                 else {
-                                    glowingItem.remove("Enchantments");
+                                    glowingItem.remove(ENCHANTS_NBT);
                                     glowingItem.remove(MIND_GEM_NBT_ID);
                                 }
                             }
                         }
                     } catch (IllegalArgumentException ignored) {
-                        glowingItem.remove("Enchantments");
+                        glowingItem.remove(ENCHANTS_NBT);
                         glowingItem.remove(MIND_GEM_NBT_ID);
                         return;
                     }
@@ -481,7 +477,7 @@ public class SharedGemFunctions {
             }
         }
         else {
-            if (CONFIG.getOrDefault("isMindGemGauntletEnabled", DefaultModConfig.isMindGemGauntletEnabled)) {
+            if (CONFIG.getOrDefault("isMindGemGauntletEnabled", DefaultModConfig.IS_MIND_GEM_GAUNTLET_ENABLED)) {
                 EntityHitResult entityHitResult = (EntityHitResult) raycast(user, ENTITY_RAYCAST_DISTANCE, 2, false, false);
                 if (entityHitResult.getEntity() instanceof PlayerEntity targetEntity && !entityHitResult.getType().equals(HitResult.Type.MISS)) {
                     StatusEffectInstance weakness = new StatusEffectInstance(StatusEffects.WEAKNESS, 3600, 255, false, true);
@@ -509,7 +505,7 @@ public class SharedGemFunctions {
         StatusEffectInstance strength = new StatusEffectInstance(StatusEffects.STRENGTH, 9600, 4, false, true);
         StatusEffectInstance resistance = new StatusEffectInstance(StatusEffects.RESISTANCE, 9600, 255, false, true);
         if (!gauntlet) {
-            if (CONFIG.getOrDefault("isPowerGemEnabled", DefaultModConfig.isPowerGemEnabled)) {
+            if (CONFIG.getOrDefault("isPowerGemEnabled", DefaultModConfig.IS_POWER_GEM_ENABLED)) {
                 if (user.isSneaking()) {
                     user.removeStatusEffect(StatusEffects.STRENGTH);
                     user.removeStatusEffect(StatusEffects.RESISTANCE);
@@ -529,7 +525,7 @@ public class SharedGemFunctions {
                             DamageSource damageSource = new DamageSource(world.getRegistryManager().get(RegistryKeys.DAMAGE_TYPE).entryOf(DamageTypes.EXPLOSION), user);
                             user.setInvulnerable(true);
                             world.createExplosion(null, damageSource, new ExplosionBehavior(), targetPos,
-                                    CONFIG.getOrDefault("powerGemExplosionPower", DefaultModConfig.powerGemExplosionPower), false, World.ExplosionSourceType.BLOCK);
+                                    CONFIG.getOrDefault("powerGemExplosionPower", DefaultModConfig.POWER_GEM_EXPLOSION_POWER), false, World.ExplosionSourceType.BLOCK);
                             user.setInvulnerable(false);
                         } else if (target.getType().equals(HitResult.Type.ENTITY) && ((EntityHitResult) target).getEntity() instanceof LivingEntity){
                             EntityHitResult entityTarget = (EntityHitResult) target;
@@ -542,7 +538,7 @@ public class SharedGemFunctions {
             }
         }
         else {
-            if (CONFIG.getOrDefault("isPowerGemGauntletEnabled", DefaultModConfig.isPowerGemGauntletEnabled)) {
+            if (CONFIG.getOrDefault("isPowerGemGauntletEnabled", DefaultModConfig.IS_POWER_GEM_GAUNTLET_ENABLED)) {
                 Box box = new Box(user.getBlockPos()).expand(64);
                 Predicate<Entity> predicate = entity -> {
                     if (entity instanceof PlayerEntity) {
@@ -575,7 +571,7 @@ public class SharedGemFunctions {
 
     public static void realityGemUse(World world, PlayerEntity user, boolean gauntlet) {
         if (user.isSneaking() && user.hasPermissionLevel(4) &&
-                CONFIG.getOrDefault("isRealityGemEnabled", DefaultModConfig.isRealityGemEnabled)) {
+                CONFIG.getOrDefault("isRealityGemEnabled", DefaultModConfig.IS_REALITY_GEM_ENABLED)) {
             ((ServerPlayerEntity) user).changeGameMode(user.isCreative() ? GameMode.SURVIVAL : GameMode.CREATIVE);
         } else {
             BlockHitResult target = (BlockHitResult) raycast(user, BLOCK_RAYCAST_DISTANCE, 1, false, false);
@@ -595,13 +591,13 @@ public class SharedGemFunctions {
                     return;
                 }
                 BlockState targetBlock = world.getBlockState(targetPos);
-                if (!targetBlock.isOf(changeToBlock) && !CONFIG.getOrDefault("realityGemBlockBlacklist",
-                        DefaultModConfig.realityGauntletTargetBlockBlacklist).toString().contains(
+                if (!targetBlock.isOf(changeToBlock) && !CONFIG.getOrDefault("realityGauntletTargetBlockBlacklist",
+                        DefaultModConfig.REALITY_GAUNTLET_TARGET_BLOCK_BLACKLIST).toString().contains(
                                 targetBlock.getBlock().toString().substring(6, targetBlock.getBlock().toString().length() - 1))){
-                    if (gauntlet && CONFIG.getOrDefault("isRealityGemGauntletEnabled", DefaultModConfig.isRealityGemGauntletEnabled)){
+                    if (gauntlet && CONFIG.getOrDefault("isRealityGemGauntletEnabled", DefaultModConfig.IS_REALITY_GEM_GAUNTLET_ENABLED)){
                         changeBlocksInSphereRecursive(user, world, targetPos, targetBlock, changeToBlock);
                     }
-                    else if (CONFIG.getOrDefault("isRealityGemEnabled", DefaultModConfig.isRealityGemEnabled)){
+                    else if (CONFIG.getOrDefault("isRealityGemEnabled", DefaultModConfig.IS_REALITY_GEM_ENABLED)){
                         world.breakBlock(targetPos, false);
                         world.setBlockState(targetPos, changeToBlock.getDefaultState());
                     }
@@ -626,17 +622,17 @@ public class SharedGemFunctions {
                 entityList = glowingItem.getList(SOUL_GEM_NBT_ID, NbtElement.COMPOUND_TYPE);
             }
             if (!user.isSneaking()) {
-                if (entityList.size() < CONFIG.getOrDefault("maxNumberofEntitesInSoulGem", DefaultModConfig.maxNumberofEntitesInSoulGem)) {
+                if (entityList.size() < CONFIG.getOrDefault("maxNumberofEntitesInSoulGem", DefaultModConfig.MAX_NUMBER_OF_ENTITIES_IN_SOUL_GEM)) {
                     EntityHitResult entityHitResult;
                     entityHitResult = (EntityHitResult) raycast(user, ENTITY_RAYCAST_DISTANCE, 2, false, false);
                     if (entityHitResult.getEntity() != null && !entityHitResult.getType().equals(HitResult.Type.MISS)) {
                         Entity targetEntity = entityHitResult.getEntity();
                         if (targetEntity instanceof LivingEntity && !disallowedEntities.contains(targetEntity.getType())) {
-                            if (!(targetEntity instanceof PlayerEntity) && CONFIG.getOrDefault("isSoulGemEnabled", DefaultModConfig.isSoulGemEnabled)) {
+                            if (!(targetEntity instanceof PlayerEntity) && CONFIG.getOrDefault("isSoulGemEnabled", DefaultModConfig.IS_SOUL_GEM_ENABLED)) {
                                 addToNbtList((LivingEntity) targetEntity, entityList, glowingItem);
                                 setStackGlowing(stackInHand, true);
                                 despawnEntity(world, targetEntity);
-                            } else if (gauntlet && CONFIG.getOrDefault("isSoulGemGauntletEnabled", DefaultModConfig.isSoulGemGauntletEnabled &&
+                            } else if (gauntlet && CONFIG.getOrDefault("isSoulGemGauntletEnabled", DefaultModConfig.IS_SOUL_GEM_GAUNTLET_ENABLED &&
                                     targetEntity instanceof PlayerEntity)){
                                 addToNbtList((LivingEntity) targetEntity, entityList, glowingItem);
                                 setStackGlowing(stackInHand, true);
@@ -664,7 +660,7 @@ public class SharedGemFunctions {
                 }
             }
             else {
-                if (!entityList.isEmpty() && CONFIG.getOrDefault("isSoulGemEnabled", DefaultModConfig.isSoulGemEnabled)) {
+                if (!entityList.isEmpty() && CONFIG.getOrDefault("isSoulGemEnabled", DefaultModConfig.IS_SOUL_GEM_ENABLED)) {
                     if (((NbtCompound) entityList.get(entityList.size() - 1)).get("id") != null) {
                         resummonEntity(world, user, entityList, stackInHand, gauntlet);
                     }
@@ -689,7 +685,7 @@ public class SharedGemFunctions {
 
     public static void spaceGemUse(World world, PlayerEntity user, boolean gauntlet) {
         if (!gauntlet) {
-            if (CONFIG.getOrDefault("isSpaceGemEnabled", DefaultModConfig.isSpaceGemEnabled)) {
+            if (CONFIG.getOrDefault("isSpaceGemEnabled", DefaultModConfig.IS_SPACE_GEM_ENABLED)) {
                 if (user.isSneaking()) {
                     user.openHandledScreen(new SimpleNamedScreenHandlerFactory(
                             (syncId, inventory, playerEntity) -> GenericContainerScreenHandler.createGeneric9x3(
@@ -703,7 +699,7 @@ public class SharedGemFunctions {
                         user.sendMessage(Text.translatable("infinitygauntlet.warning.teleportcooldown").formatted(Formatting.GRAY));
                     } else {
                         cooldown.put(user, System.currentTimeMillis() + CONFIG.getOrDefault(
-                                "spaceGemTeleportCooldown", DefaultModConfig.spaceGemTeleportCooldown));
+                                "spaceGemTeleportCooldown", DefaultModConfig.SPACE_GEM_TELEPORT_COOLDOWN));
                         Vec3d targetPos = raycast(user, BLOCK_RAYCAST_DISTANCE, 1, false, false).getPos();
                         BlockPos blockPos = new BlockPos((int) targetPos.getX(), (int) targetPos.getY(), (int) targetPos.getZ());
                         boolean validTeleport = false;
@@ -724,7 +720,7 @@ public class SharedGemFunctions {
             }
         }
         else {
-            if (CONFIG.getOrDefault("isSpaceGemGauntletEnabled", DefaultModConfig.isSpaceGemGauntletEnabled)) {
+            if (CONFIG.getOrDefault("isSpaceGemGauntletEnabled", DefaultModConfig.IS_SPACE_GEM_GAUNTLET_ENABLED)) {
                 if (world.getDimensionKey().equals(DimensionTypes.OVERWORLD)) {
                     ServerWorld nether = Objects.requireNonNull(user.getServer()).getWorld(World.NETHER);
                     assert nether != null;
@@ -762,7 +758,7 @@ public class SharedGemFunctions {
         StatusEffectInstance speed = new StatusEffectInstance(StatusEffects.SPEED, 9000, 9, false, true);
         StatusEffectInstance haste = new StatusEffectInstance(StatusEffects.HASTE, 9000, 2, false, true);
         if (!gauntlet) {
-            if (CONFIG.getOrDefault("isTimeGemEnabled", DefaultModConfig.isTimeGemEnabled)) {
+            if (CONFIG.getOrDefault("isTimeGemEnabled", DefaultModConfig.IS_TIME_GEM_ENABLED)) {
                 if (user.isSneaking()) {
                     user.removeStatusEffect(StatusEffects.SPEED);
                     user.removeStatusEffect(StatusEffects.HASTE);
@@ -776,10 +772,7 @@ public class SharedGemFunctions {
                     boolean validBlock = false;
                     if (!(world.getBlockState(blockTarget).getBlock() instanceof Fertilizable)) {
                         for (BlockPos pos : BlockPos.iterateOutwards(blockTarget, 0, 1, 0)) {
-                            if (pos.equals(blockTarget)) {
-                                continue;
-                            }
-                            if (world.getBlockState(pos).getBlock() instanceof Fertilizable) {
+                            if (!pos.equals(blockTarget) && world.getBlockState(pos).getBlock() instanceof Fertilizable) {
                                 blockTarget = pos;
                                 validBlock = true;
                                 break;
@@ -806,7 +799,7 @@ public class SharedGemFunctions {
             }
         }
         else {
-            if (CONFIG.getOrDefault("isTimeGemGauntletEnabled", DefaultModConfig.isTimeGemGauntletEnabled)) {
+            if (CONFIG.getOrDefault("isTimeGemGauntletEnabled", DefaultModConfig.IS_TIME_GEM_GAUNTLET_ENABLED)) {
                 EntityHitResult entityHitResult = (EntityHitResult) raycast(user, ENTITY_RAYCAST_DISTANCE, 2, false, false);
                 if (entityHitResult.getEntity() != null && !entityHitResult.getType().equals(HitResult.Type.MISS)) {
                     Vec3d targetPos = entityHitResult.getPos();
