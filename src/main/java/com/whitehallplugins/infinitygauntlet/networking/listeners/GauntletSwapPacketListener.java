@@ -8,6 +8,7 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.Hand;
 
 public class GauntletSwapPacketListener implements PlayChannelHandler {
 
@@ -15,13 +16,12 @@ public class GauntletSwapPacketListener implements PlayChannelHandler {
     public void receive(MinecraftServer server, ServerPlayerEntity player, ServerPlayNetworkHandler handler, PacketByteBuf buf, PacketSender responseSender) {
         if (buf.isReadable()) {
             if (buf.readString().equals(NetworkingConstants.SWAP_POWER_STRING)) {
-                if (player.getMainHandStack().getItem() instanceof Gauntlet) {
-                    Gauntlet.swapPower(player, player.getMainHandStack());
-                }
-                else if (player.getOffHandStack().getItem() instanceof Gauntlet) {
-                    Gauntlet.swapPower(player, player.getOffHandStack());
-                }
+                Gauntlet.swapPower(player, player.getStackInHand(getHand(player)));
             }
         }
+    }
+
+    private Hand getHand(ServerPlayerEntity player) {
+        return player.getMainHandStack().getItem() instanceof Gauntlet ? Hand.MAIN_HAND : Hand.OFF_HAND;
     }
 }
