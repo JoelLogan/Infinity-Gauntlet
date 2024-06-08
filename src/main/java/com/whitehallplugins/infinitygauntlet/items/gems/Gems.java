@@ -9,6 +9,7 @@ import net.minecraft.world.World;
 import static com.whitehallplugins.infinitygauntlet.items.gems.SharedGemFunctions.*;
 
 public final class Gems {
+    private Gems(){}
     public static final class MindGem extends BaseGem {
         public MindGem(Settings settings) {
             super(settings);

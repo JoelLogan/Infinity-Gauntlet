@@ -1,6 +1,7 @@
 package com.whitehallplugins.infinitygauntlet.items.gems.replicas;
 
 public final class ReplicaGems {
+    private ReplicaGems(){}
     public static final class MindGemReplica extends BaseGemReplica {
         public MindGemReplica(Settings settings) {
             super(settings);
