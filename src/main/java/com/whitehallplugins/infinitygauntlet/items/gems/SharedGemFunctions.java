@@ -67,7 +67,8 @@ public final class SharedGemFunctions {
             EntityType.BOAT, EntityType.CHEST_MINECART, EntityType.COMMAND_BLOCK_MINECART,
             EntityType.FURNACE_MINECART, EntityType.HOPPER_MINECART, EntityType.TNT_MINECART,
             EntityType.EGG, EntityType.ENDER_PEARL, EntityType.POTION, EntityType.EVOKER_FANGS,
-            EntityType.FIREBALL, EntityType.TNT, EntityType.DRAGON_FIREBALL, EntityType.EXPERIENCE_ORB);
+            EntityType.FIREBALL, EntityType.TNT, EntityType.DRAGON_FIREBALL, EntityType.EXPERIENCE_ORB,
+            EntityType.MINECART, EntityType.INTERACTION, EntityType.LLAMA_SPIT, EntityType.MARKER);
     private static final List<Block> TRANSPARENT_BLOCKS = List.of(Blocks.GLASS, Blocks.WHITE_STAINED_GLASS,
             Blocks.ORANGE_STAINED_GLASS, Blocks.MAGENTA_STAINED_GLASS, Blocks.LIGHT_BLUE_STAINED_GLASS,
             Blocks.YELLOW_STAINED_GLASS, Blocks.LIME_STAINED_GLASS, Blocks.PINK_STAINED_GLASS,
@@ -168,7 +169,8 @@ public final class SharedGemFunctions {
     }
 
     private static BlockHitResult raycastBlocks(ServerWorld world, Vec3d start, Vec3d end) {
-        RaycastContext raycastContext = new RaycastContext(start, end, RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.NONE, ShapeContext.absent());
+        end = new Vec3d(end.x - 0.0001, end.y, end.z);
+        RaycastContext raycastContext = new RaycastContext(start, end, RaycastContext.ShapeType.OUTLINE, RaycastContext.FluidHandling.NONE, ShapeContext.absent());
         return world.raycast(raycastContext);
     }
 
@@ -527,7 +529,7 @@ public final class SharedGemFunctions {
                             world.createExplosion(null, damageSource, new ExplosionBehavior(), targetPos,
                                     CONFIG.getOrDefault("powerGemExplosionPower", DefaultModConfig.POWER_GEM_EXPLOSION_POWER), false, World.ExplosionSourceType.BLOCK);
                             user.setInvulnerable(false);
-                        } else if (target.getType().equals(HitResult.Type.ENTITY) && ((EntityHitResult) target).getEntity() instanceof LivingEntity){
+                        } else if (target.getType().equals(HitResult.Type.ENTITY)){
                             EntityHitResult entityTarget = (EntityHitResult) target;
                             DamageSource damageSource = new DamageSource(world.getRegistryManager().get(RegistryKeys.DAMAGE_TYPE).entryOf(InfinityGauntlet.POWER_GEM_DAMAGE_TYPE), user);
                             entityTarget.getEntity().damage(damageSource, Float.MAX_VALUE);
