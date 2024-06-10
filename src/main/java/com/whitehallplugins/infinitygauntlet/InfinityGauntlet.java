@@ -1,6 +1,7 @@
 package com.whitehallplugins.infinitygauntlet;
 
 import com.whitehallplugins.infinitygauntlet.effects.TargetEntityEffect;
+import com.whitehallplugins.infinitygauntlet.events.EntityLoadEvent;
 import com.whitehallplugins.infinitygauntlet.events.LootTableModifyEvent;
 import com.whitehallplugins.infinitygauntlet.events.PlayerJoinEvent;
 import com.whitehallplugins.infinitygauntlet.files.config.DefaultModConfig;
@@ -24,7 +25,6 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.fabricmc.fabric.api.registry.FuelRegistry;
 import net.minecraft.block.Block;
-import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.damage.DamageType;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.player.PlayerEntity;
@@ -71,6 +71,7 @@ public final class InfinityGauntlet implements ModInitializer {
     private static final List<PlayerEntity> authenticatingPlayers = new ArrayList<>();
 
     public static final Identifier SOUL_DIMENSION = new Identifier(MOD_ID, "souldimension");
+    public static final Identifier TARGET_ENTITY_EFFECT = new Identifier(MOD_ID, "targeteffect");
 
     public static final Block SOUL_DIMENSION_BLOCK = new Block(FabricBlockSettings.create().strength(-1.0f, 3600000.0F).dropsNothing());
 
@@ -108,21 +109,14 @@ public final class InfinityGauntlet implements ModInitializer {
         Registry.register(Registries.BLOCK, new Identifier(MOD_ID, "souldimensionblock"), SOUL_DIMENSION_BLOCK);
         Registry.register(Registries.ITEM, new Identifier(MOD_ID, "souldimensionblock"), new BlockItem(SOUL_DIMENSION_BLOCK, new Item.Settings()));
 
-        Registry.register(Registries.STATUS_EFFECT, new Identifier(MOD_ID, "targeteffect"), targetEntityEffect);
+        Registry.register(Registries.STATUS_EFFECT, TARGET_ENTITY_EFFECT, targetEntityEffect);
 
         ServerPlayNetworking.registerGlobalReceiver(NetworkingConstants.GAUNTLET_PACKET_ID, new GauntletSwapPacketListener());
         ServerPlayNetworking.registerGlobalReceiver(NetworkingConstants.VERSION_PACKET_ID, new ModVersionListenerServer());
 
         ServerPlayConnectionEvents.JOIN.register(new PlayerJoinEvent());
         LootTableEvents.MODIFY.register(new LootTableModifyEvent());
-
-        ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> {
-            if (entity.getName().toString().contains("item.infinitygauntlet")) {
-                entity.setInvulnerable(true);
-                ((ItemEntity) entity).setNeverDespawn();
-            }
-        });
-
+        ServerEntityEvents.ENTITY_LOAD.register(new EntityLoadEvent());
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> OfflineTeleportManager.saveTeleportData());
     }
 
@@ -156,7 +150,6 @@ public final class InfinityGauntlet implements ModInitializer {
         Registry.register(Registries.ITEM, itemIdentifiers[11], SOUL_GEM_REPLICA);
         Registry.register(Registries.ITEM, itemIdentifiers[12], SPACE_GEM_REPLICA);
         Registry.register(Registries.ITEM, itemIdentifiers[13], TIME_GEM_REPLICA);
-
     }
 
     public static Identifier gauntletIdentifier() {
