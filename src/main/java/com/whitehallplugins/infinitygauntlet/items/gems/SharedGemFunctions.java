@@ -500,11 +500,11 @@ public final class SharedGemFunctions {
             }
         }
         /* GEM SHOULD BE FINISHED
-         * right click = control hostile mob to attack another mob, resets target's xp levels (WORKS)
+         * right click = control hostile mob to attack another mob (WORKS)
          * (after command given, no more agro from that specific mob) (NOT WORKING BUT MIGHT NOT BE NECESSARY)
-         * shift right click = remove saved mob from item
+         * shift right click = remove saved mob from item (WORKS)
          *
-         * With Gauntlet: Gives 3 minutes of weakness and nausea and 1 minute of blindness (WORKS)
+         * With Gauntlet: Gives 3 minutes of weakness and nausea and 1 minute of blindness and resets target xp (WORKS)
          */
     }
 
@@ -812,7 +812,7 @@ public final class SharedGemFunctions {
             }
         }
         /*   GEM SHOULD BE FINISHED
-         * right click = if blocks - bone meal, if entity - baby/adult (up to 32 blocks) (WORKS)
+         * right click = if blocks - bone meal, if entity - baby/adult (up to 64 blocks) (WORKS)
          * shift right click = speed 10 (7:30) Haste 3 (WORKS)
          *
          * With gauntlet: hold right click to send player to spawn or remove mob(WORKS)
