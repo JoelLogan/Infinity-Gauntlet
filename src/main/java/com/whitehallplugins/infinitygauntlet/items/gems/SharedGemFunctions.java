@@ -1,6 +1,7 @@
 package com.whitehallplugins.infinitygauntlet.items.gems;
 
 import com.whitehallplugins.infinitygauntlet.InfinityGauntlet;
+import com.whitehallplugins.infinitygauntlet.effects.TargetEntityEffect;
 import com.whitehallplugins.infinitygauntlet.files.config.DefaultModConfig;
 import com.whitehallplugins.infinitygauntlet.files.teleport.OfflineTeleportManager;
 import com.whitehallplugins.infinitygauntlet.items.gauntlets.Gauntlet;
@@ -450,7 +451,7 @@ public final class SharedGemFunctions {
                                         setStackGlowing(stackInHand, true);
                                         glowingItem.putUuid(MIND_GEM_NBT_ID, targetEntity.getUuid());
                                     } else {
-                                        if (targetEntity instanceof LivingEntity) { // && !(targetEntity instanceof PlayerEntity) - Remove players from the list (If wanted)
+                                        if (targetEntity instanceof LivingEntity) {
                                             if (targetEntity instanceof PlayerEntity && ((PlayerEntity) targetEntity).isCreative() || targetEntity.isSpectator()) {
                                                 return;
                                             }
@@ -460,12 +461,12 @@ public final class SharedGemFunctions {
                                                     HostileEntity entity = (HostileEntity) serverWorld.getEntity(glowingItem.getUuid(MIND_GEM_NBT_ID));
                                                     assert entity != null;
                                                     for (String tag : entity.getCommandTags()) {
-                                                        if (tag.startsWith("MindGemControlled")) {
+                                                        if (tag.startsWith(TargetEntityEffect.COMMAND_TAG)) {
                                                             entity.removeCommandTag(tag);
                                                         }
                                                     }
                                                     entity.setPersistent();
-                                                    entity.addCommandTag("MindGemControlled." + targetEntity.getUuidAsString());
+                                                    entity.addCommandTag(TargetEntityEffect.COMMAND_TAG + "." + targetEntity.getUuidAsString());
                                                     entity.addStatusEffect(new StatusEffectInstance(InfinityGauntlet.targetEntityEffect, StatusEffectInstance.INFINITE));
                                                     entity.setTarget((LivingEntity) targetEntity);
                                                 }

@@ -4,7 +4,6 @@ import com.whitehallplugins.infinitygauntlet.InfinityGauntlet;
 import com.whitehallplugins.infinitygauntlet.files.config.DefaultModConfig;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.item.TooltipContext;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.*;
@@ -155,11 +154,6 @@ public final class Gauntlet extends BowItem {
     @Override
     public boolean isSuitableFor(ItemStack stack, BlockState state) {
         return state.getBlock().getHardness() <= 50f;
-    }
-
-    @Override
-    public void inventoryTick(ItemStack stack, World world, Entity entity, int slot, boolean selected) {
-        super.inventoryTick(stack, world, entity, slot, selected);
     }
 
     @Override
