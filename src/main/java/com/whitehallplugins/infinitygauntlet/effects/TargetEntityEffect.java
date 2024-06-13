@@ -14,6 +14,8 @@ import java.util.UUID;
 
 public final class TargetEntityEffect extends StatusEffect {
 
+    public static final String COMMAND_TAG = "MindGemControlled";
+
     public TargetEntityEffect() {
         super(StatusEffectCategory.BENEFICIAL, 0x000000);
     }
@@ -27,24 +29,27 @@ public final class TargetEntityEffect extends StatusEffect {
     public void applyUpdateEffect(LivingEntity entity, int amplifier) {
         if (entity.getWorld() instanceof ServerWorld serverWorld && entity instanceof HostileEntity) {
             for (String s : entity.getCommandTags()) {
-                if (s.split("\\.")[0].equals("MindGemControlled")) {
+                if (s.split("\\.")[0].equals(COMMAND_TAG)) {
                     UUID uuid = UUID.fromString(s.split("\\.")[1]);
                     Entity target = serverWorld.getEntity(uuid);
-                    assert target != null;
-                    if (target.isAlive() && isCloseEnough(entity, (LivingEntity) target)) {
-                        ((HostileEntity) entity).setTarget((LivingEntity) target);
-                        if (target.isPlayer() && ((PlayerEntity) target).isCreative() || target.isSpectator()){
-                            entity.removeCommandTag(s);
-                            entity.removeStatusEffect(InfinityGauntlet.targetEntityEffect);
+                    if (target instanceof LivingEntity) {
+                        if (target.isAlive() && isCloseEnough(entity, (LivingEntity) target)) {
+                            ((HostileEntity) entity).setTarget((LivingEntity) target);
+                            if (target.isPlayer() && ((PlayerEntity) target).isCreative() || target.isSpectator()) {
+                                removeEffect(entity);
+                            }
+                        } else {
+                            removeEffect(entity);
                         }
-                    }
-                    else {
-                        entity.removeCommandTag(s);
-                        entity.removeStatusEffect(InfinityGauntlet.targetEntityEffect);
                     }
                 }
             }
         }
+    }
+
+    private void removeEffect(LivingEntity entity) {
+        entity.removeCommandTag(COMMAND_TAG);
+        entity.removeStatusEffect(InfinityGauntlet.targetEntityEffect);
     }
 
     private boolean isCloseEnough(LivingEntity entity, LivingEntity target) {

@@ -50,7 +50,7 @@ public final class PlayerJoinEvent implements Join {
     private static void kickPlayerLater(ServerPlayerEntity player) {
         CompletableFuture.runAsync(() -> {
             try {
-                TimeUnit.SECONDS.sleep(15);
+                TimeUnit.SECONDS.sleep(10);
                 if (InfinityGauntlet.isPlayerAuthenticating(player)) {
                     player.networkHandler.disconnect(Text.translatable("infinitygauntlet.error.versiontimeout", MOD_ID));
                 }

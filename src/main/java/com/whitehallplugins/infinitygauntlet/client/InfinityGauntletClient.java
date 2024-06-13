@@ -19,8 +19,7 @@ public final class InfinityGauntletClient implements ClientModInitializer {
         KeyBindingHelper.registerKeyBinding(InfinityGauntletKeybinds.CHANGE_POWER);
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (InfinityGauntletKeybinds.CHANGE_POWER.isPressed()) {
-                if (!isKeyPressed) {
-                    assert client.player != null;
+                if (!isKeyPressed && client.player != null) {
                     if (client.player.getMainHandStack().getItem() instanceof Gauntlet || client.player.getOffHandStack().getItem() instanceof Gauntlet){
                         ClientPlayNetworking.send(NetworkingConstants.GAUNTLET_PACKET_ID, swapPowerPacket);
                     }
