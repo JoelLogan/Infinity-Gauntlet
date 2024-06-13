@@ -257,7 +257,9 @@ public final class SharedGemFunctions {
                 if (explosion) {
                     double radius = 1.5;
                     DustParticleEffect dustParticle = new DustParticleEffect(new Vector3f(1.0f, 1.0f, 1.0f), 1.0f);
-                    double offsetX, offsetY, offsetZ;
+                    double offsetX;
+                    double offsetY;
+                    double offsetZ;
                     for (int j = 0; j < 400; j++) {
                         offsetX = world.random.nextGaussian() * radius;
                         offsetY = world.random.nextGaussian() * radius;
@@ -495,10 +497,8 @@ public final class SharedGemFunctions {
             }
             else {
                 if (CONFIG.getOrDefault("isMindGemGauntletEnabled", DefaultModConfig.IS_MIND_GEM_GAUNTLET_ENABLED)) {
-                    System.out.println("HERE1");
                     EntityHitResult entityHitResult = (EntityHitResult) raycast(user, ENTITY_RAYCAST_DISTANCE, 2, false, false, false);
                     if (entityHitResult.getEntity() instanceof PlayerEntity targetEntity && !entityHitResult.getType().equals(HitResult.Type.MISS)) {
-                        System.out.println("HERE2");
                         targetEntity.removeStatusEffect(StatusEffects.WEAKNESS);
                         targetEntity.removeStatusEffect(StatusEffects.NAUSEA);
                         targetEntity.removeStatusEffect(StatusEffects.BLINDNESS);
