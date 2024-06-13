@@ -25,13 +25,23 @@ public final class ModVersionListenerServer implements PlayChannelHandler {
                 InfinityGauntlet.removeAuthenticatingPlayer(player);
                 if (versionArray.length != expectedVersionArray.length || !Arrays.equals(versionArray, expectedVersionArray)) {
                     player.networkHandler.disconnect(Text.translatable("infinitygauntlet.error.modversionmismatch",
-                            MOD_ID, Arrays.toString(versionArray).replace(",", ".").replace(" ", ""),
-                            Arrays.toString(expectedVersionArray).replace(",", ".").replace(" ", "")));
+                            MOD_ID, getModVersionString(versionArray), getModVersionString(expectedVersionArray)));
                 }
             });
         }
         else {
             server.execute(() -> player.networkHandler.disconnect(Text.translatable("infinitygauntlet.error.modversionpacket", MOD_ID)));
         }
+    }
+
+    private String getModVersionString(int[] versionArray) {
+        StringBuilder versionString = new StringBuilder();
+        for (int i = 0; i < versionArray.length; i++) {
+            versionString.append(versionArray[i]);
+            if (i < versionArray.length - 1) {
+                versionString.append(".");
+            }
+        }
+        return versionString.toString();
     }
 }

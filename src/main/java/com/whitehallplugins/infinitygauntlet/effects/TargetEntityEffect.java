@@ -32,15 +32,15 @@ public final class TargetEntityEffect extends StatusEffect {
                 if (s.split("\\.")[0].equals(COMMAND_TAG)) {
                     UUID uuid = UUID.fromString(s.split("\\.")[1]);
                     Entity target = serverWorld.getEntity(uuid);
-                    assert target != null;
-                    if (target.isAlive() && isCloseEnough(entity, (LivingEntity) target)) {
-                        ((HostileEntity) entity).setTarget((LivingEntity) target);
-                        if (target.isPlayer() && ((PlayerEntity) target).isCreative() || target.isSpectator()){
+                    if (target instanceof LivingEntity) {
+                        if (target.isAlive() && isCloseEnough(entity, (LivingEntity) target)) {
+                            ((HostileEntity) entity).setTarget((LivingEntity) target);
+                            if (target.isPlayer() && ((PlayerEntity) target).isCreative() || target.isSpectator()) {
+                                removeEffect(entity);
+                            }
+                        } else {
                             removeEffect(entity);
                         }
-                    }
-                    else {
-                        removeEffect(entity);
                     }
                 }
             }
