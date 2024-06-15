@@ -747,9 +747,7 @@ public final class SharedGemFunctions {
                     reorderedWorldList.remove(currentWorld);
                 }
                 for (String worldInList : reorderedWorldList) {
-                    System.out.println(worldInList);
                     if (InfinityGauntlet.getServerWorlds().contains(RegistryKey.of(RegistryKeys.WORLD, new Identifier(worldInList)))) {
-                        System.out.println(worldInList + " Selected");
                         nextWorld = worldInList;
                         break;
                     }
@@ -763,7 +761,6 @@ public final class SharedGemFunctions {
                             double y = user.getY();
                             double z = user.getZ();
                             BlockPos userPos = user.getBlockPos();
-                            System.out.println(nextServerWorld.getLogicalHeight() - nextServerWorld.getBottomY());
                             if (y < nextServerWorld.getBottomY()) {
                                 y = nextServerWorld.getBottomY() + 5;
                                 userPos = new BlockPos(userPos.getX(), nextServerWorld.getBottomY() + 5, userPos.getZ());
