@@ -316,6 +316,7 @@ public final class SharedGemFunctions {
                         ServerPlayerEntity player = Objects.requireNonNull(world.getServer()).getPlayerManager().getPlayer(Objects.requireNonNull(lastDespawnedEntity.getUuid("UUID")));
                         if (player == null) {return;}
                         spawnPortalParticles((ServerWorld) world, targetPos, true);
+                        world.playSound(null, result.getBlockPos(), SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.HOSTILE, 1, 1);
                         TeleportTarget target = new TeleportTarget(targetPos, player.getVelocity(), player.getYaw(), player.getPitch());
                         FabricDimensions.teleport(player, (ServerWorld) summoner.getWorld(), target);
                         World overworld = Objects.requireNonNull(player.getServer()).getWorld(World.OVERWORLD);
@@ -646,11 +647,13 @@ public final class SharedGemFunctions {
                             if (!(targetEntity instanceof PlayerEntity) && CONFIG.getOrDefault("isSoulGemEnabled", DefaultModConfig.IS_SOUL_GEM_ENABLED)) {
                                 addToNbtList((LivingEntity) targetEntity, entityList, glowingItem);
                                 setStackGlowing(stackInHand, true);
+                                world.playSound(null, user.getBlockPos(), SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.HOSTILE, 1, 1);
                                 despawnEntity(world, targetEntity);
                             } else if (gauntlet && CONFIG.getOrDefault("isSoulGemGauntletEnabled", DefaultModConfig.IS_SOUL_GEM_GAUNTLET_ENABLED &&
                                     targetEntity instanceof PlayerEntity)){
                                 addToNbtList((LivingEntity) targetEntity, entityList, glowingItem);
                                 setStackGlowing(stackInHand, true);
+                                world.playSound(null, user.getBlockPos(), SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.HOSTILE, 1, 1);
                                 spawnPortalParticles((ServerWorld) world, targetEntity.getPos(), true);
                                 assert targetEntity instanceof PlayerEntity;
                                 ((PlayerEntity) targetEntity).getInventory().dropAll();
@@ -713,10 +716,8 @@ public final class SharedGemFunctions {
                     if (cooldown.containsKey(user) && cooldown.get(user) > System.currentTimeMillis()) {
                         user.sendMessage(Text.translatable("infinitygauntlet.warning.teleportcooldown").formatted(Formatting.GRAY));
                     } else {
-                        cooldown.put(user, System.currentTimeMillis() + CONFIG.getOrDefault(
-                                "spaceGemTeleportCooldown", DefaultModConfig.SPACE_GEM_TELEPORT_COOLDOWN));
-                        Vec3d targetPos = raycast(user, BLOCK_RAYCAST_DISTANCE, 1, false, false, false).getPos();
-                        BlockPos blockPos = new BlockPos((int) targetPos.getX(), (int) targetPos.getY(), (int) targetPos.getZ());
+                        BlockHitResult hitResult = (BlockHitResult) raycast(user, BLOCK_RAYCAST_DISTANCE, 1, false, false, false);
+                        BlockPos blockPos = hitResult.getBlockPos();
                         boolean validTeleport = false;
                         for (BlockPos pos : BlockPos.iterateOutwards(blockPos, 1, 1, 1)) {
                             if (!world.getBlockState(pos).isAir()) {
@@ -725,9 +726,11 @@ public final class SharedGemFunctions {
                             }
                         }
                         if (validTeleport) {
+                            cooldown.put(user, System.currentTimeMillis() + CONFIG.getOrDefault(
+                                    "spaceGemTeleportCooldown", DefaultModConfig.SPACE_GEM_TELEPORT_COOLDOWN));
                             spawnPortalParticles((ServerWorld) world, user.getPos(), true);
-                            user.requestTeleport(targetPos.getX(), targetPos.getY() + 1, targetPos.getZ());
-                            spawnPortalParticles((ServerWorld) world, targetPos, true);
+                            user.teleport(blockPos.getX(), blockPos.getY() + 1, blockPos.getZ());
+                            spawnPortalParticles((ServerWorld) world, hitResult.getPos(), true);
                             user.playSound(SoundEvents.ENTITY_PLAYER_TELEPORT, SoundCategory.BLOCKS, 1, 1);
                         }
                     }
@@ -809,9 +812,9 @@ public final class SharedGemFunctions {
                     user.addStatusEffect(new StatusEffectInstance(StatusEffects.HASTE, 9000, 2, false, true));
                 }
                 HitResult target = raycast(user, COMBINED_RAYCAST_DISTANCE, 3, false, true, false);
-                Vec3d targetPos = target.getPos();
                 if (target.getType().equals(HitResult.Type.BLOCK)) {
-                    BlockPos blockTarget = new BlockPos((int) targetPos.getX(), (int) targetPos.getY(), (int) targetPos.getZ());
+                    BlockHitResult hitResult = (BlockHitResult) target;
+                    BlockPos blockTarget = hitResult.getBlockPos();
                     boolean validBlock = false;
                     if (!(world.getBlockState(blockTarget).getBlock() instanceof Fertilizable)) {
                         for (BlockPos pos : BlockPos.iterateOutwards(blockTarget, 0, 1, 0)) {
@@ -825,6 +828,7 @@ public final class SharedGemFunctions {
                         validBlock = true;
                     }
                     if (validBlock) {
+                        Vec3d targetPos = blockTarget.toCenterPos();
                         BlockState nearbyBlockState = world.getBlockState(blockTarget);
                         ((Fertilizable) nearbyBlockState.getBlock()).grow((ServerWorld) world, world.random, blockTarget, nearbyBlockState);
                         ((ServerWorld) world).spawnParticles(ParticleTypes.HAPPY_VILLAGER, targetPos.getX(), targetPos.getY() + 0.5, targetPos.getZ(), 8, 0.35, 0.15, 0.35, 0.0);
