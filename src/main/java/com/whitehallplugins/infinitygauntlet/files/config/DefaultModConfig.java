@@ -28,49 +28,60 @@ public final class DefaultModConfig {
     public DefaultModConfig(boolean verifications) {
         SimpleConfig.Pair<Integer, Integer> maxIntegerValue = new SimpleConfig.Pair<>(0, Integer.MAX_VALUE);
         if (verifications) {
-            validBooleanVerification.add("isMindGemEnabled");
-            validBooleanVerification.add("isMindGemGauntletEnabled");
-            validBooleanVerification.add("isPowerGemEnabled");
-            validBooleanVerification.add("isPowerGemGauntletEnabled");
-            validBooleanVerification.add("isRealityGemEnabled");
-            validBooleanVerification.add("isRealityGemGauntletEnabled");
-            validBooleanVerification.add("isSoulGemEnabled");
-            validBooleanVerification.add("isSoulGemGauntletEnabled");
-            validBooleanVerification.add("isSpaceGemEnabled");
-            validBooleanVerification.add("isSpaceGemGauntletEnabled");
-            validBooleanVerification.add("isTimeGemEnabled");
-            validBooleanVerification.add("isTimeGemGauntletEnabled");
-            validStringListVerification.add("realityGauntletBlockBlacklist");
-            validStringListVerification.add("realityGauntletChangeBlockBlacklist");
-            validStringListVerification.add("spaceGauntletWorldChangeOrder");
-            validIntegerRanges.put("infinityGauntletBurnTime", new SimpleConfig.Pair<>(0, 72000));
-            validFloatRanges.put("infinityGauntletMineSpeed", new SimpleConfig.Pair<>(0f, 2147483647f));
-            validIntegerRanges.put("mindGauntletChargeTime", maxIntegerValue);
-            validIntegerRanges.put("mindGemMaxAgroDistance", new SimpleConfig.Pair<>(0, 64));
-            validIntegerRanges.put("mindGemRarity", maxIntegerValue);
-            validIntegerRanges.put("powerGauntletChargeTime", maxIntegerValue);
-            validFloatRanges.put("powerGemExplosionPower", new SimpleConfig.Pair<>(0f, 10f));
-            validIntegerRanges.put("powerGemBurnTime", new SimpleConfig.Pair<>(0, 72000));
-            validIntegerRanges.put("powerGemRarityWarden", maxIntegerValue);
-            validIntegerRanges.put("powerGemRarityAncientCity", maxIntegerValue);
-            validIntegerRanges.put("realityGauntletChargeTime", maxIntegerValue);
-            validIntegerRanges.put("realityGemBlockRadius", new SimpleConfig.Pair<>(0, 64));
-            validIntegerRanges.put("realityGemBlockChangeThreadTime", maxIntegerValue);
-            validIntegerRanges.put("realityGemConcurrentThreads", maxIntegerValue);
-            validIntegerRanges.put("realityGemRarity", maxIntegerValue);
-            validIntegerRanges.put("soulGauntletChargeTime", maxIntegerValue);
-            validIntegerRanges.put("maxNumberofEntitesInSoulGem", new SimpleConfig.Pair<>(0, 100));
-            validIntegerRanges.put("soulGemRarity", maxIntegerValue);
-            validIntegerRanges.put("spaceGauntletChargeTime", maxIntegerValue);
-            validIntegerRanges.put("spaceGemTeleportCooldown", maxIntegerValue);
-            validIntegerRanges.put("spaceGemRarityDragon", maxIntegerValue);
-            validIntegerRanges.put("spaceGemRarityEndCity", maxIntegerValue);
-            validIntegerRanges.put("spaceGauntletSafeTeleportXAndZ", new SimpleConfig.Pair<>(0, 32));
-            validIntegerRanges.put("timeGauntletChargeTime", maxIntegerValue);
-            validIntegerRanges.put("timeGemRarity", maxIntegerValue);
-            validIntegerRanges.put("raycastEntityDistance", new SimpleConfig.Pair<>(0, 64));
-            validIntegerRanges.put("raycastBlocksDistance", new SimpleConfig.Pair<>(0, 64));
-            validIntegerRanges.put("raycastCombinedDistance", new SimpleConfig.Pair<>(0, 64));
+            validBooleanVerification.addAll(Arrays.asList(
+                "isMindGemEnabled",
+                "isMindGemGauntletEnabled",
+                "isPowerGemEnabled",
+                "isPowerGemGauntletEnabled",
+                "isRealityGemEnabled",
+                "isRealityGemGauntletEnabled",
+                "isSoulGemEnabled",
+                "isSoulGemGauntletEnabled",
+                "isSpaceGemEnabled",
+                "isSpaceGemGauntletEnabled",
+                "isTimeGemEnabled",
+                "isTimeGemGauntletEnabled"
+            ));
+
+            validStringListVerification.addAll(Arrays.asList(
+                "realityGauntletBlockBlacklist",
+                "realityGauntletChangeBlockBlacklist",
+                "spaceGauntletWorldChangeOrder"
+            ));
+
+            validIntegerRanges.putAll(Map.ofEntries(
+                Map.entry("infinityGauntletBurnTime", new SimpleConfig.Pair<>(0, 72000)),
+                Map.entry("mindGauntletChargeTime", maxIntegerValue),
+                Map.entry("mindGemMaxAgroDistance", new SimpleConfig.Pair<>(0, 64)),
+                Map.entry("mindGemRarity", maxIntegerValue),
+                Map.entry("powerGauntletChargeTime", maxIntegerValue),
+                Map.entry("powerGemBurnTime", new SimpleConfig.Pair<>(0, 72000)),
+                Map.entry("powerGemRarityWarden", maxIntegerValue),
+                Map.entry("powerGemRarityAncientCity", maxIntegerValue),
+                Map.entry("realityGauntletChargeTime", maxIntegerValue),
+                Map.entry("realityGemBlockRadius", new SimpleConfig.Pair<>(0, 64)),
+                Map.entry("realityGemBlockChangeThreadTime", maxIntegerValue),
+                Map.entry("realityGemConcurrentThreads", maxIntegerValue),
+                Map.entry("realityGemRarity", maxIntegerValue),
+                Map.entry("soulGauntletChargeTime", maxIntegerValue),
+                Map.entry("maxNumberofEntitesInSoulGem", new SimpleConfig.Pair<>(0, 100)),
+                Map.entry("soulGemRarity", maxIntegerValue),
+                Map.entry("spaceGauntletChargeTime", maxIntegerValue),
+                Map.entry("spaceGemTeleportCooldown", maxIntegerValue),
+                Map.entry("spaceGemRarityDragon", maxIntegerValue),
+                Map.entry("spaceGemRarityEndCity", maxIntegerValue),
+                Map.entry("spaceGauntletSafeTeleportXAndZ", new SimpleConfig.Pair<>(0, 32)),
+                Map.entry("timeGauntletChargeTime", maxIntegerValue),
+                Map.entry("timeGemRarity", maxIntegerValue),
+                Map.entry("raycastEntityDistance", new SimpleConfig.Pair<>(0, 64)),
+                Map.entry("raycastBlocksDistance", new SimpleConfig.Pair<>(0, 64)),
+                Map.entry("raycastCombinedDistance", new SimpleConfig.Pair<>(0, 64))
+            ));
+
+            validFloatRanges.putAll(Map.of(
+                "infinityGauntletMineSpeed", new SimpleConfig.Pair<>(0f, 2147483647f),
+                "powerGemExplosionPower", new SimpleConfig.Pair<>(0f, 10f)
+            ));
         }
     }
 
