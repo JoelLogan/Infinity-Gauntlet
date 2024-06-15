@@ -316,7 +316,7 @@ public final class SharedGemFunctions {
                         ServerPlayerEntity player = Objects.requireNonNull(world.getServer()).getPlayerManager().getPlayer(Objects.requireNonNull(lastDespawnedEntity.getUuid("UUID")));
                         if (player == null) {return;}
                         spawnPortalParticles((ServerWorld) world, targetPos, true);
-                        world.playSound(null, result.getBlockPos(), SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.HOSTILE, 1, 1);
+                        world.playSound(null, summoner.getBlockPos(), SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.HOSTILE, 1, 1);
                         TeleportTarget target = new TeleportTarget(targetPos, player.getVelocity(), player.getYaw(), player.getPitch());
                         FabricDimensions.teleport(player, (ServerWorld) summoner.getWorld(), target);
                         World overworld = Objects.requireNonNull(player.getServer()).getWorld(World.OVERWORLD);
