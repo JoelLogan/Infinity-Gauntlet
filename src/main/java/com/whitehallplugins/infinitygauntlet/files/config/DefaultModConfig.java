@@ -41,6 +41,7 @@ public final class DefaultModConfig {
             validBooleanVerification.add("isTimeGemGauntletEnabled");
             validStringListVerification.add("realityGauntletBlockBlacklist");
             validStringListVerification.add("realityGauntletChangeBlockBlacklist");
+            validStringListVerification.add("spaceGauntletWorldChangeOrder");
             validIntegerRanges.put("infinityGauntletBurnTime", new SimpleConfig.Pair<>(0, 72000));
             validFloatRanges.put("infinityGauntletMineSpeed", new SimpleConfig.Pair<>(0f, 2147483647f));
             validIntegerRanges.put("mindGauntletChargeTime", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
@@ -63,6 +64,7 @@ public final class DefaultModConfig {
             validIntegerRanges.put("spaceGemTeleportCooldown", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
             validIntegerRanges.put("spaceGemRarityDragon", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
             validIntegerRanges.put("spaceGemRarityEndCity", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
+            validIntegerRanges.put("spaceGauntletSafeTeleportXAndZ", new SimpleConfig.Pair<>(0, 32));
             validIntegerRanges.put("timeGauntletChargeTime", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
             validIntegerRanges.put("timeGemRarity", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
             validIntegerRanges.put("raycastEntityDistance", new SimpleConfig.Pair<>(0, 64));
@@ -131,6 +133,12 @@ public final class DefaultModConfig {
     public static final int SPACE_GEM_TELEPORT_COOLDOWN = 250;
     public static final int SPACE_GEM_RARITY_DRAGON = 5;
     public static final int SPACE_GEM_RARITY_END_CITY = 4;
+    public static final int SPACE_GAUNTLET_SAFE_TELEPORT_X_AND_Z = 4;
+    public static final List<String> SPACE_GAUNTLET_WORLD_CHANGE_ORDER = List.of(
+            "minecraft:overworld",
+            "minecraft:the_nether",
+            "minecraft:the_end"
+    );
     public static final int TIME_GAUNTLET_CHARGE_TIME = 40;
     public static final int TIME_GEM_RARITY = 3;
 
@@ -214,6 +222,10 @@ public final class DefaultModConfig {
                 "spaceGemRarityDragon=" + SPACE_GEM_RARITY_DRAGON + "\n" +
                 "# spaceGemRarityEndCity: Determines the rarity of the Space Gem from an End City. [0-2147483647]\n" +
                 "spaceGemRarityEndCity=" + SPACE_GEM_RARITY_END_CITY + "\n" +
+                "# spaceGauntletSafeTeleportXAndZ: Determines how wide the X and Z axis safe block lookup is for the Space Gauntlet. [0-32]\n" +
+                "spaceGauntletSafeTeleportXAndZ=" + SPACE_GAUNTLET_SAFE_TELEPORT_X_AND_Z + "\n" +
+                "# spaceGauntletWorldChangeOrder: Determines the world change order of the Space Gauntlet. [minecraft:overworld, minecraft:the_nether]\n" +
+                "spaceGauntletWorldChangeOrder=" + SPACE_GAUNTLET_WORLD_CHANGE_ORDER + "\n" +
                 "# timeGauntletChargeTime: Determines the charge time in ticks of the Time Gauntlet. [0-2147483647]\n" +
                 "timeGauntletChargeTime=" + TIME_GAUNTLET_CHARGE_TIME + "\n" +
                 "# timeGemRarity: Determines the rarity of the Time Gem. [0-2147483647]\n" +

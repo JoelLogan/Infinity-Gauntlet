@@ -37,9 +37,11 @@ import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Rarity;
 import net.minecraft.registry.Registry;
+import net.minecraft.world.World;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static com.whitehallplugins.infinitygauntlet.items.gems.SharedGemFunctions.initThreadShutdownHook;
 
@@ -69,6 +71,8 @@ public final class InfinityGauntlet implements ModInitializer {
     private static final Identifier[] itemIdentifiers = new Identifier[14];
 
     private static final List<PlayerEntity> authenticatingPlayers = new ArrayList<>();
+
+    private static Set<RegistryKey<World>> serverWorlds;
 
     public static final Identifier SOUL_DIMENSION = new Identifier(MOD_ID, "souldimension");
     public static final Identifier TARGET_ENTITY_EFFECT = new Identifier(MOD_ID, "targeteffect");
@@ -117,6 +121,7 @@ public final class InfinityGauntlet implements ModInitializer {
         ServerPlayConnectionEvents.JOIN.register(new PlayerJoinEvent());
         LootTableEvents.MODIFY.register(new LootTableModifyEvent());
         ServerEntityEvents.ENTITY_LOAD.register(new EntityLoadEvent());
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> serverWorlds = server.getWorldRegistryKeys());
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> OfflineTeleportManager.saveTeleportData());
     }
 
@@ -154,6 +159,10 @@ public final class InfinityGauntlet implements ModInitializer {
 
     public static Identifier gauntletIdentifier() {
         return itemIdentifiers[0];
+    }
+
+    public static Set<RegistryKey<World>> getServerWorlds() {
+        return serverWorlds;
     }
 
     public static void addAuthenticatingPlayer(PlayerEntity player) {

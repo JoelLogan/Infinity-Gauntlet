@@ -47,5 +47,6 @@
   "infinitygauntlet.error.mindgemuuid": "The UUID for the Mind Gem is not valid.",
   "infinitygauntlet.error.loggedinfromanotherlocation": "You logged in from another location.",
   "infinitygauntlet.error.teleportdata": "%s: Error %s teleport data: %s",
-  "infinitygauntlet.error.versiontimeout": "%s: Version verification timeout. Please rejoin."
+  "infinitygauntlet.error.versiontimeout": "%s: Version verification timeout. Please rejoin.",
+  "infinitygauntlet.error.worldnotfound": "No valid worlds found for teleport."
 }
