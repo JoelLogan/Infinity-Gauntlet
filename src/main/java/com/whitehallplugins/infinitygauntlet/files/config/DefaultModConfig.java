@@ -26,6 +26,7 @@ public final class DefaultModConfig {
     }
 
     public DefaultModConfig(boolean verifications) {
+        SimpleConfig.Pair<Integer, Integer> maxIntegerValue = new SimpleConfig.Pair<>(0, Integer.MAX_VALUE);
         if (verifications) {
             validBooleanVerification.add("isMindGemEnabled");
             validBooleanVerification.add("isMindGemGauntletEnabled");
@@ -44,29 +45,29 @@ public final class DefaultModConfig {
             validStringListVerification.add("spaceGauntletWorldChangeOrder");
             validIntegerRanges.put("infinityGauntletBurnTime", new SimpleConfig.Pair<>(0, 72000));
             validFloatRanges.put("infinityGauntletMineSpeed", new SimpleConfig.Pair<>(0f, 2147483647f));
-            validIntegerRanges.put("mindGauntletChargeTime", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
+            validIntegerRanges.put("mindGauntletChargeTime", maxIntegerValue);
             validIntegerRanges.put("mindGemMaxAgroDistance", new SimpleConfig.Pair<>(0, 64));
-            validIntegerRanges.put("mindGemRarity", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-            validIntegerRanges.put("powerGauntletChargeTime", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
+            validIntegerRanges.put("mindGemRarity", maxIntegerValue);
+            validIntegerRanges.put("powerGauntletChargeTime", maxIntegerValue);
             validFloatRanges.put("powerGemExplosionPower", new SimpleConfig.Pair<>(0f, 10f));
             validIntegerRanges.put("powerGemBurnTime", new SimpleConfig.Pair<>(0, 72000));
-            validIntegerRanges.put("powerGemRarityWarden", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-            validIntegerRanges.put("powerGemRarityAncientCity", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-            validIntegerRanges.put("realityGauntletChargeTime", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
+            validIntegerRanges.put("powerGemRarityWarden", maxIntegerValue);
+            validIntegerRanges.put("powerGemRarityAncientCity", maxIntegerValue);
+            validIntegerRanges.put("realityGauntletChargeTime", maxIntegerValue);
             validIntegerRanges.put("realityGemBlockRadius", new SimpleConfig.Pair<>(0, 64));
-            validIntegerRanges.put("realityGemBlockChangeThreadTime", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-            validIntegerRanges.put("realityGemConcurrentThreads", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-            validIntegerRanges.put("realityGemRarity", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-            validIntegerRanges.put("soulGauntletChargeTime", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
+            validIntegerRanges.put("realityGemBlockChangeThreadTime", maxIntegerValue);
+            validIntegerRanges.put("realityGemConcurrentThreads", maxIntegerValue);
+            validIntegerRanges.put("realityGemRarity", maxIntegerValue);
+            validIntegerRanges.put("soulGauntletChargeTime", maxIntegerValue);
             validIntegerRanges.put("maxNumberofEntitesInSoulGem", new SimpleConfig.Pair<>(0, 100));
-            validIntegerRanges.put("soulGemRarity", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-            validIntegerRanges.put("spaceGauntletChargeTime", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-            validIntegerRanges.put("spaceGemTeleportCooldown", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-            validIntegerRanges.put("spaceGemRarityDragon", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-            validIntegerRanges.put("spaceGemRarityEndCity", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
+            validIntegerRanges.put("soulGemRarity", maxIntegerValue);
+            validIntegerRanges.put("spaceGauntletChargeTime", maxIntegerValue);
+            validIntegerRanges.put("spaceGemTeleportCooldown", maxIntegerValue);
+            validIntegerRanges.put("spaceGemRarityDragon", maxIntegerValue);
+            validIntegerRanges.put("spaceGemRarityEndCity", maxIntegerValue);
             validIntegerRanges.put("spaceGauntletSafeTeleportXAndZ", new SimpleConfig.Pair<>(0, 32));
-            validIntegerRanges.put("timeGauntletChargeTime", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-            validIntegerRanges.put("timeGemRarity", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
+            validIntegerRanges.put("timeGauntletChargeTime", maxIntegerValue);
+            validIntegerRanges.put("timeGemRarity", maxIntegerValue);
             validIntegerRanges.put("raycastEntityDistance", new SimpleConfig.Pair<>(0, 64));
             validIntegerRanges.put("raycastBlocksDistance", new SimpleConfig.Pair<>(0, 64));
             validIntegerRanges.put("raycastCombinedDistance", new SimpleConfig.Pair<>(0, 64));
