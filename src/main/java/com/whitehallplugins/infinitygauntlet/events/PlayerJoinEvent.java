@@ -24,7 +24,7 @@ import static com.whitehallplugins.infinitygauntlet.InfinityGauntlet.*;
 
 public final class PlayerJoinEvent implements Join {
 
-    private static final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private static final ExecutorService executor = Executors.newCachedThreadPool();
 
     @Override
     public void onPlayReady(ServerPlayNetworkHandler handler, PacketSender sender, MinecraftServer server) {
