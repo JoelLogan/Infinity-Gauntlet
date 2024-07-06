@@ -33,10 +33,7 @@ import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
-import java.util.Scanner;
+import java.util.*;
 
 import static com.whitehallplugins.infinitygauntlet.InfinityGauntlet.MOD_ID;
 
@@ -307,10 +304,15 @@ public final class SimpleConfig {
     @SuppressWarnings("unused")
     public List<String> getOrDefault( String key, List<String> def ) {
         try {
-            return List.of(get(key));
+            String value = get(key);
+            if (value != null) {
+                value = value.substring(1, value.length() - 1);
+                return Arrays.asList(value.split(",\\s*"));
+            }
         } catch (Exception e) {
             return def;
         }
+        return def;
     }
 
     /**

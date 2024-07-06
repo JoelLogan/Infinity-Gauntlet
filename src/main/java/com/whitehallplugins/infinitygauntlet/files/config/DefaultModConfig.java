@@ -26,48 +26,62 @@ public final class DefaultModConfig {
     }
 
     public DefaultModConfig(boolean verifications) {
+        SimpleConfig.Pair<Integer, Integer> maxIntegerValue = new SimpleConfig.Pair<>(0, Integer.MAX_VALUE);
         if (verifications) {
-            validBooleanVerification.add("isMindGemEnabled");
-            validBooleanVerification.add("isMindGemGauntletEnabled");
-            validBooleanVerification.add("isPowerGemEnabled");
-            validBooleanVerification.add("isPowerGemGauntletEnabled");
-            validBooleanVerification.add("isRealityGemEnabled");
-            validBooleanVerification.add("isRealityGemGauntletEnabled");
-            validBooleanVerification.add("isSoulGemEnabled");
-            validBooleanVerification.add("isSoulGemGauntletEnabled");
-            validBooleanVerification.add("isSpaceGemEnabled");
-            validBooleanVerification.add("isSpaceGemGauntletEnabled");
-            validBooleanVerification.add("isTimeGemEnabled");
-            validBooleanVerification.add("isTimeGemGauntletEnabled");
-            validStringListVerification.add("realityGauntletBlockBlacklist");
-            validStringListVerification.add("realityGauntletChangeBlockBlacklist");
-            validIntegerRanges.put("infinityGauntletBurnTime", new SimpleConfig.Pair<>(0, 72000));
-            validFloatRanges.put("infinityGauntletMineSpeed", new SimpleConfig.Pair<>(0f, 2147483647f));
-            validIntegerRanges.put("mindGauntletChargeTime", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-            validIntegerRanges.put("mindGemMaxAgroDistance", new SimpleConfig.Pair<>(0, 64));
-            validIntegerRanges.put("mindGemRarity", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-            validIntegerRanges.put("powerGauntletChargeTime", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-            validFloatRanges.put("powerGemExplosionPower", new SimpleConfig.Pair<>(0f, 10f));
-            validIntegerRanges.put("powerGemBurnTime", new SimpleConfig.Pair<>(0, 72000));
-            validIntegerRanges.put("powerGemRarityWarden", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-            validIntegerRanges.put("powerGemRarityAncientCity", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-            validIntegerRanges.put("realityGauntletChargeTime", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-            validIntegerRanges.put("realityGemBlockRadius", new SimpleConfig.Pair<>(0, 64));
-            validIntegerRanges.put("realityGemBlockChangeThreadTime", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-            validIntegerRanges.put("realityGemConcurrentThreads", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-            validIntegerRanges.put("realityGemRarity", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-            validIntegerRanges.put("soulGauntletChargeTime", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-            validIntegerRanges.put("maxNumberofEntitesInSoulGem", new SimpleConfig.Pair<>(0, 100));
-            validIntegerRanges.put("soulGemRarity", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-            validIntegerRanges.put("spaceGauntletChargeTime", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-            validIntegerRanges.put("spaceGemTeleportCooldown", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-            validIntegerRanges.put("spaceGemRarityDragon", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-            validIntegerRanges.put("spaceGemRarityEndCity", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-            validIntegerRanges.put("timeGauntletChargeTime", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-            validIntegerRanges.put("timeGemRarity", new SimpleConfig.Pair<>(0, Integer.MAX_VALUE));
-            validIntegerRanges.put("raycastEntityDistance", new SimpleConfig.Pair<>(0, 64));
-            validIntegerRanges.put("raycastBlocksDistance", new SimpleConfig.Pair<>(0, 64));
-            validIntegerRanges.put("raycastCombinedDistance", new SimpleConfig.Pair<>(0, 64));
+            validBooleanVerification.addAll(Arrays.asList(
+                "isMindGemEnabled",
+                "isMindGemGauntletEnabled",
+                "isPowerGemEnabled",
+                "isPowerGemGauntletEnabled",
+                "isRealityGemEnabled",
+                "isRealityGemGauntletEnabled",
+                "isSoulGemEnabled",
+                "isSoulGemGauntletEnabled",
+                "isSpaceGemEnabled",
+                "isSpaceGemGauntletEnabled",
+                "isTimeGemEnabled",
+                "isTimeGemGauntletEnabled"
+            ));
+
+            validStringListVerification.addAll(Arrays.asList(
+                "realityGauntletBlockBlacklist",
+                "realityGauntletChangeBlockBlacklist",
+                "spaceGauntletWorldChangeOrder"
+            ));
+
+            validIntegerRanges.putAll(Map.ofEntries(
+                Map.entry("infinityGauntletBurnTime", new SimpleConfig.Pair<>(0, 72000)),
+                Map.entry("mindGauntletChargeTime", maxIntegerValue),
+                Map.entry("mindGemMaxAgroDistance", new SimpleConfig.Pair<>(0, 64)),
+                Map.entry("mindGemRarity", maxIntegerValue),
+                Map.entry("powerGauntletChargeTime", maxIntegerValue),
+                Map.entry("powerGemBurnTime", new SimpleConfig.Pair<>(0, 72000)),
+                Map.entry("powerGemRarityWarden", maxIntegerValue),
+                Map.entry("powerGemRarityAncientCity", maxIntegerValue),
+                Map.entry("realityGauntletChargeTime", maxIntegerValue),
+                Map.entry("realityGemBlockRadius", new SimpleConfig.Pair<>(0, 64)),
+                Map.entry("realityGemBlockChangeThreadTime", maxIntegerValue),
+                Map.entry("realityGemConcurrentThreads", maxIntegerValue),
+                Map.entry("realityGemRarity", maxIntegerValue),
+                Map.entry("soulGauntletChargeTime", maxIntegerValue),
+                Map.entry("maxNumberofEntitesInSoulGem", new SimpleConfig.Pair<>(0, 100)),
+                Map.entry("soulGemRarity", maxIntegerValue),
+                Map.entry("spaceGauntletChargeTime", maxIntegerValue),
+                Map.entry("spaceGemTeleportCooldown", maxIntegerValue),
+                Map.entry("spaceGemRarityDragon", maxIntegerValue),
+                Map.entry("spaceGemRarityEndCity", maxIntegerValue),
+                Map.entry("spaceGauntletSafeTeleportXAndZ", new SimpleConfig.Pair<>(0, 32)),
+                Map.entry("timeGauntletChargeTime", maxIntegerValue),
+                Map.entry("timeGemRarity", maxIntegerValue),
+                Map.entry("raycastEntityDistance", new SimpleConfig.Pair<>(0, 64)),
+                Map.entry("raycastBlocksDistance", new SimpleConfig.Pair<>(0, 64)),
+                Map.entry("raycastCombinedDistance", new SimpleConfig.Pair<>(0, 64))
+            ));
+
+            validFloatRanges.putAll(Map.of(
+                "infinityGauntletMineSpeed", new SimpleConfig.Pair<>(0f, 2147483647f),
+                "powerGemExplosionPower", new SimpleConfig.Pair<>(0f, 10f)
+            ));
         }
     }
 
@@ -131,6 +145,12 @@ public final class DefaultModConfig {
     public static final int SPACE_GEM_TELEPORT_COOLDOWN = 250;
     public static final int SPACE_GEM_RARITY_DRAGON = 5;
     public static final int SPACE_GEM_RARITY_END_CITY = 4;
+    public static final int SPACE_GAUNTLET_SAFE_TELEPORT_X_AND_Z = 4;
+    public static final List<String> SPACE_GAUNTLET_WORLD_CHANGE_ORDER = List.of(
+            "minecraft:overworld",
+            "minecraft:the_nether",
+            "minecraft:the_end"
+    );
     public static final int TIME_GAUNTLET_CHARGE_TIME = 40;
     public static final int TIME_GEM_RARITY = 3;
 
@@ -214,6 +234,10 @@ public final class DefaultModConfig {
                 "spaceGemRarityDragon=" + SPACE_GEM_RARITY_DRAGON + "\n" +
                 "# spaceGemRarityEndCity: Determines the rarity of the Space Gem from an End City. [0-2147483647]\n" +
                 "spaceGemRarityEndCity=" + SPACE_GEM_RARITY_END_CITY + "\n" +
+                "# spaceGauntletSafeTeleportXAndZ: Determines how wide the X and Z axis safe block lookup is for the Space Gauntlet. [0-32]\n" +
+                "spaceGauntletSafeTeleportXAndZ=" + SPACE_GAUNTLET_SAFE_TELEPORT_X_AND_Z + "\n" +
+                "# spaceGauntletWorldChangeOrder: Determines the world change order of the Space Gauntlet. [minecraft:overworld, minecraft:the_nether]\n" +
+                "spaceGauntletWorldChangeOrder=" + SPACE_GAUNTLET_WORLD_CHANGE_ORDER + "\n" +
                 "# timeGauntletChargeTime: Determines the charge time in ticks of the Time Gauntlet. [0-2147483647]\n" +
                 "timeGauntletChargeTime=" + TIME_GAUNTLET_CHARGE_TIME + "\n" +
                 "# timeGemRarity: Determines the rarity of the Time Gem. [0-2147483647]\n" +

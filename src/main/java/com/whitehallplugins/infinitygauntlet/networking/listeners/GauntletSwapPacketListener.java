@@ -15,7 +15,7 @@ public final class GauntletSwapPacketListener implements PlayChannelHandler {
     @Override
     public void receive(MinecraftServer server, ServerPlayerEntity player, ServerPlayNetworkHandler handler, PacketByteBuf buf, PacketSender responseSender) {
         if (buf.isReadable() && (buf.readString().equals(NetworkingConstants.SWAP_POWER_STRING))) {
-            Gauntlet.swapPower(player, player.getStackInHand(getHand(player)));
+            server.execute(() -> Gauntlet.swapPower(player, player.getStackInHand(getHand(player))));
         }
     }
 

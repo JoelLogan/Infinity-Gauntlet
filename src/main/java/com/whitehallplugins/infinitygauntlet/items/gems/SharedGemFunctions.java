@@ -35,6 +35,7 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.stat.Stats;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
@@ -43,6 +44,7 @@ import net.minecraft.world.GameMode;
 import net.minecraft.world.RaycastContext;
 import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
+import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.dimension.DimensionTypes;
 import net.minecraft.world.explosion.ExplosionBehavior;
 import org.joml.Vector3f;
@@ -314,6 +316,7 @@ public final class SharedGemFunctions {
                         ServerPlayerEntity player = Objects.requireNonNull(world.getServer()).getPlayerManager().getPlayer(Objects.requireNonNull(lastDespawnedEntity.getUuid("UUID")));
                         if (player == null) {return;}
                         spawnPortalParticles((ServerWorld) world, targetPos, true);
+                        world.playSound(null, summoner.getBlockPos(), SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.HOSTILE, 1, 1);
                         TeleportTarget target = new TeleportTarget(targetPos, player.getVelocity(), player.getYaw(), player.getPitch());
                         FabricDimensions.teleport(player, (ServerWorld) summoner.getWorld(), target);
                         World overworld = Objects.requireNonNull(player.getServer()).getWorld(World.OVERWORLD);
@@ -421,7 +424,7 @@ public final class SharedGemFunctions {
                 return true;
             }
             if (CONFIG.getOrDefault("realityGauntletChangeBlockBlacklist",
-                    DefaultModConfig.REALITY_GAUNTLET_CHANGE_BLOCK_BLACKLIST).toString().contains(block.toString().substring(6, block.toString().length() - 1))) {
+                    DefaultModConfig.REALITY_GAUNTLET_CHANGE_BLOCK_BLACKLIST).contains(block.toString().substring(6, block.toString().length() - 1))) {
                 return false;
             }
             return state.isOpaque() || state.isFullCube(null, null);
@@ -605,7 +608,7 @@ public final class SharedGemFunctions {
                 }
                 BlockState targetBlock = world.getBlockState(targetPos);
                 if (!targetBlock.isOf(changeToBlock) && !CONFIG.getOrDefault("realityGauntletTargetBlockBlacklist",
-                        DefaultModConfig.REALITY_GAUNTLET_TARGET_BLOCK_BLACKLIST).toString().contains(
+                        DefaultModConfig.REALITY_GAUNTLET_TARGET_BLOCK_BLACKLIST).contains(
                                 targetBlock.getBlock().toString().substring(6, targetBlock.getBlock().toString().length() - 1))){
                     if (gauntlet && CONFIG.getOrDefault("isRealityGemGauntletEnabled", DefaultModConfig.IS_REALITY_GEM_GAUNTLET_ENABLED)){
                         changeBlocksInSphereRecursive(user, world, targetPos, targetBlock, changeToBlock);
@@ -644,11 +647,13 @@ public final class SharedGemFunctions {
                             if (!(targetEntity instanceof PlayerEntity) && CONFIG.getOrDefault("isSoulGemEnabled", DefaultModConfig.IS_SOUL_GEM_ENABLED)) {
                                 addToNbtList((LivingEntity) targetEntity, entityList, glowingItem);
                                 setStackGlowing(stackInHand, true);
+                                world.playSound(null, user.getBlockPos(), SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.HOSTILE, 1, 1);
                                 despawnEntity(world, targetEntity);
                             } else if (gauntlet && CONFIG.getOrDefault("isSoulGemGauntletEnabled", DefaultModConfig.IS_SOUL_GEM_GAUNTLET_ENABLED &&
                                     targetEntity instanceof PlayerEntity)){
                                 addToNbtList((LivingEntity) targetEntity, entityList, glowingItem);
                                 setStackGlowing(stackInHand, true);
+                                world.playSound(null, user.getBlockPos(), SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.HOSTILE, 1, 1);
                                 spawnPortalParticles((ServerWorld) world, targetEntity.getPos(), true);
                                 assert targetEntity instanceof PlayerEntity;
                                 ((PlayerEntity) targetEntity).getInventory().dropAll();
@@ -711,10 +716,8 @@ public final class SharedGemFunctions {
                     if (cooldown.containsKey(user) && cooldown.get(user) > System.currentTimeMillis()) {
                         user.sendMessage(Text.translatable("infinitygauntlet.warning.teleportcooldown").formatted(Formatting.GRAY));
                     } else {
-                        cooldown.put(user, System.currentTimeMillis() + CONFIG.getOrDefault(
-                                "spaceGemTeleportCooldown", DefaultModConfig.SPACE_GEM_TELEPORT_COOLDOWN));
-                        Vec3d targetPos = raycast(user, BLOCK_RAYCAST_DISTANCE, 1, false, false, false).getPos();
-                        BlockPos blockPos = new BlockPos((int) targetPos.getX(), (int) targetPos.getY(), (int) targetPos.getZ());
+                        BlockHitResult hitResult = (BlockHitResult) raycast(user, BLOCK_RAYCAST_DISTANCE, 1, false, false, false);
+                        BlockPos blockPos = hitResult.getBlockPos();
                         boolean validTeleport = false;
                         for (BlockPos pos : BlockPos.iterateOutwards(blockPos, 1, 1, 1)) {
                             if (!world.getBlockState(pos).isAir()) {
@@ -723,9 +726,11 @@ public final class SharedGemFunctions {
                             }
                         }
                         if (validTeleport) {
+                            cooldown.put(user, System.currentTimeMillis() + CONFIG.getOrDefault(
+                                    "spaceGemTeleportCooldown", DefaultModConfig.SPACE_GEM_TELEPORT_COOLDOWN));
                             spawnPortalParticles((ServerWorld) world, user.getPos(), true);
-                            user.requestTeleport(targetPos.getX(), targetPos.getY() + 1, targetPos.getZ());
-                            spawnPortalParticles((ServerWorld) world, targetPos, true);
+                            user.teleport(blockPos.getX(), blockPos.getY() + 1, blockPos.getZ());
+                            spawnPortalParticles((ServerWorld) world, hitResult.getPos(), true);
                             user.playSound(SoundEvents.ENTITY_PLAYER_TELEPORT, SoundCategory.BLOCKS, 1, 1);
                         }
                     }
@@ -734,24 +739,54 @@ public final class SharedGemFunctions {
         }
         else {
             if (CONFIG.getOrDefault("isSpaceGemGauntletEnabled", DefaultModConfig.IS_SPACE_GEM_GAUNTLET_ENABLED)) {
-                if (world.getDimensionKey().equals(DimensionTypes.OVERWORLD)) {
-                    ServerWorld nether = Objects.requireNonNull(user.getServer()).getWorld(World.NETHER);
-                    if (nether == null) {return;}
-                    double x = user.getX();
-                    double y = user.getY();
-                    double z = user.getZ();
-                    for (BlockPos pos : BlockPos.iterateOutwards(user.getBlockPos(), 1, 128, 1)) {
-                        if (nether.getBlockState(pos).isAir() && nether.getBlockState(pos.up()).isAir() && nether.getBlockState(pos.down()).isSolidBlock(nether, pos.down()) && pos.getY() < 128) {
-                            x = pos.getX();
-                            y = pos.getY();
-                            z = pos.getZ();
+                String nextWorld = null;
+                List<String> worldOrder = CONFIG.getOrDefault("spaceGauntletWorldChangeOrder", DefaultModConfig.SPACE_GAUNTLET_WORLD_CHANGE_ORDER);
+                String currentWorld = world.getRegistryKey().getValue().toString();
+                int currentIndex = worldOrder.indexOf(currentWorld);
+                List<String> reorderedWorldList = new ArrayList<>();
+                if (currentIndex != -1) {
+                    reorderedWorldList.addAll(worldOrder.subList(currentIndex, worldOrder.size()));
+                    reorderedWorldList.addAll(worldOrder.subList(0, currentIndex));
+                    reorderedWorldList.remove(currentWorld);
+                }
+                for (String worldInList : reorderedWorldList) {
+                    if (InfinityGauntlet.getServerWorlds().contains(RegistryKey.of(RegistryKeys.WORLD, new Identifier(worldInList)))) {
+                        nextWorld = worldInList;
+                        break;
+                    }
+                }
+                if (nextWorld != null) {
+                    ServerWorld nextServerWorld = Objects.requireNonNull(user.getServer()).getWorld(RegistryKey.of(RegistryKeys.WORLD, new Identifier(nextWorld)));
+                    if (nextServerWorld != null) {
+                        RegistryKey<DimensionType> dimensionKey = nextServerWorld.getDimensionKey();
+                        if (!dimensionKey.equals(DimensionTypes.THE_END)) {
+                            double x = user.getX();
+                            double y = user.getY();
+                            double z = user.getZ();
+                            BlockPos userPos = user.getBlockPos();
+                            if (y < nextServerWorld.getBottomY()) {
+                                y = nextServerWorld.getBottomY() + 5;
+                                userPos = new BlockPos(userPos.getX(), nextServerWorld.getBottomY() + 5, userPos.getZ());
+                            }
+                            int safeTpDistance = CONFIG.getOrDefault("spaceGauntletSafeTeleportXAndZ", DefaultModConfig.SPACE_GAUNTLET_SAFE_TELEPORT_X_AND_Z);
+                            for (BlockPos pos : BlockPos.iterateOutwards(userPos, safeTpDistance, nextServerWorld.getLogicalHeight() - nextServerWorld.getBottomY(), safeTpDistance)) {
+                                if (nextServerWorld.getBlockState(pos).isAir() && nextServerWorld.getBlockState(pos.up()).isAir() &&
+                                        nextServerWorld.getBlockState(pos.down()).isSolidBlock(nextServerWorld, pos.down()) &&
+                                        pos.getY() < nextServerWorld.getLogicalHeight() && pos.getY() > (nextServerWorld.getBottomY())) {
+                                    x = pos.getX();
+                                    y = pos.getY();
+                                    z = pos.getZ();
+                                    break;
+                                }
+                            }
+                            user.teleport(nextServerWorld, x, y, z, new HashSet<>(), 0, 0);
+                        } else {
+                            user.moveToWorld(nextServerWorld);
                         }
                     }
-                    user.teleport(nether, x, y, z, new HashSet<>(), 0, 0);
-                } else if (world.getDimensionKey().equals(DimensionTypes.THE_NETHER)) {
-                    user.moveToWorld(Objects.requireNonNull(user.getServer()).getWorld(World.END));
-                } else if (world.getDimensionKey().equals(DimensionTypes.THE_END)) {
-                    user.teleport(Objects.requireNonNull(user.getServer()).getWorld(World.OVERWORLD), user.getX(), user.getY(), user.getZ(), new HashSet<>(), 0, 0);
+                }
+                else {
+                    user.sendMessage(Text.translatable("infinitygauntlet.error.worldnotfound"));
                 }
             }
         }
@@ -777,9 +812,9 @@ public final class SharedGemFunctions {
                     user.addStatusEffect(new StatusEffectInstance(StatusEffects.HASTE, 9000, 2, false, true));
                 }
                 HitResult target = raycast(user, COMBINED_RAYCAST_DISTANCE, 3, false, true, false);
-                Vec3d targetPos = target.getPos();
                 if (target.getType().equals(HitResult.Type.BLOCK)) {
-                    BlockPos blockTarget = new BlockPos((int) targetPos.getX(), (int) targetPos.getY(), (int) targetPos.getZ());
+                    BlockHitResult hitResult = (BlockHitResult) target;
+                    BlockPos blockTarget = hitResult.getBlockPos();
                     boolean validBlock = false;
                     if (!(world.getBlockState(blockTarget).getBlock() instanceof Fertilizable)) {
                         for (BlockPos pos : BlockPos.iterateOutwards(blockTarget, 0, 1, 0)) {
@@ -793,6 +828,7 @@ public final class SharedGemFunctions {
                         validBlock = true;
                     }
                     if (validBlock) {
+                        Vec3d targetPos = blockTarget.toCenterPos();
                         BlockState nearbyBlockState = world.getBlockState(blockTarget);
                         ((Fertilizable) nearbyBlockState.getBlock()).grow((ServerWorld) world, world.random, blockTarget, nearbyBlockState);
                         ((ServerWorld) world).spawnParticles(ParticleTypes.HAPPY_VILLAGER, targetPos.getX(), targetPos.getY() + 0.5, targetPos.getZ(), 8, 0.35, 0.15, 0.35, 0.0);
