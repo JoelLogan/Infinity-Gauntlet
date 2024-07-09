@@ -388,7 +388,7 @@ public final class SharedGemFunctions {
 
             while (!queue.isEmpty() && keepRunning) {
                 BlockPos currentPos = queue.poll();
-                if (currentPos != null && world.getBlockState(currentPos).getBlock() == targetBlock.getBlock()) {
+                if (currentPos != null && world.getBlockState(currentPos).isOf(targetBlock.getBlock())) {
                     toChangeWithDistance.put(currentPos, diamondDistance(centerPos, currentPos));
                     for (int xOffset = -1; xOffset <= 1; xOffset++) {
                         for (int yOffset = -1; yOffset <= 1; yOffset++) {
@@ -421,9 +421,13 @@ public final class SharedGemFunctions {
                     }
                 }
                 BlockPos pos = entry.getKey();
+                BlockState state;
                 synchronized (lockObj) {
-                    world.breakBlock(pos, false);
-                    world.setBlockState(pos, changeTo.getDefaultState());
+                    state = world.getBlockState(pos);
+                    if (!state.isOf(changeTo) && state.isOf(targetBlock.getBlock())) {
+                        world.breakBlock(pos, false);
+                        world.setBlockState(pos, changeTo.getDefaultState());
+                    }
                 }
                 lastIterationTime = currentTime;
             }
