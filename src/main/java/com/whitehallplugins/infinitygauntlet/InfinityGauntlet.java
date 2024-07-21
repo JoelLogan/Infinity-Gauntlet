@@ -174,7 +174,7 @@ public final class InfinityGauntlet implements ModInitializer {
     }
 
     public static Set<RegistryKey<World>> getServerWorlds() {
-        return serverWorlds;
+        return Set.copyOf(serverWorlds);
     }
 
     public static void addAuthenticatingPlayer(PlayerEntity player) {
