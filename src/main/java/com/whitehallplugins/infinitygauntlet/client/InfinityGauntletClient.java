@@ -2,17 +2,16 @@ package com.whitehallplugins.infinitygauntlet.client;
 
 import com.whitehallplugins.infinitygauntlet.items.gauntlets.Gauntlet;
 import com.whitehallplugins.infinitygauntlet.networking.NetworkingConstants;
+import com.whitehallplugins.infinitygauntlet.networking.payloads.GauntletSwapPayload;
+import com.whitehallplugins.infinitygauntlet.networking.payloads.ModVersionPayload;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.minecraft.network.PacketByteBuf;
 
 public final class InfinityGauntletClient implements ClientModInitializer {
 
     boolean isKeyPressed = false;
-    PacketByteBuf swapPowerPacket = PacketByteBufs.create().writeString(NetworkingConstants.SWAP_POWER_STRING);
 
     @Override
     public void onInitializeClient() {
@@ -21,7 +20,7 @@ public final class InfinityGauntletClient implements ClientModInitializer {
             if (InfinityGauntletKeybinds.CHANGE_POWER.isPressed()) {
                 if (!isKeyPressed && client.player != null) {
                     if (client.player.getMainHandStack().getItem() instanceof Gauntlet || client.player.getOffHandStack().getItem() instanceof Gauntlet){
-                        ClientPlayNetworking.send(NetworkingConstants.GAUNTLET_PACKET_ID, swapPowerPacket);
+                        ClientPlayNetworking.send(new GauntletSwapPayload(NetworkingConstants.SWAP_POWER_STRING));
                     }
                     isKeyPressed = true;
                 }
@@ -29,9 +28,8 @@ public final class InfinityGauntletClient implements ClientModInitializer {
                 isKeyPressed = false;
             }
         });
-        ClientPlayNetworking.registerGlobalReceiver(NetworkingConstants.VERSION_PACKET_ID, (client, handler, buf, responseSender) -> {
-            PacketByteBuf modVersionPacket = PacketByteBufs.create().writeIntArray(NetworkingConstants.modVersion());
-            client.execute(() -> responseSender.sendPacket(NetworkingConstants.VERSION_PACKET_ID, modVersionPacket));
-        });
+        ClientPlayNetworking.registerGlobalReceiver(ModVersionPayload.ID, (payload, context) ->
+                context.client().execute(() ->
+                        context.responseSender().sendPacket(new ModVersionPayload(NetworkingConstants.modVersion()))));
     }
 }

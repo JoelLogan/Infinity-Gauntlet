@@ -8,6 +8,7 @@ import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectCategory;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.world.ServerWorld;
 
 import java.util.UUID;
@@ -26,7 +27,7 @@ public final class TargetEntityEffect extends StatusEffect {
     }
 
     @Override
-    public void applyUpdateEffect(LivingEntity entity, int amplifier) {
+    public boolean applyUpdateEffect(LivingEntity entity, int amplifier) {
         if (entity.getWorld() instanceof ServerWorld serverWorld && entity instanceof HostileEntity) {
             for (String s : entity.getCommandTags()) {
                 if (s.split("\\.")[0].equals(COMMAND_TAG)) {
@@ -37,19 +38,27 @@ public final class TargetEntityEffect extends StatusEffect {
                             ((HostileEntity) entity).setTarget((LivingEntity) target);
                             if (target.isPlayer() && ((PlayerEntity) target).isCreative() || target.isSpectator()) {
                                 removeEffect(entity);
+                                return false;
                             }
                         } else {
                             removeEffect(entity);
+                            return false;
                         }
                     }
                 }
             }
         }
+        return true;
     }
 
     private void removeEffect(LivingEntity entity) {
-        entity.removeCommandTag(COMMAND_TAG);
-        entity.removeStatusEffect(InfinityGauntlet.targetEntityEffect);
+        for (String tag : entity.getCommandTags()){
+            if (tag.startsWith(COMMAND_TAG)){
+                entity.removeCommandTag(tag);
+                break;
+            }
+        }
+        entity.removeStatusEffect(RegistryEntry.of(InfinityGauntlet.targetEntityEffect));
     }
 
     private boolean isCloseEnough(LivingEntity entity, LivingEntity target) {

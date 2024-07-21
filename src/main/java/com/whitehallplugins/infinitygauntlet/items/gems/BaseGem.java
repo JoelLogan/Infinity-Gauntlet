@@ -18,10 +18,6 @@ public class BaseGem extends Item {
         return UseAction.NONE;
     }
 
-    @Override
-    public boolean isDamageable() {
-        return false;
-    }
 
     @Override
     public boolean allowContinuingBlockBreaking(PlayerEntity player, ItemStack oldStack, ItemStack newStack) {

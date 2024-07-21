@@ -12,19 +12,20 @@ import com.whitehallplugins.infinitygauntlet.items.gauntlets.GauntletReplica;
 import com.whitehallplugins.infinitygauntlet.items.gems.SharedGemFunctions;
 import com.whitehallplugins.infinitygauntlet.items.gems.replicas.ReplicaGems.*;
 import com.whitehallplugins.infinitygauntlet.items.gems.Gems.*;
-import com.whitehallplugins.infinitygauntlet.networking.NetworkingConstants;
 import com.whitehallplugins.infinitygauntlet.networking.listeners.GauntletSwapPacketListener;
 import com.whitehallplugins.infinitygauntlet.networking.listeners.ModVersionListenerServer;
+import com.whitehallplugins.infinitygauntlet.networking.payloads.GauntletSwapPayload;
+import com.whitehallplugins.infinitygauntlet.networking.payloads.ModVersionPayload;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.loot.v2.LootTableEvents;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.fabricmc.fabric.api.registry.FuelRegistry;
+import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.entity.damage.DamageType;
 import net.minecraft.entity.effect.StatusEffect;
@@ -53,21 +54,21 @@ public final class InfinityGauntlet implements ModInitializer {
      */
     
     public static final String MOD_ID = "infinitygauntlet";
-
-    public static final Gauntlet GAUNTLET_ITEM = new Gauntlet(new FabricItemSettings().rarity(Rarity.EPIC).maxCount(1).fireproof().maxDamage(100));
-    public static final MindGem MIND_GEM = new MindGem(new FabricItemSettings().rarity(Rarity.EPIC).maxCount(1).fireproof());
-    public static final PowerGem POWER_GEM = new PowerGem(new FabricItemSettings().rarity(Rarity.EPIC).maxCount(1).fireproof());
-    public static final RealityGem REALITY_GEM = new RealityGem(new FabricItemSettings().rarity(Rarity.EPIC).maxCount(1).fireproof());
-    public static final SoulGem SOUL_GEM = new SoulGem(new FabricItemSettings().rarity(Rarity.EPIC).maxCount(1).fireproof());
-    public static final SpaceGem SPACE_GEM = new SpaceGem(new FabricItemSettings().rarity(Rarity.EPIC).maxCount(1).fireproof());
-    public static final TimeGem TIME_GEM = new TimeGem(new FabricItemSettings().rarity(Rarity.EPIC).maxCount(1).fireproof());
-    public static final GauntletReplica GAUNTLET_REPLICA_ITEM = new GauntletReplica(new FabricItemSettings().rarity(Rarity.EPIC).maxCount(1).fireproof());
-    public static final MindGemReplica MIND_GEM_REPLICA = new MindGemReplica(new FabricItemSettings().rarity(Rarity.EPIC).maxCount(1).fireproof());
-    public static final PowerGemReplica POWER_GEM_REPLICA = new PowerGemReplica(new FabricItemSettings().rarity(Rarity.EPIC).maxCount(1).fireproof());
-    public static final RealityGemReplica REALITY_GEM_REPLICA = new RealityGemReplica(new FabricItemSettings().rarity(Rarity.EPIC).maxCount(1).fireproof());
-    public static final SoulGemReplica SOUL_GEM_REPLICA = new SoulGemReplica(new FabricItemSettings().rarity(Rarity.EPIC).maxCount(1).fireproof());
-    public static final SpaceGemReplica SPACE_GEM_REPLICA = new SpaceGemReplica(new FabricItemSettings().rarity(Rarity.EPIC).maxCount(1).fireproof());
-    public static final TimeGemReplica TIME_GEM_REPLICA = new TimeGemReplica(new FabricItemSettings().rarity(Rarity.EPIC).maxCount(1).fireproof());
+    
+    public static final Gauntlet GAUNTLET_ITEM = new Gauntlet(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof().maxDamage(100));
+    public static final MindGem MIND_GEM = new MindGem(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof());
+    public static final PowerGem POWER_GEM = new PowerGem(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof());
+    public static final RealityGem REALITY_GEM = new RealityGem(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof());
+    public static final SoulGem SOUL_GEM = new SoulGem(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof());
+    public static final SpaceGem SPACE_GEM = new SpaceGem(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof());
+    public static final TimeGem TIME_GEM = new TimeGem(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof());
+    public static final GauntletReplica GAUNTLET_REPLICA_ITEM = new GauntletReplica(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof());
+    public static final MindGemReplica MIND_GEM_REPLICA = new MindGemReplica(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof());
+    public static final PowerGemReplica POWER_GEM_REPLICA = new PowerGemReplica(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof());
+    public static final RealityGemReplica REALITY_GEM_REPLICA = new RealityGemReplica(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof());
+    public static final SoulGemReplica SOUL_GEM_REPLICA = new SoulGemReplica(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof());
+    public static final SpaceGemReplica SPACE_GEM_REPLICA = new SpaceGemReplica(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof());
+    public static final TimeGemReplica TIME_GEM_REPLICA = new TimeGemReplica(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof());
 
     private static final Identifier[] itemIdentifiers = new Identifier[14];
 
@@ -75,10 +76,10 @@ public final class InfinityGauntlet implements ModInitializer {
 
     private static Set<RegistryKey<World>> serverWorlds;
 
-    public static final Identifier SOUL_DIMENSION = new Identifier(MOD_ID, "souldimension");
-    public static final Identifier TARGET_ENTITY_EFFECT = new Identifier(MOD_ID, "targeteffect");
+    public static final Identifier SOUL_DIMENSION_ID = new Identifier(MOD_ID, "souldimension");
+    public static final Identifier TARGET_ENTITY_EFFECT_ID = new Identifier(MOD_ID, "targeteffect");
 
-    public static final Block SOUL_DIMENSION_BLOCK = new Block(FabricBlockSettings.create().strength(-1.0f, 3600000.0F).dropsNothing());
+    public static final Block SOUL_DIMENSION_BLOCK = new Block(AbstractBlock.Settings.create().strength(-1.0f, 3600000.0F).dropsNothing());
 
     public static final StatusEffect targetEntityEffect = new TargetEntityEffect();
 
@@ -114,10 +115,14 @@ public final class InfinityGauntlet implements ModInitializer {
         Registry.register(Registries.BLOCK, new Identifier(MOD_ID, "souldimensionblock"), SOUL_DIMENSION_BLOCK);
         Registry.register(Registries.ITEM, new Identifier(MOD_ID, "souldimensionblock"), new BlockItem(SOUL_DIMENSION_BLOCK, new Item.Settings()));
 
-        Registry.register(Registries.STATUS_EFFECT, TARGET_ENTITY_EFFECT, targetEntityEffect);
+        Registry.register(Registries.STATUS_EFFECT, TARGET_ENTITY_EFFECT_ID, targetEntityEffect);
 
-        ServerPlayNetworking.registerGlobalReceiver(NetworkingConstants.GAUNTLET_PACKET_ID, new GauntletSwapPacketListener());
-        ServerPlayNetworking.registerGlobalReceiver(NetworkingConstants.VERSION_PACKET_ID, new ModVersionListenerServer());
+        PayloadTypeRegistry.playS2C().register(ModVersionPayload.ID, ModVersionPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(ModVersionPayload.ID, ModVersionPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(GauntletSwapPayload.ID, GauntletSwapPayload.CODEC);
+
+        ServerPlayNetworking.registerGlobalReceiver(ModVersionPayload.ID, new ModVersionListenerServer());
+        ServerPlayNetworking.registerGlobalReceiver(GauntletSwapPayload.ID, new GauntletSwapPacketListener());
 
         ServerPlayConnectionEvents.JOIN.register(new PlayerJoinEvent());
         LootTableEvents.MODIFY.register(new LootTableModifyEvent());

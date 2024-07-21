@@ -2,20 +2,19 @@ package com.whitehallplugins.infinitygauntlet.networking.listeners;
 
 import com.whitehallplugins.infinitygauntlet.items.gauntlets.Gauntlet;
 import com.whitehallplugins.infinitygauntlet.networking.NetworkingConstants;
-import net.fabricmc.fabric.api.networking.v1.PacketSender;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.PlayChannelHandler;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayNetworkHandler;
+import com.whitehallplugins.infinitygauntlet.networking.payloads.GauntletSwapPayload;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.PlayPayloadHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Hand;
 
-public final class GauntletSwapPacketListener implements PlayChannelHandler {
+public final class GauntletSwapPacketListener implements PlayPayloadHandler<GauntletSwapPayload> {
 
     @Override
-    public void receive(MinecraftServer server, ServerPlayerEntity player, ServerPlayNetworkHandler handler, PacketByteBuf buf, PacketSender responseSender) {
-        if (buf.isReadable() && (buf.readString().equals(NetworkingConstants.SWAP_POWER_STRING))) {
-            server.execute(() -> Gauntlet.swapPower(player, player.getStackInHand(getHand(player))));
+    public void receive(GauntletSwapPayload payload, ServerPlayNetworking.Context context) {
+        if (payload.swapPowerString().equals(NetworkingConstants.SWAP_POWER_STRING)) {
+            ServerPlayerEntity player = context.player();
+            context.server().execute(() -> Gauntlet.swapPower(player, player.getStackInHand(getHand(player))));
         }
     }
 

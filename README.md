@@ -8,6 +8,8 @@ The Infinity Gauntlet Mod is a modern remake of the classic [Infinity Gauntlet m
 
 You can find the configuration file in the `config/infinitygauntlet` directory within your Minecraft instance folder. Most of the mod's features can be enabled, disabled, or customized via this configuration file, allowing you to balance the mod to suit your preferences.
 
+When playing a single-player world, I strongly recommend using the [Disable Custom Worlds Advice](https://modrinth.com/mod/dcwa) mod to remove the custom world warning.
+
 ### Features
 
 Each Infinity Stone can be discovered in chests or obtained as boss loot, and all can be combined to craft the powerful Infinity Gauntlet. The Gauntlet harnesses all the abilities of the Infinity Stones, with the active stone selected by pressing the default `H` key.

@@ -7,6 +7,8 @@ import com.whitehallplugins.infinitygauntlet.files.teleport.OfflineTeleportManag
 import com.whitehallplugins.infinitygauntlet.items.gauntlets.Gauntlet;
 import net.fabricmc.fabric.api.dimension.v1.FabricDimensions;
 import net.minecraft.block.*;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LightningEntity;
@@ -26,6 +28,7 @@ import net.minecraft.particle.DustParticleEffect;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.screen.GenericContainerScreenHandler;
 import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -90,7 +93,6 @@ public final class SharedGemFunctions {
     public static final String SOUL_GEM_NBT_ID = "SoulGemEntities";
     public static final String MIND_GEM_NBT_ID = "HostileEntity";
     private static final String SOUL_PLAYER_NBT_ID = "minecraft:player";
-    private static final String ENCHANTS_NBT = "Enchantments";
 
     private SharedGemFunctions(){
         throw new IllegalStateException("Utility class");
@@ -277,17 +279,31 @@ public final class SharedGemFunctions {
     }
 
     public static void setStackGlowing(ItemStack stack, boolean glowing) {
-        NbtList glowingTag = new NbtList();
-        glowingTag.add(new NbtCompound());
         if (glowing) {
-            stack.getOrCreateNbt().put(ENCHANTS_NBT, glowingTag);
+            stack.set(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true);
         }
         else {
-            stack.getOrCreateNbt().remove(ENCHANTS_NBT);
+            stack.set(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, false);
         }
     }
 
-    private static void addToNbtList(LivingEntity targetEntity, NbtList entityList, NbtCompound glowingItem) {
+    public static NbtCompound getNbtFromItem(ItemStack stack) {
+        NbtComponent data = stack.get(DataComponentTypes.CUSTOM_DATA);
+        NbtCompound result;
+        if (data == null) {
+            result = new NbtCompound();
+        }
+        else {
+            result = data.copyNbt();
+        }
+        return result;
+    }
+
+    public static void saveNbtToItem(ItemStack stack, NbtCompound compound) {
+        stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(compound));
+    }
+
+    private static NbtList addToNbtList(LivingEntity targetEntity, NbtList entityList) {
         NbtCompound entityDataForList = new NbtCompound();
         if (targetEntity instanceof PlayerEntity){
             entityDataForList.putString("id", SOUL_PLAYER_NBT_ID);
@@ -297,7 +313,15 @@ public final class SharedGemFunctions {
             targetEntity.saveNbt(entityDataForList);
         }
         entityList.add(entityDataForList);
-        glowingItem.put(SOUL_GEM_NBT_ID, entityList);
+        return entityList;
+    }
+
+    private static void soulGemInitialAction(World world, PlayerEntity user, NbtCompound glowingItem, Entity targetEntity, NbtList entityList, ItemStack stackInHand) {
+        glowingItem.put(SOUL_GEM_NBT_ID, addToNbtList((LivingEntity) targetEntity, entityList));
+        saveNbtToItem(stackInHand, glowingItem);
+        setStackGlowing(stackInHand, true);
+        world.playSound(null, user.getBlockPos(), SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.HOSTILE, 1, 1);
+        spawnPortalParticles((ServerWorld) world, targetEntity.getPos(), true);
     }
 
     private static void despawnEntity(World world, Entity entity) {
@@ -305,18 +329,20 @@ public final class SharedGemFunctions {
         Objects.requireNonNull(serverWorld.getEntity(entity.getUuid())).remove(Entity.RemovalReason.DISCARDED);
     }
 
-    private static void resummonEntity(World world, PlayerEntity summoner, NbtList entityList, ItemStack stack, boolean gauntlet) {
+    private static void resummonEntity(World world, PlayerEntity summoner, NbtCompound soulItem, NbtList entityList, ItemStack stack, boolean gauntlet) {
         NbtCompound lastDespawnedEntity = (NbtCompound) entityList.get(entityList.size() - 1);
-        if (lastDespawnedEntity != null) {
-            try {
-                BlockHitResult result = (BlockHitResult) raycast(summoner, BLOCK_RAYCAST_DISTANCE, 1, false, false, false);
-                Vec3d targetPos = result.getPos();
-                if (lastDespawnedEntity.getString("id").equals(SOUL_PLAYER_NBT_ID) && gauntlet) {
+        try {
+            BlockHitResult result = (BlockHitResult) raycast(summoner, BLOCK_RAYCAST_DISTANCE, 1, false, false, false);
+            Vec3d targetPos = result.getPos();
+            if (lastDespawnedEntity.getString("id").equals(SOUL_PLAYER_NBT_ID)) {
+                if (gauntlet) {
+                    spawnPortalParticles((ServerWorld) world, targetPos, true);
                     UUID targetUUID = lastDespawnedEntity.getUuid("UUID");
                     if (Objects.requireNonNull(world.getServer()).getPlayerManager().getPlayer(targetUUID) != null) {
                         ServerPlayerEntity player = Objects.requireNonNull(world.getServer()).getPlayerManager().getPlayer(Objects.requireNonNull(lastDespawnedEntity.getUuid("UUID")));
-                        if (player == null) {return;}
-                        spawnPortalParticles((ServerWorld) world, targetPos, true);
+                        if (player == null) {
+                            return;
+                        }
                         world.playSound(null, summoner.getBlockPos(), SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.HOSTILE, 1, 1);
                         TeleportTarget target = new TeleportTarget(targetPos, player.getVelocity(), player.getYaw(), player.getPitch());
                         FabricDimensions.teleport(player, (ServerWorld) summoner.getWorld(), target);
@@ -324,8 +350,7 @@ public final class SharedGemFunctions {
                         if (overworld != null) {
                             player.setSpawnPoint(overworld.getRegistryKey(), overworld.getSpawnPos(), 0.0F, true, false);
                         }
-                    }
-                    else {
+                    } else {
                         NbtCompound teleportData = new NbtCompound();
                         teleportData.putDouble("TargetX", targetPos.getX());
                         teleportData.putDouble("TargetY", targetPos.getY());
@@ -337,31 +362,46 @@ public final class SharedGemFunctions {
                     }
                     entityList.remove(entityList.size() - 1);
                 }
-                else {
-                    Optional<EntityType<?>> nbtType = EntityType.fromNbt(lastDespawnedEntity);
-                    Entity newEntity = nbtType.orElseThrow().create(world);
-                    if (newEntity != null) {
-                        newEntity.readNbt(lastDespawnedEntity);
-                        Vec3d position = result.getPos();
-                        newEntity.refreshPositionAndAngles(position.getX(), position.getY() + 0.5, position.getZ(), summoner.getYaw(), summoner.getPitch());
-                        world.spawnEntity(newEntity);
-                        entityList.remove(entityList.size() - 1);
-                        world.playSound(null, summoner.getBlockPos(), SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.HOSTILE, 1, 1);
-                    }
-                }
-                if (entityList.isEmpty()) {
-                    resetSoulGem(stack);
+            } else {
+                spawnPortalParticles((ServerWorld) world, targetPos, true);
+                Optional<EntityType<?>> nbtType = EntityType.fromNbt(lastDespawnedEntity);
+                Entity newEntity = nbtType.orElseThrow().create(world);
+                if (newEntity != null) {
+                    newEntity.readNbt(lastDespawnedEntity);
+                    Vec3d position = result.getPos();
+                    newEntity.refreshPositionAndAngles(position.getX(), position.getY() + 0.5, position.getZ(), summoner.getYaw(), summoner.getPitch());
+                    world.spawnEntity(newEntity);
+                    entityList.remove(entityList.size() - 1);
+                    world.playSound(null, summoner.getBlockPos(), SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.HOSTILE, 1, 1);
                 }
             }
-            catch (NoSuchElementException ignored) {
-                Logger.getLogger(MOD_ID).warning(Text.translatable("infinitygauntlet.error.nbtentity").getString());
+            soulItem.put(SOUL_GEM_NBT_ID, entityList);
+            saveNbtToItem(stack, soulItem);
+            if (entityList.isEmpty()) {
+                resetSoulGem(stack);
             }
+        } catch (NoSuchElementException ignored) {
+            Logger.getLogger(MOD_ID).warning(Text.translatable("infinitygauntlet.error.nbtentity").getString());
         }
     }
 
     private static void resetSoulGem(ItemStack item){
         setStackGlowing(item, false);
-        item.getOrCreateNbt().remove(SOUL_GEM_NBT_ID);
+        NbtCompound compound = getNbtFromItem(item);
+        compound.remove(SOUL_GEM_NBT_ID);
+        saveNbtToItem(item, compound);
+    }
+
+    private static void mindGlowToggle(ItemStack item, NbtCompound itemNbt, boolean enabled, UUID targetUUID){
+        if (enabled) {
+            setStackGlowing(item, true);
+            itemNbt.putUuid(MIND_GEM_NBT_ID, targetUUID);
+        }
+        else {
+            setStackGlowing(item, false);
+            itemNbt.remove(MIND_GEM_NBT_ID);
+        }
+        saveNbtToItem(item, itemNbt);
     }
 
     private static boolean isThreadPoolBusy() {
@@ -462,17 +502,12 @@ public final class SharedGemFunctions {
         world.spawnParticles(ParticleTypes.PORTAL, pos.getX(), pos.getY(), pos.getZ(), 60, 0.5, 0.5, 0.5, 0.0);
     }
 
-    private static void removeMindGlow(NbtCompound glowingItem){
-        glowingItem.remove(ENCHANTS_NBT);
-        glowingItem.remove(MIND_GEM_NBT_ID);
-    }
-
     public static void mindGemUse(World world, PlayerEntity user, boolean gauntlet) {
             if (!gauntlet) {
                 if (CONFIG.getOrDefault("isMindGemEnabled", DefaultModConfig.IS_MIND_GEM_ENABLED)) {
                     ItemStack stackInHand = user.getStackInHand(user.getActiveHand());
                     if (stackInHand.getItem() instanceof Gems.MindGem || stackInHand.getItem() instanceof Gauntlet) {
-                        NbtCompound glowingItem = stackInHand.getOrCreateNbt();
+                        NbtCompound glowingItem = getNbtFromItem(stackInHand);
                         if (!user.isSneaking()) {
                             EntityHitResult entityHitResult;
                             try {
@@ -480,8 +515,7 @@ public final class SharedGemFunctions {
                                 if (entityHitResult.getEntity() != null && !entityHitResult.getType().equals(HitResult.Type.MISS)) {
                                     Entity targetEntity = entityHitResult.getEntity();
                                     if (!glowingItem.contains(MIND_GEM_NBT_ID) && targetEntity instanceof HostileEntity) {
-                                        setStackGlowing(stackInHand, true);
-                                        glowingItem.putUuid(MIND_GEM_NBT_ID, targetEntity.getUuid());
+                                        mindGlowToggle(stackInHand, glowingItem, true, targetEntity.getUuid());
                                     } else {
                                         if (targetEntity instanceof LivingEntity) {
                                             if (targetEntity instanceof PlayerEntity && ((PlayerEntity) targetEntity).isCreative() || targetEntity.isSpectator()) {
@@ -492,7 +526,7 @@ public final class SharedGemFunctions {
                                                 if (serverWorld.getEntity(glowingItem.getUuid(MIND_GEM_NBT_ID)) != null && Objects.requireNonNull(serverWorld.getEntity(glowingItem.getUuid(MIND_GEM_NBT_ID))).isAlive()) {
                                                     HostileEntity entity = (HostileEntity) serverWorld.getEntity(glowingItem.getUuid(MIND_GEM_NBT_ID));
                                                     if (entity == null) {
-                                                        removeMindGlow(glowingItem);
+                                                        mindGlowToggle(stackInHand, glowingItem, false, null);
                                                         return;
                                                     }
                                                     for (String tag : entity.getCommandTags()) {
@@ -502,22 +536,20 @@ public final class SharedGemFunctions {
                                                     }
                                                     entity.setPersistent();
                                                     entity.addCommandTag(TargetEntityEffect.COMMAND_TAG + "." + targetEntity.getUuidAsString());
-                                                    entity.addStatusEffect(new StatusEffectInstance(InfinityGauntlet.targetEntityEffect, StatusEffectInstance.INFINITE));
+                                                    entity.addStatusEffect(new StatusEffectInstance(RegistryEntry.of(InfinityGauntlet.targetEntityEffect), StatusEffectInstance.INFINITE));
                                                     entity.setTarget((LivingEntity) targetEntity);
                                                 }
-                                                removeMindGlow(glowingItem);
+                                                mindGlowToggle(stackInHand, glowingItem, false, null);
                                             }
                                         }
                                     }
                                 }
                             } catch (IllegalArgumentException ignored) {
-                                removeMindGlow(glowingItem);
-                                return;
+                                mindGlowToggle(stackInHand, glowingItem, false, null);
                             }
                         } else {
-                            removeMindGlow(glowingItem);
+                            mindGlowToggle(stackInHand, glowingItem, false, null);
                         }
-                        stackInHand.setNbt(glowingItem);
                     }
                 }
             }
@@ -655,7 +687,7 @@ public final class SharedGemFunctions {
     public static void soulGemUse(World world, PlayerEntity user, boolean gauntlet) {
         ItemStack stackInHand = user.getStackInHand(user.getActiveHand());
         if (stackInHand.getItem() instanceof Gems.SoulGem || stackInHand.getItem() instanceof Gauntlet) {
-            NbtCompound glowingItem = stackInHand.getOrCreateNbt();
+            NbtCompound glowingItem = getNbtFromItem(stackInHand);
             NbtList entityList = new NbtList();
             if (glowingItem.contains(SOUL_GEM_NBT_ID, NbtCompound.LIST_TYPE)) {
                 entityList = glowingItem.getList(SOUL_GEM_NBT_ID, NbtElement.COMPOUND_TYPE);
@@ -668,19 +700,14 @@ public final class SharedGemFunctions {
                         Entity targetEntity = entityHitResult.getEntity();
                         if (targetEntity instanceof LivingEntity && !disallowedEntities.contains(targetEntity.getType())) {
                             if (!(targetEntity instanceof PlayerEntity) && CONFIG.getOrDefault("isSoulGemEnabled", DefaultModConfig.IS_SOUL_GEM_ENABLED)) {
-                                addToNbtList((LivingEntity) targetEntity, entityList, glowingItem);
-                                setStackGlowing(stackInHand, true);
-                                world.playSound(null, user.getBlockPos(), SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.HOSTILE, 1, 1);
+                                soulGemInitialAction(world, user, glowingItem, targetEntity, entityList, stackInHand);
                                 despawnEntity(world, targetEntity);
                             } else if (gauntlet && CONFIG.getOrDefault("isSoulGemGauntletEnabled", DefaultModConfig.IS_SOUL_GEM_GAUNTLET_ENABLED &&
                                     targetEntity instanceof PlayerEntity)){
-                                addToNbtList((LivingEntity) targetEntity, entityList, glowingItem);
-                                setStackGlowing(stackInHand, true);
-                                world.playSound(null, user.getBlockPos(), SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.HOSTILE, 1, 1);
-                                spawnPortalParticles((ServerWorld) world, targetEntity.getPos(), true);
+                                soulGemInitialAction(world, user, glowingItem, targetEntity, entityList, stackInHand);
                                 assert targetEntity instanceof PlayerEntity;
                                 ((PlayerEntity) targetEntity).getInventory().dropAll();
-                                ServerWorld soulDimension = Objects.requireNonNull(world.getServer()).getWorld(RegistryKey.of(RegistryKeys.WORLD, SOUL_DIMENSION));
+                                ServerWorld soulDimension = Objects.requireNonNull(world.getServer()).getWorld(RegistryKey.of(RegistryKeys.WORLD, SOUL_DIMENSION_ID));
                                 if (soulDimension == null) {return;}
                                 Vec3d spawnPos = soulDimension.getSpawnPos().toCenterPos();
                                 if (!world.getBlockState(soulDimension.getSpawnPos()).isAir()){
@@ -692,7 +719,7 @@ public final class SharedGemFunctions {
                                     }
                                 }
                                 Objects.requireNonNull(world.getServer().getPlayerManager().getPlayer(targetEntity.getUuid())).setSpawnPoint(
-                                        RegistryKey.of(RegistryKeys.WORLD, SOUL_DIMENSION), new BlockPos((int) spawnPos.getX(), (int) spawnPos.getY(), (int) spawnPos.getZ()), 0, true, false);
+                                        RegistryKey.of(RegistryKeys.WORLD, SOUL_DIMENSION_ID), new BlockPos((int) spawnPos.getX(), (int) spawnPos.getY(), (int) spawnPos.getZ()), 0, true, false);
                                 TeleportTarget target = new TeleportTarget(spawnPos, targetEntity.getVelocity(), targetEntity.getYaw(), targetEntity.getPitch());
                                 FabricDimensions.teleport(targetEntity, soulDimension, target);
                             }
@@ -703,7 +730,7 @@ public final class SharedGemFunctions {
             else {
                 if (!entityList.isEmpty() && CONFIG.getOrDefault("isSoulGemEnabled", DefaultModConfig.IS_SOUL_GEM_ENABLED)) {
                     if (((NbtCompound) entityList.get(entityList.size() - 1)).get("id") != null) {
-                        resummonEntity(world, user, entityList, stackInHand, gauntlet);
+                        resummonEntity(world, user, glowingItem, entityList, stackInHand, gauntlet);
                     }
                     else {
                         entityList.remove(entityList.size() - 1);
@@ -754,7 +781,7 @@ public final class SharedGemFunctions {
                             spawnPortalParticles((ServerWorld) world, user.getPos(), true);
                             user.teleport(blockPos.getX(), blockPos.getY() + 1, blockPos.getZ());
                             spawnPortalParticles((ServerWorld) world, hitResult.getPos(), true);
-                            user.playSound(SoundEvents.ENTITY_PLAYER_TELEPORT, SoundCategory.BLOCKS, 1, 1);
+                            user.playSoundToPlayer(SoundEvents.ENTITY_PLAYER_TELEPORT, SoundCategory.PLAYERS, 1, 1);
                         }
                     }
                 }
@@ -781,8 +808,14 @@ public final class SharedGemFunctions {
                 if (nextWorld != null) {
                     ServerWorld nextServerWorld = Objects.requireNonNull(user.getServer()).getWorld(RegistryKey.of(RegistryKeys.WORLD, new Identifier(nextWorld)));
                     if (nextServerWorld != null) {
-                        RegistryKey<DimensionType> dimensionKey = nextServerWorld.getDimensionKey();
-                        if (!dimensionKey.equals(DimensionTypes.THE_END)) {
+                        RegistryKey<DimensionType> dimensionKey;
+                        try {
+                            dimensionKey = nextServerWorld.getDimensionEntry().getKey().orElseThrow();
+                        }
+                        catch (NoSuchElementException e) {
+                            dimensionKey = null;
+                        }
+                        if (dimensionKey != null && !dimensionKey.equals(DimensionTypes.THE_END)) {
                             double x = user.getX();
                             double y = user.getY();
                             double z = user.getZ();
