@@ -114,7 +114,7 @@ public final class DefaultModConfig {
     public static final int REALITY_GAUNTLET_CHARGE_TIME = 40;
     public static final int REALITY_GAUNTLET_BLOCK_RADIUS = 32;
     public static final int REALITY_GAUNTLET_CONCURRENT_THREADS = 5;
-    public static final int REALITY_GAUNTLET_BLOCK_CHANGE_THREAD_TIME = 25;
+    public static final int REALITY_GAUNTLET_BLOCK_CHANGE_THREAD_TIME = 100;
     public static final List<String> REALITY_GAUNTLET_TARGET_BLOCK_BLACKLIST = List.of(
             "minecraft:bedrock",
             "minecraft:barrier",

@@ -85,6 +85,7 @@ public final class SharedGemFunctions {
     private static final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(CONFIG.getOrDefault(
             "realityGauntletConcurrentThreads", DefaultModConfig.REALITY_GAUNTLET_CONCURRENT_THREADS));
     private static final ThreadPoolExecutor threadPoolExecutor = (ThreadPoolExecutor) executorService;
+    private static boolean keepRunning = true;
     private static final Object lockObj = new Object();
     public static final String SOUL_GEM_NBT_ID = "SoulGemEntities";
     public static final String MIND_GEM_NBT_ID = "HostileEntity";
@@ -97,6 +98,10 @@ public final class SharedGemFunctions {
 
     public static void initThreadShutdownHook() {
         Runtime.getRuntime().addShutdownHook(new Thread(executorService::shutdown));
+    }
+
+    public static void setKeepRunning(boolean running) {
+        keepRunning = running;
     }
 
     /**
@@ -345,6 +350,7 @@ public final class SharedGemFunctions {
                         newEntity.refreshPositionAndAngles(position.getX(), position.getY() + 0.5, position.getZ(), summoner.getYaw(), summoner.getPitch());
                         world.spawnEntity(newEntity);
                         entityList.remove(entityList.size() - 1);
+                        world.playSound(null, summoner.getBlockPos(), SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.HOSTILE, 1, 1);
                     }
                 }
                 if (entityList.isEmpty()) {
@@ -368,46 +374,66 @@ public final class SharedGemFunctions {
     }
 
     private static void changeBlocksInSphereRecursive(PlayerEntity user, World world, BlockPos centerPos, BlockState targetBlock, Block changeTo) {
-        if (isThreadPoolBusy()) {
+        if (isThreadPoolBusy() || !keepRunning) {
             user.sendMessage(Text.translatable("infinitygauntlet.warning.busythreads"));
         }
 
+        int radius = CONFIG.getOrDefault("realityGauntletBlockRadius", DefaultModConfig.REALITY_GAUNTLET_BLOCK_RADIUS);
+        int blockChangeDelay = CONFIG.getOrDefault("realityGauntletBlockChangeThreadTime", DefaultModConfig.REALITY_GAUNTLET_BLOCK_CHANGE_THREAD_TIME);
+
         executorService.submit(() -> {
+            user.sendMessage(Text.literal("Working...").formatted(Formatting.GRAY));
+
+            Map<BlockPos, Integer> toChangeWithDistance = new HashMap<>();
             List<BlockPos> visited = new ArrayList<>();
             Queue<BlockPos> queue = new LinkedList<>();
             queue.add(centerPos);
+            visited.add(centerPos);
 
-            long lastIterationTime = System.currentTimeMillis();
-
-            while (!queue.isEmpty()) {
-                long currentTime = System.currentTimeMillis();
-                if (currentTime - lastIterationTime < CONFIG.getOrDefault("realityGauntletBlockChangeThreadTime",
-                        DefaultModConfig.REALITY_GAUNTLET_BLOCK_CHANGE_THREAD_TIME)) {
-                    continue;
-                }
+            while (!queue.isEmpty() && keepRunning) {
                 BlockPos currentPos = queue.poll();
-                visited.add(currentPos);
-                synchronized (lockObj) {
-                    if (world.getBlockState(currentPos).getBlock() == targetBlock.getBlock()) {
-                        world.breakBlock(currentPos, false);
-                        world.setBlockState(currentPos, changeTo.getDefaultState());
-                        for (int xOffset = -1; xOffset <= 1; xOffset++) {
-                            for (int yOffset = -1; yOffset <= 1; yOffset++) {
-                                for (int zOffset = -1; zOffset <= 1; zOffset++) {
-                                    if (currentPos != null) {
-                                        BlockPos neighborPos = currentPos.add(xOffset, yOffset, zOffset);
-                                        if (!visited.contains(neighborPos) && diamondDistance(centerPos, neighborPos) <=
-                                                CONFIG.getOrDefault("realityGauntletBlockRadius", DefaultModConfig.REALITY_GAUNTLET_BLOCK_RADIUS)) {
-                                            queue.add(neighborPos);
-                                        }
-                                        // CIRCLE MODE: centerPos.getSquaredDistance(neighborPos) <= BLOCK_CHANGE_RADIUS * BLOCK_CHANGE_RADIUS
-                                    }
+                if (currentPos != null && world.getBlockState(currentPos).isOf(targetBlock.getBlock())) {
+                    toChangeWithDistance.put(currentPos, diamondDistance(centerPos, currentPos));
+                    for (int xOffset = -1; xOffset <= 1; xOffset++) {
+                        for (int yOffset = -1; yOffset <= 1; yOffset++) {
+                            for (int zOffset = -1; zOffset <= 1; zOffset++) {
+                                BlockPos neighborPos = currentPos.add(xOffset, yOffset, zOffset);
+                                if (!visited.contains(neighborPos) && diamondDistance(centerPos, neighborPos) <= radius) {
+                                    queue.add(neighborPos);
+                                    visited.add(neighborPos);
                                 }
                             }
                         }
-                        lastIterationTime = System.currentTimeMillis();
                     }
                 }
+            }
+
+            List<Map.Entry<BlockPos, Integer>> sortedEntries = new ArrayList<>(toChangeWithDistance.entrySet());
+            sortedEntries.sort(Map.Entry.comparingByValue());
+
+            long lastIterationTime = System.currentTimeMillis();
+            for (Map.Entry<BlockPos, Integer> entry : sortedEntries) {
+                if (!keepRunning) break;
+                long currentTime = System.currentTimeMillis();
+                long timeSinceLastIteration = currentTime - lastIterationTime;
+                if (timeSinceLastIteration < blockChangeDelay) {
+                    try {
+                        Thread.sleep(blockChangeDelay - timeSinceLastIteration);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        return;
+                    }
+                }
+                BlockPos pos = entry.getKey();
+                BlockState state;
+                synchronized (lockObj) {
+                    state = world.getBlockState(pos);
+                    if (!state.isOf(changeTo) && state.isOf(targetBlock.getBlock())) {
+                        world.breakBlock(pos, false);
+                        world.setBlockState(pos, changeTo.getDefaultState());
+                    }
+                }
+                lastIterationTime = currentTime;
             }
         });
     }
@@ -424,7 +450,8 @@ public final class SharedGemFunctions {
                 return true;
             }
             if (CONFIG.getOrDefault("realityGauntletChangeBlockBlacklist",
-                    DefaultModConfig.REALITY_GAUNTLET_CHANGE_BLOCK_BLACKLIST).contains(block.toString().substring(6, block.toString().length() - 1))) {
+                    DefaultModConfig.REALITY_GAUNTLET_CHANGE_BLOCK_BLACKLIST).contains(
+                            block.toString().substring(6, block.toString().length() - 1))) {
                 return false;
             }
             return state.isOpaque() || state.isFullCube(null, null);
@@ -609,7 +636,7 @@ public final class SharedGemFunctions {
                 BlockState targetBlock = world.getBlockState(targetPos);
                 if (!targetBlock.isOf(changeToBlock) && !CONFIG.getOrDefault("realityGauntletTargetBlockBlacklist",
                         DefaultModConfig.REALITY_GAUNTLET_TARGET_BLOCK_BLACKLIST).contains(
-                                targetBlock.getBlock().toString().substring(6, targetBlock.getBlock().toString().length() - 1))){
+                                targetBlock.getBlock().toString().substring(6, targetBlock.getBlock().toString().length() - 1)) && !((targetBlock.isOf(Blocks.WATER) || targetBlock.isOf(Blocks.LAVA)) && changeToBlock.equals(Blocks.AIR))){
                     if (gauntlet && CONFIG.getOrDefault("isRealityGemGauntletEnabled", DefaultModConfig.IS_REALITY_GEM_GAUNTLET_ENABLED)){
                         changeBlocksInSphereRecursive(user, world, targetPos, targetBlock, changeToBlock);
                     }

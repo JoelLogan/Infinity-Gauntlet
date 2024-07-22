@@ -9,6 +9,7 @@ import com.whitehallplugins.infinitygauntlet.files.teleport.OfflineTeleportManag
 import com.whitehallplugins.infinitygauntlet.files.config.SimpleConfig;
 import com.whitehallplugins.infinitygauntlet.items.gauntlets.Gauntlet;
 import com.whitehallplugins.infinitygauntlet.items.gauntlets.GauntletReplica;
+import com.whitehallplugins.infinitygauntlet.items.gems.SharedGemFunctions;
 import com.whitehallplugins.infinitygauntlet.items.gems.replicas.ReplicaGems.*;
 import com.whitehallplugins.infinitygauntlet.items.gems.Gems.*;
 import com.whitehallplugins.infinitygauntlet.networking.NetworkingConstants;
@@ -121,8 +122,14 @@ public final class InfinityGauntlet implements ModInitializer {
         ServerPlayConnectionEvents.JOIN.register(new PlayerJoinEvent());
         LootTableEvents.MODIFY.register(new LootTableModifyEvent());
         ServerEntityEvents.ENTITY_LOAD.register(new EntityLoadEvent());
-        ServerLifecycleEvents.SERVER_STARTED.register(server -> serverWorlds = server.getWorldRegistryKeys());
-        ServerLifecycleEvents.SERVER_STOPPING.register(server -> OfflineTeleportManager.saveTeleportData());
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            serverWorlds = server.getWorldRegistryKeys();
+            SharedGemFunctions.setKeepRunning(true);
+        });
+        ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
+            OfflineTeleportManager.saveTeleportData();
+            SharedGemFunctions.setKeepRunning(false);
+        });
     }
 
     private static void registerItems() {
