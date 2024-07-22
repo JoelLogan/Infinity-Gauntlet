@@ -124,11 +124,11 @@ public final class InfinityGauntlet implements ModInitializer {
         ServerEntityEvents.ENTITY_LOAD.register(new EntityLoadEvent());
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             serverWorlds = server.getWorldRegistryKeys();
-            SharedGemFunctions.keepRunning = true;
+            SharedGemFunctions.setKeepRunning(true);
         });
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
             OfflineTeleportManager.saveTeleportData();
-            SharedGemFunctions.keepRunning = false;
+            SharedGemFunctions.setKeepRunning(false);
         });
     }
 

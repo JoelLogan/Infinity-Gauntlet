@@ -85,7 +85,7 @@ public final class SharedGemFunctions {
     private static final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(CONFIG.getOrDefault(
             "realityGauntletConcurrentThreads", DefaultModConfig.REALITY_GAUNTLET_CONCURRENT_THREADS));
     private static final ThreadPoolExecutor threadPoolExecutor = (ThreadPoolExecutor) executorService;
-    public static volatile boolean keepRunning = true;
+    private static boolean keepRunning = true;
     private static final Object lockObj = new Object();
     public static final String SOUL_GEM_NBT_ID = "SoulGemEntities";
     public static final String MIND_GEM_NBT_ID = "HostileEntity";
@@ -98,6 +98,10 @@ public final class SharedGemFunctions {
 
     public static void initThreadShutdownHook() {
         Runtime.getRuntime().addShutdownHook(new Thread(executorService::shutdown));
+    }
+
+    public static void setKeepRunning(boolean running) {
+        keepRunning = running;
     }
 
     /**
