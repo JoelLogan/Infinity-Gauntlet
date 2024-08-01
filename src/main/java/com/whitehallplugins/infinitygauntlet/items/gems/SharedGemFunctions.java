@@ -294,12 +294,7 @@ public final class SharedGemFunctions {
     }
 
     public static void setStackGlowing(ItemStack stack, boolean glowing) {
-        if (glowing) {
-            stack.set(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true);
-        }
-        else {
-            stack.set(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, false);
-        }
+        stack.set(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, glowing);
     }
 
     public static NbtCompound getNbtFromItem(ItemStack stack) {
