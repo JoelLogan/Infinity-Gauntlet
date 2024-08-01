@@ -5,7 +5,6 @@ import com.whitehallplugins.infinitygauntlet.effects.TargetEntityEffect;
 import com.whitehallplugins.infinitygauntlet.files.config.DefaultModConfig;
 import com.whitehallplugins.infinitygauntlet.files.teleport.OfflineTeleportManager;
 import com.whitehallplugins.infinitygauntlet.items.gauntlets.Gauntlet;
-import net.fabricmc.fabric.api.dimension.v1.FabricDimensions;
 import net.minecraft.block.*;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
@@ -366,8 +365,7 @@ public final class SharedGemFunctions {
 
         if (player != null) {
             playTeleportSound(world, summoner);
-            TeleportTarget target = new TeleportTarget(targetPos, player.getVelocity(), player.getYaw(), player.getPitch());
-            FabricDimensions.teleport(player, (ServerWorld) summoner.getWorld(), target);
+            player.teleport((ServerWorld) summoner.getWorld(), targetPos.getX(), targetPos.getY(), targetPos.getZ(), player.getYaw(), player.getPitch());
             setPlayerSpawnPoint(player);
         } else {
             setOfflineTeleportData(summoner, targetUUID, targetPos);
@@ -821,8 +819,7 @@ public final class SharedGemFunctions {
         Vec3d spawnPos = findSoulSpawnPosition(soulDimension);
         Objects.requireNonNull(world.getServer().getPlayerManager().getPlayer(targetEntity.getUuid())).setSpawnPoint(
                 RegistryKey.of(RegistryKeys.WORLD, SOUL_DIMENSION_ID), new BlockPos((int) spawnPos.getX(), (int) spawnPos.getY(), (int) spawnPos.getZ()), 0, true, false);
-        TeleportTarget target = new TeleportTarget(spawnPos, targetEntity.getVelocity(), targetEntity.getYaw(), targetEntity.getPitch());
-        FabricDimensions.teleport(targetEntity, soulDimension, target);
+        targetEntity.teleport(soulDimension, spawnPos.getX(), spawnPos.getY(), spawnPos.getZ(), Set.of(), targetEntity.getYaw(), targetEntity.getPitch());
     }
 
     private static Vec3d findSoulSpawnPosition(ServerWorld soulDimension) {
@@ -877,7 +874,7 @@ public final class SharedGemFunctions {
             BlockHitResult hitResult = (BlockHitResult) raycast(user, BLOCK_RAYCAST_DISTANCE, 1, false, false, false);
             BlockPos blockPos = hitResult.getBlockPos();
             if (isValidSpaceTeleportLocation(world, blockPos)) {
-                performSpaceTeleport(world, user, blockPos);
+                performSpaceTeleport(user, blockPos);
             }
         }
     }
@@ -899,19 +896,17 @@ public final class SharedGemFunctions {
         return false;
     }
 
-    private static void performSpaceTeleport(World world, PlayerEntity user, BlockPos blockPos) {
+    private static void performSpaceTeleport(PlayerEntity user, BlockPos blockPos) {
         cooldown.put(user, System.currentTimeMillis() + CONFIG.getOrDefault(
                 "spaceGemTeleportCooldown", DefaultModConfig.SPACE_GEM_TELEPORT_COOLDOWN));
-        spawnPortalParticles((ServerWorld) world, user.getPos(), true);
-        user.teleport(blockPos.getX(), blockPos.getY() + 1, blockPos.getZ());
-        spawnPortalParticles((ServerWorld) world, blockPos.toCenterPos(), true);
+        user.teleport(blockPos.getX(), blockPos.getY() + 1, blockPos.getZ(), true);
         user.playSoundToPlayer(SoundEvents.ENTITY_PLAYER_TELEPORT, SoundCategory.PLAYERS, 1, 1);
     }
 
     private static void changeSpaceDimension(World world, PlayerEntity user) {
         String nextWorld = getNextSpaceWorld(world);
         if (nextWorld != null) {
-            ServerWorld nextServerWorld = Objects.requireNonNull(user.getServer()).getWorld(RegistryKey.of(RegistryKeys.WORLD, new Identifier(nextWorld)));
+            ServerWorld nextServerWorld = Objects.requireNonNull(user.getServer()).getWorld(RegistryKey.of(RegistryKeys.WORLD, Identifier.of(nextWorld)));
             if (nextServerWorld != null) {
                 teleportToNextSpaceWorld(user, nextServerWorld);
             }
@@ -931,7 +926,7 @@ public final class SharedGemFunctions {
             reorderedWorldList.remove(currentWorld);
         }
         for (String worldInList : reorderedWorldList) {
-            if (InfinityGauntlet.getServerWorlds().contains(RegistryKey.of(RegistryKeys.WORLD, new Identifier(worldInList)))) {
+            if (InfinityGauntlet.getServerWorlds().contains(RegistryKey.of(RegistryKeys.WORLD, Identifier.of(worldInList)))) {
                 return worldInList;
             }
         }
@@ -967,7 +962,7 @@ public final class SharedGemFunctions {
             }
             user.teleport(nextServerWorld, x, y, z, new HashSet<>(), 0, 0);
         } else {
-            user.moveToWorld(nextServerWorld);
+            user.teleportTo(new TeleportTarget(nextServerWorld, user, entity -> {}));
         }
     }
     /* GEM SHOULD BE FINISHED

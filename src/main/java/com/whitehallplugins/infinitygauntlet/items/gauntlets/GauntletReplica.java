@@ -1,8 +1,8 @@
 package com.whitehallplugins.infinitygauntlet.items.gauntlets;
 
-import net.minecraft.client.item.TooltipType;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.UseAction;

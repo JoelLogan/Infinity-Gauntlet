@@ -45,7 +45,7 @@ public abstract class PlayerManagerMixin {
             double targetX = teleportData.getDouble("TargetX");
             double targetY = teleportData.getDouble("TargetY");
             double targetZ = teleportData.getDouble("TargetZ");
-            RegistryKey<World> worldKey = RegistryKey.of(RegistryKeys.WORLD, new Identifier(teleportData.getString("World")));
+            RegistryKey<World> worldKey = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(teleportData.getString("World")));
             ServerWorld targetWorld = Objects.requireNonNull(player.getServer()).getWorld(worldKey);
             if (targetWorld != null) {
                 Vec3d targetPos = new Vec3d(targetX, targetY, targetZ);

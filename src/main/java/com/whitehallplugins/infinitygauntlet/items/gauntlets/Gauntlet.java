@@ -3,13 +3,13 @@ package com.whitehallplugins.infinitygauntlet.items.gauntlets;
 import com.whitehallplugins.infinitygauntlet.InfinityGauntlet;
 import com.whitehallplugins.infinitygauntlet.files.config.DefaultModConfig;
 import net.minecraft.block.BlockState;
-import net.minecraft.client.item.TooltipType;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.CustomModelDataComponent;
 import net.minecraft.component.type.UnbreakableComponent;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.*;
+import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.sound.SoundCategory;
@@ -35,7 +35,7 @@ public final class Gauntlet extends BowItem {
     @Override
     public void usageTick(World world, LivingEntity user, ItemStack stack, int remainingUseTicks) {
         if (user instanceof PlayerEntity) {
-            int charge = (getMaxUseTime(stack) - remainingUseTicks);
+            int charge = (getMaxUseTime(stack, user) - remainingUseTicks);
             if (world.isClient()) {
                 if (charge >= 0 && charge < getChargeTime(stack)) {
                     double chargingIncrement = (double) stack.getMaxDamage() / getChargeTime(stack);
@@ -81,7 +81,7 @@ public final class Gauntlet extends BowItem {
             setHideDurabilityBar(stack, true);
         }
         else {
-            int charge = getMaxUseTime(stack) - remainingUseTicks;
+            int charge = getMaxUseTime(stack, user) - remainingUseTicks;
             boolean charged = charge >= getChargeTime(stack);
             switch (getCustomModelData(stack)) {
                 case 0: // POWER
