@@ -277,7 +277,9 @@ public final class SharedGemFunctions {
     private static void spawnExplosionParticles(ServerWorld world, Vec3d particlePos) {
         double radius = 1.5;
         DustParticleEffect dustParticle = new DustParticleEffect(new Vector3f(1.0f, 1.0f, 1.0f), 1.0f);
-        double offsetX, offsetY, offsetZ;
+        double offsetX;
+        double offsetY;
+        double offsetZ;
 
         for (int j = 0; j < 400; j++) {
             offsetX = world.random.nextGaussian() * radius;
@@ -460,7 +462,7 @@ public final class SharedGemFunctions {
 
     private static Map<BlockPos, Integer> findBlocksToChange(World world, BlockPos centerPos, BlockState targetBlock, int radius) {
         Map<BlockPos, Integer> toChangeWithDistance = new HashMap<>();
-        List<BlockPos> visited = new ArrayList<>();
+        Set<BlockPos> visited = new HashSet<>();
         Queue<BlockPos> queue = new LinkedList<>();
         queue.add(centerPos);
         visited.add(centerPos);
