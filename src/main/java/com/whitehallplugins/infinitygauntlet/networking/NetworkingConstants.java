@@ -19,20 +19,15 @@ public final class NetworkingConstants {
         throw new IllegalStateException("Utility class");
     }
 
-    public static int[] modVersion() {
+    public static String modVersion() {
         try {
             if (FabricLoader.getInstance().getModContainer(MOD_ID).isPresent()) {
-                String[] versionArrayString = FabricLoader.getInstance().getModContainer(MOD_ID).get().getMetadata()
-                        .getVersion().getFriendlyString().split("\\.");
-                int[] versionArrayInt = new int[versionArrayString.length];
-                for (int i = 0; i < versionArrayString.length; i++) {
-                    versionArrayInt[i] = Integer.parseInt(versionArrayString[i]);
-                }
-                return versionArrayInt;
+                return FabricLoader.getInstance().getModContainer(MOD_ID).get().getMetadata()
+                        .getVersion().getFriendlyString();
             }
         } catch (NoSuchElementException e) {
             Logger.getLogger(MOD_ID).warning(Text.translatable("infinitygauntlet.error.modversion").getString());
         }
-        return new int[]{0, 0, 0};
+        return "0.0.0";
     }
 }

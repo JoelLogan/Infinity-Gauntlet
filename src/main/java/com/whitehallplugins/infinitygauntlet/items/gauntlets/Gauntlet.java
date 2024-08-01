@@ -3,7 +3,10 @@ package com.whitehallplugins.infinitygauntlet.items.gauntlets;
 import com.whitehallplugins.infinitygauntlet.InfinityGauntlet;
 import com.whitehallplugins.infinitygauntlet.files.config.DefaultModConfig;
 import net.minecraft.block.BlockState;
-import net.minecraft.client.item.TooltipContext;
+import net.minecraft.client.item.TooltipType;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.CustomModelDataComponent;
+import net.minecraft.component.type.UnbreakableComponent;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.*;
@@ -15,7 +18,6 @@ import net.minecraft.text.Text;
 import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
@@ -25,8 +27,6 @@ import static com.whitehallplugins.infinitygauntlet.InfinityGauntlet.MOD_ID;
 import static com.whitehallplugins.infinitygauntlet.items.gems.SharedGemFunctions.*;
 
 public final class Gauntlet extends BowItem {
-
-    private static final String CUSTOM_MODEL_DATA_NBT = "CustomModelData";
 
     public Gauntlet(Settings settings) {
         super(settings);
@@ -71,7 +71,7 @@ public final class Gauntlet extends BowItem {
     }
 
     @Override
-    public float getMiningSpeedMultiplier(ItemStack stack, BlockState state) {
+    public float getMiningSpeed(ItemStack stack, BlockState state) {
         return InfinityGauntlet.CONFIG.getOrDefault("infinityGauntletMineSpeed", DefaultModConfig.INFINITY_GAUNTLET_MINE_SPEED);
     }
 
@@ -120,39 +120,34 @@ public final class Gauntlet extends BowItem {
     }
 
     public static void setHideDurabilityBar(ItemStack stack, boolean hide) {
-        NbtCompound nbt = stack.getOrCreateNbt();
-        nbt.putBoolean("Unbreakable", hide);
-        nbt.putInt("HideFlags", 4);
-        stack.setNbt(nbt);
+        if (hide){
+            stack.set(DataComponentTypes.UNBREAKABLE, new UnbreakableComponent(false));
+        }
+        else {
+            stack.remove(DataComponentTypes.UNBREAKABLE);
+        }
     }
 
     public static void setCustomModelData(PlayerEntity player, ItemStack stack, int customModelData) {
-        NbtCompound tag = stack.getOrCreateNbt();
-        tag.putInt(CUSTOM_MODEL_DATA_NBT, customModelData);
+        stack.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(customModelData));
         if (stack.getItem() instanceof BowItem){
             player.clearActiveItem();
         }
-        stack.setNbt(tag);
     }
 
     public static int getCustomModelData(ItemStack stack) {
-        NbtCompound tag = stack.getOrCreateNbt();
-        return tag != null && tag.contains(CUSTOM_MODEL_DATA_NBT) ? tag.getInt(CUSTOM_MODEL_DATA_NBT) : 0;
+        CustomModelDataComponent component = stack.get(DataComponentTypes.CUSTOM_MODEL_DATA);
+        return component != null ? component.value() : 0;
     }
 
     @Override
-    public boolean isDamageable() {
-        return true;
-    }
-
-    @Override
-    public void appendTooltip(ItemStack stack, @Nullable World world, List<Text> tooltip, TooltipContext context) {
+    public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
         tooltip.add(Text.translatable("item.infinitygauntlet.gauntlet.gauntlet.tooltip1", Text.translatable("item.infinitygauntlet.gauntlet.gauntlet.power" + getCustomModelData(stack))).formatted(Formatting.GOLD));
-        super.appendTooltip(stack, world, tooltip, context);
+        super.appendTooltip(stack, context, tooltip, type);
     }
 
     @Override
-    public boolean isSuitableFor(ItemStack stack, BlockState state) {
+    public boolean isCorrectForDrops(ItemStack stack, BlockState state) {
         return state.getBlock().getHardness() <= 50f;
     }
 
@@ -218,31 +213,27 @@ public final class Gauntlet extends BowItem {
     }
 
     private static void timeToMind(ItemStack stack) {
-        if (stack.hasNbt()){
-            try {
-                if (stack.getNbt() == null){
-                    throw new NullPointerException(stack.getName() + ": NBT is null");
-                }
-                if (stack.getNbt().containsUuid(MIND_GEM_NBT_ID)) {
-                    Objects.requireNonNull(stack.getNbt().getUuid(MIND_GEM_NBT_ID));
-                    setStackGlowing(stack, true);
-                }
+        NbtCompound compound = getNbtFromItem(stack);
+        try {
+            if (compound.containsUuid(MIND_GEM_NBT_ID)) {
+                setStackGlowing(stack, true);
             }
-            catch (IllegalArgumentException exception) {
-                Logger.getLogger(MOD_ID).warning(Text.translatable("infinitygauntlet.error.mindgemuuid").getString());
-            }
+        }
+        catch (IllegalArgumentException exception) {
+            Logger.getLogger(MOD_ID).warning(Text.translatable("infinitygauntlet.error.mindgemuuid").getString());
         }
     }
 
     private static void realityToSoul(ItemStack stack) {
-        if (stack.hasNbt()){
-            if (stack.getNbt() == null){
-                throw new NullPointerException(stack.getName() + ": NBT is null");
-            }
-            if (stack.getNbt().contains(SOUL_GEM_NBT_ID, NbtElement.LIST_TYPE) &&
-                    !Objects.requireNonNull(stack.getNbt().getList(SOUL_GEM_NBT_ID, NbtElement.COMPOUND_TYPE)).isEmpty()) {
+        NbtCompound compound = getNbtFromItem(stack);
+        try {
+            if (compound.contains(SOUL_GEM_NBT_ID, NbtElement.LIST_TYPE) &&
+                    !Objects.requireNonNull(compound.getList(SOUL_GEM_NBT_ID, NbtElement.COMPOUND_TYPE)).isEmpty()) {
                 setStackGlowing(stack, true);
             }
+        }
+        catch (IllegalArgumentException exception) {
+            Logger.getLogger(MOD_ID).warning(Text.translatable("infinitygauntlet.error.soulgemlist").getString());
         }
     }
 }

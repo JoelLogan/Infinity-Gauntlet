@@ -2,46 +2,36 @@ package com.whitehallplugins.infinitygauntlet.networking.listeners;
 
 import com.whitehallplugins.infinitygauntlet.InfinityGauntlet;
 import com.whitehallplugins.infinitygauntlet.networking.NetworkingConstants;
-import net.fabricmc.fabric.api.networking.v1.PacketSender;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.PlayChannelHandler;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayNetworkHandler;
-import net.minecraft.server.network.ServerPlayerEntity;
+import com.whitehallplugins.infinitygauntlet.networking.payloads.ModVersionPayload;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.PlayPayloadHandler;
 import net.minecraft.text.Text;
 
-import java.util.Arrays;
+import java.util.logging.Logger;
 
 import static com.whitehallplugins.infinitygauntlet.InfinityGauntlet.*;
 
-public final class ModVersionListenerServer implements PlayChannelHandler {
+public final class ModVersionListenerServer implements PlayPayloadHandler<ModVersionPayload> {
 
     @Override
-    public void receive(MinecraftServer server, ServerPlayerEntity player, ServerPlayNetworkHandler handler, PacketByteBuf buf, PacketSender responseSender) {
-        if (buf.isReadable()) {
-            int[] versionArray = buf.readIntArray();
-            int[] expectedVersionArray = NetworkingConstants.modVersion();
-            server.execute(() -> {
-                InfinityGauntlet.removeAuthenticatingPlayer(player);
-                if (versionArray.length != expectedVersionArray.length || !Arrays.equals(versionArray, expectedVersionArray)) {
-                    player.networkHandler.disconnect(Text.translatable("infinitygauntlet.error.modversionmismatch",
-                            MOD_ID, getModVersionString(versionArray), getModVersionString(expectedVersionArray)));
+    public void receive(ModVersionPayload payload, ServerPlayNetworking.Context context) {
+        try {
+            context.server().execute(() -> {
+                InfinityGauntlet.removeAuthenticatingPlayer(context.player());
+                if (!payload.modVersion().equals(NetworkingConstants.modVersion())) {
+                    context.player().networkHandler.disconnect(Text.translatable("infinitygauntlet.error.modversionmismatch",
+                            MOD_ID, payload.modVersion(), NetworkingConstants.modVersion()));
                 }
             });
         }
-        else {
-            server.execute(() -> player.networkHandler.disconnect(Text.translatable("infinitygauntlet.error.modversionpacket", MOD_ID)));
-        }
-    }
-
-    private String getModVersionString(int[] versionArray) {
-        StringBuilder versionString = new StringBuilder();
-        for (int i = 0; i < versionArray.length; i++) {
-            versionString.append(versionArray[i]);
-            if (i < versionArray.length - 1) {
-                versionString.append(".");
+        catch (Exception e) {
+            try {
+                context.server().execute(() -> context.player().networkHandler.disconnect(Text.translatable("infinitygauntlet.error.modversionpacket", MOD_ID)));
+            }
+            catch (Exception e2) {
+                Logger.getLogger(MOD_ID).warning("Error while handling mod version packet");
             }
         }
-        return versionString.toString();
+
     }
 }

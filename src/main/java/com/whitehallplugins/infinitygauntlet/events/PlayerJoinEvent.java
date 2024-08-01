@@ -1,8 +1,7 @@
 package com.whitehallplugins.infinitygauntlet.events;
 
 import com.whitehallplugins.infinitygauntlet.InfinityGauntlet;
-import com.whitehallplugins.infinitygauntlet.networking.NetworkingConstants;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import com.whitehallplugins.infinitygauntlet.networking.payloads.ModVersionPayload;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.Join;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -44,7 +43,7 @@ public final class PlayerJoinEvent implements Join {
     }
 
     private static void sendPacket(ServerPlayerEntity player){
-        ServerPlayNetworking.send(player, NetworkingConstants.VERSION_PACKET_ID, PacketByteBufs.empty());
+        ServerPlayNetworking.send(player, new ModVersionPayload(""));
     }
 
     private static void kickPlayerLater(ServerPlayerEntity player) {

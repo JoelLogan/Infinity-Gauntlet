@@ -244,7 +244,7 @@ public final class SimpleConfig {
     public int getOrDefault( String key, int def ) {
         try {
             return Integer.parseInt( get(key) );
-        } catch (Exception e) {
+        } catch (NumberFormatException e) {
             return def;
         }
     }
@@ -261,7 +261,6 @@ public final class SimpleConfig {
         if( val != null ) {
             return val.equalsIgnoreCase("true");
         }
-
         return def;
     }
 
@@ -275,7 +274,7 @@ public final class SimpleConfig {
     public double getOrDefault( String key, double def ) {
         try {
             return Double.parseDouble( get(key) );
-        } catch (Exception e) {
+        } catch (NumberFormatException e) {
             return def;
         }
     }
@@ -290,7 +289,7 @@ public final class SimpleConfig {
     public float getOrDefault( String key, float def ) {
         try {
             return Float.parseFloat( get(key) );
-        } catch (Exception e) {
+        } catch (NumberFormatException e) {
             return def;
         }
     }
@@ -309,7 +308,7 @@ public final class SimpleConfig {
                 value = value.substring(1, value.length() - 1);
                 return Arrays.asList(value.split(",\\s*"));
             }
-        } catch (Exception e) {
+        } catch (IndexOutOfBoundsException e) {
             return def;
         }
         return def;

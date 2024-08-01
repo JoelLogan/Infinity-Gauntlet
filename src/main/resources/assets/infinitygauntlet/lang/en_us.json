@@ -45,6 +45,7 @@
   "infinitygauntlet.error.modversionpacket": "%s: Invalid mod version packet received. Make sure your mod is up-to-date and try to rejoin",
   "infinitygauntlet.error.kicklater": "Kick Player Later Error: %s",
   "infinitygauntlet.error.mindgemuuid": "The UUID for the Mind Gem is not valid.",
+  "infinitygauntlet.error.soulgemlist": "The Soul Gem list is not valid.",
   "infinitygauntlet.error.loggedinfromanotherlocation": "You logged in from another location",
   "infinitygauntlet.error.teleportdata": "%s: Error %s teleport data: %s",
   "infinitygauntlet.error.versiontimeout": "%s: Version verification timeout. Please rejoin",

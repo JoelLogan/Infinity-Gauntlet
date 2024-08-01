@@ -28,5 +28,8 @@
     "fabricloader": ">=${loader_version}",
     "fabric": "*",
     "minecraft": "${minecraft_version}"
+  },
+  "recommends": {
+    "disable_custom_worlds_advice": "${dcwa_version}"
   }
 }
