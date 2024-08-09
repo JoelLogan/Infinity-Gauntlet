@@ -44,7 +44,6 @@ import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.RaycastContext;
-import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.dimension.DimensionTypes;
@@ -940,7 +939,10 @@ public final class SharedGemFunctions {
         } catch (NoSuchElementException e) {
             dimensionKey = null;
         }
-        if (dimensionKey != null && !dimensionKey.equals(DimensionTypes.THE_END)) {
+        if (dimensionKey == null){
+            return;
+        }
+        if (!dimensionKey.equals(DimensionTypes.THE_END)) {
             double x = user.getX();
             double y = user.getY();
             double z = user.getZ();
@@ -961,8 +963,10 @@ public final class SharedGemFunctions {
                 }
             }
             user.teleport(nextServerWorld, x, y, z, new HashSet<>(), 0, 0);
-        } else {
-            user.teleportTo(new TeleportTarget(nextServerWorld, user, entity -> {}));
+        }
+        else {
+            BlockPos endSpawnPos = ServerWorld.END_SPAWN_POS;
+            user.teleport(nextServerWorld, endSpawnPos.getX(), endSpawnPos.getY(), endSpawnPos.getZ(), new HashSet<>(), 0, 0);
         }
     }
     /* GEM SHOULD BE FINISHED
