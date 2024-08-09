@@ -2,8 +2,8 @@ package com.whitehallplugins.infinitygauntlet.events;
 
 import static com.whitehallplugins.infinitygauntlet.InfinityGauntlet.*;
 import com.whitehallplugins.infinitygauntlet.files.config.DefaultModConfig;
-import net.fabricmc.fabric.api.loot.v2.LootTableEvents.Modify;
-import net.fabricmc.fabric.api.loot.v2.LootTableSource;
+import net.fabricmc.fabric.api.loot.v3.LootTableEvents.Modify;
+import net.fabricmc.fabric.api.loot.v3.LootTableSource;
 import net.minecraft.entity.EntityType;
 import net.minecraft.item.Item;
 import net.minecraft.loot.LootPool;
@@ -11,6 +11,7 @@ import net.minecraft.loot.LootTable;
 import net.minecraft.loot.entry.EmptyEntry;
 import net.minecraft.loot.entry.ItemEntry;
 import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.util.Identifier;
 
 public final class LootTableModifyEvent implements Modify {
@@ -20,14 +21,14 @@ public final class LootTableModifyEvent implements Modify {
     private static final Identifier WITHER_LOOT_TABLE_ID = EntityType.WITHER.getLootTableId().getValue();
     private static final Identifier WARDEN_LOOT_TABLE_ID = EntityType.WARDEN.getLootTableId().getValue();
     private static final Identifier ENDER_DRAGON_LOOT_TABLE_ID = EntityType.ENDER_DRAGON.getLootTableId().getValue();
-    private static final Identifier JUNGLE_TEMPLE_LOOT_TABLE_ID = new Identifier(MC_ID, "chests/jungle_temple");
-    private static final Identifier ANCIENT_CITY_LOOT_TABLE_ID = new Identifier(MC_ID, "chests/ancient_city");
-    private static final Identifier DESERT_PYRAMID_LOOT_TABLE_ID = new Identifier(MC_ID, "chests/desert_pyramid");
-    private static final Identifier END_CITY_LOOT_TABLE_ID = new Identifier(MC_ID, "chests/end_city_treasure");
-    private static final Identifier WOODLAND_MANSION_LOOT_TABLE_ID = new Identifier(MC_ID, "chests/woodland_mansion");
+    private static final Identifier JUNGLE_TEMPLE_LOOT_TABLE_ID = Identifier.of(MC_ID, "chests/jungle_temple");
+    private static final Identifier ANCIENT_CITY_LOOT_TABLE_ID = Identifier.of(MC_ID, "chests/ancient_city");
+    private static final Identifier DESERT_PYRAMID_LOOT_TABLE_ID = Identifier.of(MC_ID, "chests/desert_pyramid");
+    private static final Identifier END_CITY_LOOT_TABLE_ID = Identifier.of(MC_ID, "chests/end_city_treasure");
+    private static final Identifier WOODLAND_MANSION_LOOT_TABLE_ID = Identifier.of(MC_ID, "chests/woodland_mansion");
 
     @Override
-    public void modifyLootTable(RegistryKey<LootTable> key, LootTable.Builder tableBuilder, LootTableSource source) {
+    public void modifyLootTable(RegistryKey<LootTable> key, LootTable.Builder tableBuilder, LootTableSource source, RegistryWrapper.WrapperLookup registries) {
         if (source.isBuiltin()) {
             if (WITHER_LOOT_TABLE_ID.equals(key.getValue())) {
                 LootPool.Builder poolBuilder = getPoolBuilder(SOUL_GEM.asItem(),

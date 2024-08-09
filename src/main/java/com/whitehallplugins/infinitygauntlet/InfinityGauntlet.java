@@ -20,7 +20,7 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
-import net.fabricmc.fabric.api.loot.v2.LootTableEvents;
+import net.fabricmc.fabric.api.loot.v3.LootTableEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -76,14 +76,14 @@ public final class InfinityGauntlet implements ModInitializer {
 
     private static Set<RegistryKey<World>> serverWorlds;
 
-    public static final Identifier SOUL_DIMENSION_ID = new Identifier(MOD_ID, "souldimension");
-    public static final Identifier TARGET_ENTITY_EFFECT_ID = new Identifier(MOD_ID, "targeteffect");
+    public static final Identifier SOUL_DIMENSION_ID = Identifier.of(MOD_ID, "souldimension");
+    public static final Identifier TARGET_ENTITY_EFFECT_ID = Identifier.of(MOD_ID, "targeteffect");
 
     public static final Block SOUL_DIMENSION_BLOCK = new Block(AbstractBlock.Settings.create().strength(-1.0f, 3600000.0F).dropsNothing());
 
     public static final StatusEffect targetEntityEffect = new TargetEntityEffect();
 
-    public static final RegistryKey<DamageType> POWER_GEM_DAMAGE_TYPE = RegistryKey.of(RegistryKeys.DAMAGE_TYPE, new Identifier(MOD_ID, "power_gem_damage_type"));
+    public static final RegistryKey<DamageType> POWER_GEM_DAMAGE_TYPE = RegistryKey.of(RegistryKeys.DAMAGE_TYPE, Identifier.of(MOD_ID, "power_gem_damage_type"));
 
     public static final SimpleConfig CONFIG = SimpleConfig.of("IGConfig").provider(DefaultModConfig::getConfig).request();
 
@@ -112,8 +112,8 @@ public final class InfinityGauntlet implements ModInitializer {
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.BUILDING_BLOCKS).register(content -> content.add(SOUL_DIMENSION_BLOCK.asItem()));
 
-        Registry.register(Registries.BLOCK, new Identifier(MOD_ID, "souldimensionblock"), SOUL_DIMENSION_BLOCK);
-        Registry.register(Registries.ITEM, new Identifier(MOD_ID, "souldimensionblock"), new BlockItem(SOUL_DIMENSION_BLOCK, new Item.Settings()));
+        Registry.register(Registries.BLOCK, Identifier.of(MOD_ID, "souldimensionblock"), SOUL_DIMENSION_BLOCK);
+        Registry.register(Registries.ITEM, Identifier.of(MOD_ID, "souldimensionblock"), new BlockItem(SOUL_DIMENSION_BLOCK, new Item.Settings()));
 
         Registry.register(Registries.STATUS_EFFECT, TARGET_ENTITY_EFFECT_ID, targetEntityEffect);
 
@@ -138,20 +138,20 @@ public final class InfinityGauntlet implements ModInitializer {
     }
 
     private static void registerItems() {
-        itemIdentifiers[0] = new Identifier(MOD_ID, "gauntlet/gauntlet");
-        itemIdentifiers[1] = new Identifier(MOD_ID, "mind/gem");
-        itemIdentifiers[2] = new Identifier(MOD_ID, "power/gem");
-        itemIdentifiers[3] = new Identifier(MOD_ID, "reality/gem");
-        itemIdentifiers[4] = new Identifier(MOD_ID, "soul/gem");
-        itemIdentifiers[5] = new Identifier(MOD_ID, "space/gem");
-        itemIdentifiers[6] = new Identifier(MOD_ID, "time/gem");
-        itemIdentifiers[7] = new Identifier(MOD_ID, "gauntlet/gauntletreplica");
-        itemIdentifiers[8] = new Identifier(MOD_ID, "mind/gemreplica");
-        itemIdentifiers[9] = new Identifier(MOD_ID, "power/gemreplica");
-        itemIdentifiers[10] = new Identifier(MOD_ID, "reality/gemreplica");
-        itemIdentifiers[11] = new Identifier(MOD_ID, "soul/gemreplica");
-        itemIdentifiers[12] = new Identifier(MOD_ID, "space/gemreplica");
-        itemIdentifiers[13] = new Identifier(MOD_ID, "time/gemreplica");
+        itemIdentifiers[0] = Identifier.of(MOD_ID, "gauntlet/gauntlet");
+        itemIdentifiers[1] = Identifier.of(MOD_ID, "mind/gem");
+        itemIdentifiers[2] = Identifier.of(MOD_ID, "power/gem");
+        itemIdentifiers[3] = Identifier.of(MOD_ID, "reality/gem");
+        itemIdentifiers[4] = Identifier.of(MOD_ID, "soul/gem");
+        itemIdentifiers[5] = Identifier.of(MOD_ID, "space/gem");
+        itemIdentifiers[6] = Identifier.of(MOD_ID, "time/gem");
+        itemIdentifiers[7] = Identifier.of(MOD_ID, "gauntlet/gauntletreplica");
+        itemIdentifiers[8] = Identifier.of(MOD_ID, "mind/gemreplica");
+        itemIdentifiers[9] = Identifier.of(MOD_ID, "power/gemreplica");
+        itemIdentifiers[10] = Identifier.of(MOD_ID, "reality/gemreplica");
+        itemIdentifiers[11] = Identifier.of(MOD_ID, "soul/gemreplica");
+        itemIdentifiers[12] = Identifier.of(MOD_ID, "space/gemreplica");
+        itemIdentifiers[13] = Identifier.of(MOD_ID, "time/gemreplica");
 
         Registry.register(Registries.ITEM, itemIdentifiers[0], GAUNTLET_ITEM);
         Registry.register(Registries.ITEM, itemIdentifiers[1], MIND_GEM);
