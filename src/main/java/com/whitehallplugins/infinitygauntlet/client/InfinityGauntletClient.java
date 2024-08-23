@@ -30,7 +30,7 @@ public final class InfinityGauntletClient implements ClientModInitializer {
             }
         });
         ClientPlayNetworking.registerGlobalReceiver(NetworkingConstants.VERSION_PACKET_ID, (client, handler, buf, responseSender) -> {
-            PacketByteBuf modVersionPacket = PacketByteBufs.create().writeIntArray(NetworkingConstants.modVersion());
+            PacketByteBuf modVersionPacket = PacketByteBufs.create().writeString(NetworkingConstants.modVersion());
             client.execute(() -> responseSender.sendPacket(NetworkingConstants.VERSION_PACKET_ID, modVersionPacket));
         });
     }
