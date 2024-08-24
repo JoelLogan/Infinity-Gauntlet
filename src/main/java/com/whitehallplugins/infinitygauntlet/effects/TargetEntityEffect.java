@@ -8,7 +8,6 @@ import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectCategory;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.world.ServerWorld;
 
 import java.util.UUID;
@@ -37,11 +36,11 @@ public final class TargetEntityEffect extends StatusEffect {
                         if (target.isAlive() && isCloseEnough(entity, (LivingEntity) target)) {
                             ((HostileEntity) entity).setTarget((LivingEntity) target);
                             if (target.isPlayer() && ((PlayerEntity) target).isCreative() || target.isSpectator()) {
-                                removeEffect(entity);
+                                removeEffect(entity, s);
                                 return false;
                             }
                         } else {
-                            removeEffect(entity);
+                            removeEffect(entity, s);
                             return false;
                         }
                     }
@@ -51,14 +50,8 @@ public final class TargetEntityEffect extends StatusEffect {
         return true;
     }
 
-    private void removeEffect(LivingEntity entity) {
-        for (String tag : entity.getCommandTags()){
-            if (tag.startsWith(COMMAND_TAG)){
-                entity.removeCommandTag(tag);
-                break;
-            }
-        }
-        entity.removeStatusEffect(RegistryEntry.of(InfinityGauntlet.targetEntityEffect));
+    private void removeEffect(LivingEntity entity, String tag) {
+        entity.removeCommandTag(tag);
     }
 
     private boolean isCloseEnough(LivingEntity entity, LivingEntity target) {
