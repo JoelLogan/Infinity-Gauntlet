@@ -1,8 +1,8 @@
-# Infinity Gauntlet Mod
+# Infinity Gauntlet Mod Reborn
 
 ## Description
 
-The Infinity Gauntlet Mod is a modern remake of the classic [Infinity Gauntlet mod](https://www.curseforge.com/minecraft/mc-mods/infinity-gauntlet-mod) for the latest versions of Minecraft. This mod introduces the iconic Infinity Gauntlet and Infinity Stones from the comics into your Minecraft experience.
+Infinity Gauntlet Mod Reborn is a modern remake of the classic [Infinity Gauntlet mod](https://www.curseforge.com/minecraft/mc-mods/infinity-gauntlet-mod) for the latest versions of Minecraft. This mod introduces the iconic Infinity Gauntlet and Infinity Stones from the comics into your Minecraft experience.
 
 ### Configuration
 

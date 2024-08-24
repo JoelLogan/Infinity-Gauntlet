@@ -25,9 +25,9 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.*;
 import net.minecraft.particle.DustParticleEffect;
 import net.minecraft.particle.ParticleTypes;
+import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.screen.GenericContainerScreenHandler;
 import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -595,7 +595,7 @@ public final class SharedGemFunctions {
                 }
                 entity.setPersistent();
                 entity.addCommandTag(TargetEntityEffect.COMMAND_TAG + "." + targetEntity.getUuidAsString());
-                entity.addStatusEffect(new StatusEffectInstance(RegistryEntry.of(InfinityGauntlet.targetEntityEffect), StatusEffectInstance.INFINITE));
+                entity.addStatusEffect(new StatusEffectInstance(Registries.STATUS_EFFECT.getEntry(InfinityGauntlet.targetEntityEffect), StatusEffectInstance.INFINITE));
                 entity.setTarget((LivingEntity) targetEntity);
                 mindGlowToggle(stackInHand, glowingItem, false, null);
             }
