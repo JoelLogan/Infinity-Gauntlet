@@ -37,11 +37,11 @@ public final class TargetEntityEffect extends StatusEffect {
                         if (target.isAlive() && isCloseEnough(entity, (LivingEntity) target)) {
                             ((HostileEntity) entity).setTarget((LivingEntity) target);
                             if (target.isPlayer() && ((PlayerEntity) target).isCreative() || target.isSpectator()) {
-                                removeEffect(entity);
+                                removeEffect(entity, s);
                                 return false;
                             }
                         } else {
-                            removeEffect(entity);
+                            removeEffect(entity, s);
                             return false;
                         }
                     }
@@ -51,13 +51,8 @@ public final class TargetEntityEffect extends StatusEffect {
         return true;
     }
 
-    private void removeEffect(LivingEntity entity) {
-        for (String tag : entity.getCommandTags()){
-            if (tag.startsWith(COMMAND_TAG)){
-                entity.removeCommandTag(tag);
-                break;
-            }
-        }
+    private void removeEffect(LivingEntity entity, String tag) {
+        entity.removeCommandTag(tag);
         entity.removeStatusEffect(RegistryEntry.of(InfinityGauntlet.targetEntityEffect));
     }
 
