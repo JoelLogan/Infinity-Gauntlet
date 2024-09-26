@@ -14,6 +14,16 @@ When playing a single-player world, I strongly recommend using the [Disable Cust
 
 Each Infinity Stone can be discovered in chests or obtained as boss loot, and all can be combined to craft the powerful Infinity Gauntlet. The Gauntlet harnesses all the abilities of the Infinity Stones, with the active stone selected by pressing the default `H` key.
 
+Methods for obtaining these gems are as follows:
+| Gem | Source |
+|--|--|
+| Soul Gem | Wither |
+| Power Gem | Ancient City, Warden |
+| Space Gem | End City, Ender Dragon |
+| Mind Gem | Jungle Temple |
+| Time Gem | Desert Pyramid |
+| Reality Gem | Woodland Mansion |
+
 ### Gem Abilities
 
 - **Mind Gem**
