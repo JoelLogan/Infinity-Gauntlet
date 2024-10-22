@@ -24,7 +24,7 @@ import net.fabricmc.fabric.api.loot.v3.LootTableEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.fabricmc.fabric.api.registry.FuelRegistry;
+import net.fabricmc.fabric.api.registry.FuelRegistryEvents;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.entity.damage.DamageType;
@@ -48,29 +48,45 @@ import java.util.Set;
 import static com.whitehallplugins.infinitygauntlet.items.gems.SharedGemFunctions.initThreadShutdownHook;
 
 public final class InfinityGauntlet implements ModInitializer {
-
-    /**
-     * TODO: Get gauntlet models
-     */
     
     public static final String MOD_ID = "infinitygauntlet";
-    
-    public static final Gauntlet GAUNTLET_ITEM = new Gauntlet(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof().maxDamage(100));
-    public static final MindGem MIND_GEM = new MindGem(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof());
-    public static final PowerGem POWER_GEM = new PowerGem(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof());
-    public static final RealityGem REALITY_GEM = new RealityGem(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof());
-    public static final SoulGem SOUL_GEM = new SoulGem(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof());
-    public static final SpaceGem SPACE_GEM = new SpaceGem(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof());
-    public static final TimeGem TIME_GEM = new TimeGem(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof());
-    public static final GauntletReplica GAUNTLET_REPLICA_ITEM = new GauntletReplica(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof());
-    public static final MindGemReplica MIND_GEM_REPLICA = new MindGemReplica(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof());
-    public static final PowerGemReplica POWER_GEM_REPLICA = new PowerGemReplica(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof());
-    public static final RealityGemReplica REALITY_GEM_REPLICA = new RealityGemReplica(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof());
-    public static final SoulGemReplica SOUL_GEM_REPLICA = new SoulGemReplica(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof());
-    public static final SpaceGemReplica SPACE_GEM_REPLICA = new SpaceGemReplica(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof());
-    public static final TimeGemReplica TIME_GEM_REPLICA = new TimeGemReplica(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof());
 
-    private static final Identifier[] itemIdentifiers = new Identifier[14];
+    private static final Identifier[] itemIdentifiers = {
+            Identifier.of(MOD_ID, "gauntlet/gauntlet"),
+            Identifier.of(MOD_ID, "mind/gem"),
+            Identifier.of(MOD_ID, "power/gem"),
+            Identifier.of(MOD_ID, "reality/gem"),
+            Identifier.of(MOD_ID, "soul/gem"),
+            Identifier.of(MOD_ID, "space/gem"),
+            Identifier.of(MOD_ID, "time/gem"),
+            Identifier.of(MOD_ID, "gauntlet/gauntletreplica"),
+            Identifier.of(MOD_ID, "mind/gemreplica"),
+            Identifier.of(MOD_ID, "power/gemreplica"),
+            Identifier.of(MOD_ID, "reality/gemreplica"),
+            Identifier.of(MOD_ID, "soul/gemreplica"),
+            Identifier.of(MOD_ID, "space/gemreplica"),
+            Identifier.of(MOD_ID, "time/gemreplica"),
+            Identifier.of(MOD_ID, "souldimensionblock")
+    };
+
+    private static final Identifier[] blockIdentifiers = {
+            Identifier.of(MOD_ID, "souldimensionblock")
+    };
+
+    public static final Gauntlet GAUNTLET_ITEM = new Gauntlet(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof().maxDamage(100).registryKey(RegistryKey.of(RegistryKeys.ITEM, itemIdentifiers[0])));
+    public static final MindGem MIND_GEM = new MindGem(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof().registryKey(RegistryKey.of(RegistryKeys.ITEM, itemIdentifiers[1])));
+    public static final PowerGem POWER_GEM = new PowerGem(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof().registryKey(RegistryKey.of(RegistryKeys.ITEM, itemIdentifiers[2])));
+    public static final RealityGem REALITY_GEM = new RealityGem(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof().registryKey(RegistryKey.of(RegistryKeys.ITEM, itemIdentifiers[3])));
+    public static final SoulGem SOUL_GEM = new SoulGem(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof().registryKey(RegistryKey.of(RegistryKeys.ITEM, itemIdentifiers[4])));
+    public static final SpaceGem SPACE_GEM = new SpaceGem(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof().registryKey(RegistryKey.of(RegistryKeys.ITEM, itemIdentifiers[5])));
+    public static final TimeGem TIME_GEM = new TimeGem(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof().registryKey(RegistryKey.of(RegistryKeys.ITEM, itemIdentifiers[6])));
+    public static final GauntletReplica GAUNTLET_REPLICA_ITEM = new GauntletReplica(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof().registryKey(RegistryKey.of(RegistryKeys.ITEM, itemIdentifiers[7])));
+    public static final MindGemReplica MIND_GEM_REPLICA = new MindGemReplica(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof().registryKey(RegistryKey.of(RegistryKeys.ITEM, itemIdentifiers[8])));
+    public static final PowerGemReplica POWER_GEM_REPLICA = new PowerGemReplica(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof().registryKey(RegistryKey.of(RegistryKeys.ITEM, itemIdentifiers[9])));
+    public static final RealityGemReplica REALITY_GEM_REPLICA = new RealityGemReplica(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof().registryKey(RegistryKey.of(RegistryKeys.ITEM, itemIdentifiers[10])));
+    public static final SoulGemReplica SOUL_GEM_REPLICA = new SoulGemReplica(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof().registryKey(RegistryKey.of(RegistryKeys.ITEM, itemIdentifiers[11])));
+    public static final SpaceGemReplica SPACE_GEM_REPLICA = new SpaceGemReplica(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof().registryKey(RegistryKey.of(RegistryKeys.ITEM, itemIdentifiers[12])));
+    public static final TimeGemReplica TIME_GEM_REPLICA = new TimeGemReplica(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof().registryKey(RegistryKey.of(RegistryKeys.ITEM, itemIdentifiers[13])));
 
     private static final List<PlayerEntity> authenticatingPlayers = new ArrayList<>();
 
@@ -79,7 +95,7 @@ public final class InfinityGauntlet implements ModInitializer {
     public static final Identifier SOUL_DIMENSION_ID = Identifier.of(MOD_ID, "souldimension");
     public static final Identifier TARGET_ENTITY_EFFECT_ID = Identifier.of(MOD_ID, "targeteffect");
 
-    public static final Block SOUL_DIMENSION_BLOCK = new Block(AbstractBlock.Settings.create().strength(-1.0f, 3600000.0F).dropsNothing());
+    public static final Block SOUL_DIMENSION_BLOCK = new Block(AbstractBlock.Settings.create().strength(-1.0f, 3600000.0F).dropsNothing().registryKey(RegistryKey.of(RegistryKeys.BLOCK, blockIdentifiers[0])));
 
     public static final StatusEffect targetEntityEffect = new TargetEntityEffect();
 
@@ -105,15 +121,16 @@ public final class InfinityGauntlet implements ModInitializer {
 
         initThreadShutdownHook();
 
-        FuelRegistry.INSTANCE.add(POWER_GEM, CONFIG.getOrDefault("powerGemBurnTime",
-                DefaultModConfig.POWER_GEM_BURN_TIME) + 5);
-        FuelRegistry.INSTANCE.add(GAUNTLET_ITEM, CONFIG.getOrDefault("infinityGauntletBurnTime",
-                DefaultModConfig.INFINITY_GAUNTLET_BURN_TIME) + 5);
+        FuelRegistryEvents.BUILD.register((builder, context) -> builder.add(POWER_GEM, CONFIG.getOrDefault("powerGemBurnTime",
+                DefaultModConfig.POWER_GEM_BURN_TIME) + 5));
+        FuelRegistryEvents.BUILD.register((builder, context) -> builder.add(GAUNTLET_ITEM, CONFIG.getOrDefault("infinityGauntletBurnTime",
+                DefaultModConfig.INFINITY_GAUNTLET_BURN_TIME) + 5));
+
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.BUILDING_BLOCKS).register(content -> content.add(SOUL_DIMENSION_BLOCK.asItem()));
 
-        Registry.register(Registries.BLOCK, Identifier.of(MOD_ID, "souldimensionblock"), SOUL_DIMENSION_BLOCK);
-        Registry.register(Registries.ITEM, Identifier.of(MOD_ID, "souldimensionblock"), new BlockItem(SOUL_DIMENSION_BLOCK, new Item.Settings()));
+        Registry.register(Registries.BLOCK, blockIdentifiers[0], SOUL_DIMENSION_BLOCK);
+        Registry.register(Registries.ITEM, itemIdentifiers[14], new BlockItem(SOUL_DIMENSION_BLOCK, new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, itemIdentifiers[14]))));
 
         Registry.register(Registries.STATUS_EFFECT, TARGET_ENTITY_EFFECT_ID, targetEntityEffect);
 
@@ -138,21 +155,6 @@ public final class InfinityGauntlet implements ModInitializer {
     }
 
     private static void registerItems() {
-        itemIdentifiers[0] = Identifier.of(MOD_ID, "gauntlet/gauntlet");
-        itemIdentifiers[1] = Identifier.of(MOD_ID, "mind/gem");
-        itemIdentifiers[2] = Identifier.of(MOD_ID, "power/gem");
-        itemIdentifiers[3] = Identifier.of(MOD_ID, "reality/gem");
-        itemIdentifiers[4] = Identifier.of(MOD_ID, "soul/gem");
-        itemIdentifiers[5] = Identifier.of(MOD_ID, "space/gem");
-        itemIdentifiers[6] = Identifier.of(MOD_ID, "time/gem");
-        itemIdentifiers[7] = Identifier.of(MOD_ID, "gauntlet/gauntletreplica");
-        itemIdentifiers[8] = Identifier.of(MOD_ID, "mind/gemreplica");
-        itemIdentifiers[9] = Identifier.of(MOD_ID, "power/gemreplica");
-        itemIdentifiers[10] = Identifier.of(MOD_ID, "reality/gemreplica");
-        itemIdentifiers[11] = Identifier.of(MOD_ID, "soul/gemreplica");
-        itemIdentifiers[12] = Identifier.of(MOD_ID, "space/gemreplica");
-        itemIdentifiers[13] = Identifier.of(MOD_ID, "time/gemreplica");
-
         Registry.register(Registries.ITEM, itemIdentifiers[0], GAUNTLET_ITEM);
         Registry.register(Registries.ITEM, itemIdentifiers[1], MIND_GEM);
         Registry.register(Registries.ITEM, itemIdentifiers[2], POWER_GEM);

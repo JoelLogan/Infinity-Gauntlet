@@ -6,30 +6,14 @@
     "GLG"
   ],
   "key": {
-    "L": {
-      "item": "infinitygauntlet:soul/gem"
-    },
-    "P": {
-      "item": "infinitygauntlet:power/gem"
-    },
-    "T": {
-      "item": "infinitygauntlet:time/gem"
-    },
-    "R": {
-      "item": "infinitygauntlet:reality/gem"
-    },
-    "M": {
-      "item": "infinitygauntlet:mind/gem"
-    },
-    "C": {
-      "item": "infinitygauntlet:space/gem"
-    },
-    "S": {
-      "item": "minecraft:nether_star"
-    },
-    "G": {
-      "item": "minecraft:gold_block"
-    }
+    "L": "infinitygauntlet:soul/gem",
+    "P": "infinitygauntlet:power/gem",
+    "T": "infinitygauntlet:time/gem",
+    "R": "infinitygauntlet:reality/gem",
+    "M": "infinitygauntlet:mind/gem",
+    "C": "infinitygauntlet:space/gem",
+    "S": "minecraft:nether_star",
+    "G": "minecraft:gold_block"
   },
   "result": {
     "id": "infinitygauntlet:gauntlet/gauntlet",

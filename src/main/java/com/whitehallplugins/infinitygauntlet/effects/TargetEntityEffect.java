@@ -26,7 +26,7 @@ public final class TargetEntityEffect extends StatusEffect {
     }
 
     @Override
-    public boolean applyUpdateEffect(LivingEntity entity, int amplifier) {
+    public boolean applyUpdateEffect(ServerWorld world, LivingEntity entity, int amplifier) {
         if (entity.getWorld() instanceof ServerWorld serverWorld && entity instanceof HostileEntity) {
             for (String s : entity.getCommandTags()) {
                 if (s.split("\\.")[0].equals(COMMAND_TAG)) {

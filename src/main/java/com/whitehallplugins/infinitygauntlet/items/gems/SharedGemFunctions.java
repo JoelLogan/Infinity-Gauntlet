@@ -8,10 +8,7 @@ import com.whitehallplugins.infinitygauntlet.items.gauntlets.Gauntlet;
 import net.minecraft.block.*;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LightningEntity;
-import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.*;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.damage.DamageTypes;
 import net.minecraft.entity.effect.StatusEffectInstance;
@@ -48,7 +45,6 @@ import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.dimension.DimensionTypes;
 import net.minecraft.world.explosion.ExplosionBehavior;
-import org.joml.Vector3f;
 
 import java.util.*;
 import java.util.concurrent.Executors;
@@ -68,11 +64,17 @@ public final class SharedGemFunctions {
             EntityType.FISHING_BOBBER, EntityType.LEASH_KNOT, EntityType.LIGHTNING_BOLT,
             EntityType.PAINTING, EntityType.SMALL_FIREBALL, EntityType.SNOWBALL,
             EntityType.SPECTRAL_ARROW, EntityType.TRIDENT, EntityType.WITHER_SKULL,
-            EntityType.BOAT, EntityType.CHEST_MINECART, EntityType.COMMAND_BLOCK_MINECART,
+            EntityType.ACACIA_BOAT, EntityType.BIRCH_BOAT, EntityType.BIRCH_CHEST_BOAT,
+            EntityType.CHERRY_BOAT, EntityType.CHERRY_CHEST_BOAT, EntityType.DARK_OAK_BOAT,
+            EntityType.DARK_OAK_CHEST_BOAT, EntityType.JUNGLE_BOAT, EntityType.JUNGLE_CHEST_BOAT,
+            EntityType.MANGROVE_BOAT, EntityType.MANGROVE_CHEST_BOAT, EntityType.OAK_BOAT,
+            EntityType.OAK_CHEST_BOAT, EntityType.PALE_OAK_BOAT, EntityType.PALE_OAK_CHEST_BOAT,
+            EntityType.SPRUCE_BOAT, EntityType.SPRUCE_CHEST_BOAT, EntityType.ACACIA_CHEST_BOAT,
+            EntityType.CHEST_MINECART, EntityType.COMMAND_BLOCK_MINECART, EntityType.MARKER,
             EntityType.FURNACE_MINECART, EntityType.HOPPER_MINECART, EntityType.TNT_MINECART,
             EntityType.EGG, EntityType.ENDER_PEARL, EntityType.POTION, EntityType.EVOKER_FANGS,
             EntityType.FIREBALL, EntityType.TNT, EntityType.DRAGON_FIREBALL, EntityType.EXPERIENCE_ORB,
-            EntityType.MINECART, EntityType.INTERACTION, EntityType.LLAMA_SPIT, EntityType.MARKER);
+            EntityType.MINECART, EntityType.INTERACTION, EntityType.LLAMA_SPIT);
     private static final List<Block> TRANSPARENT_BLOCKS = List.of(Blocks.GLASS, Blocks.WHITE_STAINED_GLASS,
             Blocks.ORANGE_STAINED_GLASS, Blocks.MAGENTA_STAINED_GLASS, Blocks.LIGHT_BLUE_STAINED_GLASS,
             Blocks.YELLOW_STAINED_GLASS, Blocks.LIME_STAINED_GLASS, Blocks.PINK_STAINED_GLASS,
@@ -278,7 +280,7 @@ public final class SharedGemFunctions {
 
     private static void spawnExplosionParticles(ServerWorld world, Vec3d particlePos) {
         double radius = 1.5;
-        DustParticleEffect dustParticle = new DustParticleEffect(new Vector3f(1.0f, 1.0f, 1.0f), 1.0f);
+        DustParticleEffect dustParticle = new DustParticleEffect(16777215, 1.0f);
         double offsetX;
         double offsetY;
         double offsetZ;
@@ -364,7 +366,7 @@ public final class SharedGemFunctions {
 
         if (player != null) {
             playTeleportSound(world, summoner);
-            player.teleport((ServerWorld) summoner.getWorld(), targetPos.getX(), targetPos.getY(), targetPos.getZ(), player.getYaw(), player.getPitch());
+            player.teleport((ServerWorld) summoner.getWorld(), targetPos.getX(), targetPos.getY(), targetPos.getZ(), Set.of(), player.getYaw(), player.getPitch(), true);
             setPlayerSpawnPoint(player);
         } else {
             setOfflineTeleportData(summoner, targetUUID, targetPos);
@@ -376,7 +378,7 @@ public final class SharedGemFunctions {
     private static void resummonNonPlayerEntity(World world, PlayerEntity summoner, NbtCompound lastDespawnedEntity, Vec3d targetPos, NbtList entityList) {
         spawnPortalParticles((ServerWorld) world, targetPos, true);
         Optional<EntityType<?>> nbtType = EntityType.fromNbt(lastDespawnedEntity);
-        Entity newEntity = nbtType.orElseThrow().create(world);
+        Entity newEntity = nbtType.orElseThrow().create(world, SpawnReason.MOB_SUMMONED);
 
         if (newEntity != null) {
             newEntity.readNbt(lastDespawnedEntity);
@@ -405,7 +407,7 @@ public final class SharedGemFunctions {
         teleportData.putDouble("TargetZ", targetPos.getZ());
         teleportData.putString("World", summoner.getWorld().getRegistryKey().getValue().toString());
         OfflineTeleportManager.setTeleportData(targetUUID, teleportData);
-        summoner.sendMessage(Text.translatable("infinitygauntlet.warning.playeroffline"));
+        summoner.sendMessage(Text.translatable("infinitygauntlet.warning.playeroffline"), false);
     }
 
     private static void updateSoulGemNbt(NbtCompound soulItem, NbtList entityList, ItemStack stack) {
@@ -442,7 +444,7 @@ public final class SharedGemFunctions {
 
     private static void changeBlocksInSphereRecursive(PlayerEntity user, World world, BlockPos centerPos, BlockState targetBlock, Block changeTo) {
         if (isThreadPoolBusy() || !keepRunning) {
-            user.sendMessage(Text.translatable("infinitygauntlet.warning.busythreads"));
+            user.sendMessage(Text.translatable("infinitygauntlet.warning.busythreads"), false);
             return;
         }
 
@@ -450,7 +452,7 @@ public final class SharedGemFunctions {
         int blockChangeDelay = CONFIG.getOrDefault("realityGauntletBlockChangeThreadTime", DefaultModConfig.REALITY_GAUNTLET_BLOCK_CHANGE_THREAD_TIME);
 
         executorService.submit(() -> {
-            user.sendMessage(Text.literal("Working...").formatted(Formatting.GRAY));
+            user.sendMessage(Text.literal("Working...").formatted(Formatting.GRAY), false);
             Map<BlockPos, Integer> toChangeWithDistance = findBlocksToChange(world, centerPos, targetBlock, radius);
             changeBlocks(world, toChangeWithDistance, targetBlock, changeTo, blockChangeDelay);
         });
@@ -622,7 +624,7 @@ public final class SharedGemFunctions {
      * With Gauntlet: Gives 3 minutes of weakness and nausea and 1 minute of blindness and resets target xp (WORKS)
      */
 
-    public static void powerGemUse(World world, PlayerEntity user, boolean gauntlet) {
+    public static void powerGemUse(ServerWorld world, PlayerEntity user, boolean gauntlet) {
         if (!gauntlet) {
             if (CONFIG.getOrDefault("isPowerGemEnabled", DefaultModConfig.IS_POWER_GEM_ENABLED)) {
                 if (user.isSneaking()) {
@@ -645,7 +647,7 @@ public final class SharedGemFunctions {
         user.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, 9600, 255, false, true));
     }
 
-    private static void handlePowerRaycast(World world, PlayerEntity user) {
+    private static void handlePowerRaycast(ServerWorld world, PlayerEntity user) {
         HitResult target = raycast(user, COMBINED_RAYCAST_DISTANCE, 3, true, true, false);
         if (!target.getType().equals(HitResult.Type.MISS)) {
             if (target.getType().equals(HitResult.Type.BLOCK)) {
@@ -665,19 +667,19 @@ public final class SharedGemFunctions {
                 break;
             }
         }
-        DamageSource damageSource = new DamageSource(world.getRegistryManager().get(RegistryKeys.DAMAGE_TYPE).entryOf(DamageTypes.EXPLOSION), user);
+        DamageSource damageSource = new DamageSource(world.getRegistryManager().getOrThrow(RegistryKeys.DAMAGE_TYPE).getEntry(DamageTypes.EXPLOSION.getValue()).orElseThrow(), user);
         user.setInvulnerable(true);
         world.createExplosion(null, damageSource, new ExplosionBehavior(), targetPos,
                 CONFIG.getOrDefault("powerGemExplosionPower", DefaultModConfig.POWER_GEM_EXPLOSION_POWER), false, World.ExplosionSourceType.BLOCK);
         user.setInvulnerable(false);
     }
 
-    private static void handlePowerEntityDamage(World world, PlayerEntity user, EntityHitResult target) {
-        DamageSource damageSource = new DamageSource(world.getRegistryManager().get(RegistryKeys.DAMAGE_TYPE).entryOf(InfinityGauntlet.POWER_GEM_DAMAGE_TYPE), user);
-        target.getEntity().damage(damageSource, Float.MAX_VALUE);
+    private static void handlePowerEntityDamage(ServerWorld world, PlayerEntity user, EntityHitResult target) {
+        DamageSource damageSource = new DamageSource(world.getRegistryManager().getOrThrow(RegistryKeys.DAMAGE_TYPE).getEntry(InfinityGauntlet.POWER_GEM_DAMAGE_TYPE.getValue()).orElseThrow(), user);
+        target.getEntity().damage(world, damageSource, Float.MAX_VALUE);
     }
 
-    private static void handlePowerGauntletUse(World world, PlayerEntity user) {
+    private static void handlePowerGauntletUse(ServerWorld world, PlayerEntity user) {
         Box box = new Box(user.getBlockPos()).expand(64);
         Predicate<Entity> predicate = entity -> {
             if (entity instanceof PlayerEntity) {
@@ -689,11 +691,11 @@ public final class SharedGemFunctions {
             return true;
         };
         world.getEntitiesByClass(LivingEntity.class, box, predicate).forEach(targetEntity -> {
-            LightningEntity lightning = EntityType.LIGHTNING_BOLT.create(world);
+            LightningEntity lightning = EntityType.LIGHTNING_BOLT.create(world, SpawnReason.MOB_SUMMONED);
             if (lightning == null) {return;}
             lightning.refreshPositionAfterTeleport(targetEntity.getX(), targetEntity.getY(), targetEntity.getZ());
-            DamageSource damageSource = new DamageSource(world.getRegistryManager().get(RegistryKeys.DAMAGE_TYPE).entryOf(InfinityGauntlet.POWER_GEM_DAMAGE_TYPE), user);
-            targetEntity.damage(damageSource, Float.MAX_VALUE);
+            DamageSource damageSource = new DamageSource(world.getRegistryManager().getOrThrow(RegistryKeys.DAMAGE_TYPE).getEntry(InfinityGauntlet.POWER_GEM_DAMAGE_TYPE.getValue()).orElseThrow(), user);
+            targetEntity.damage(world, damageSource, Float.MAX_VALUE);
             world.spawnEntity(lightning);
         });
     }
@@ -818,7 +820,7 @@ public final class SharedGemFunctions {
         Vec3d spawnPos = findSoulSpawnPosition(soulDimension);
         Objects.requireNonNull(world.getServer().getPlayerManager().getPlayer(targetEntity.getUuid())).setSpawnPoint(
                 RegistryKey.of(RegistryKeys.WORLD, SOUL_DIMENSION_ID), new BlockPos((int) spawnPos.getX(), (int) spawnPos.getY(), (int) spawnPos.getZ()), 0, true, false);
-        targetEntity.teleport(soulDimension, spawnPos.getX(), spawnPos.getY(), spawnPos.getZ(), Set.of(), targetEntity.getYaw(), targetEntity.getPitch());
+        targetEntity.teleport(soulDimension, spawnPos.getX(), spawnPos.getY(), spawnPos.getZ(), Set.of(), targetEntity.getYaw(), targetEntity.getPitch(), true);
     }
 
     private static Vec3d findSoulSpawnPosition(ServerWorld soulDimension) {
@@ -880,7 +882,7 @@ public final class SharedGemFunctions {
 
     private static boolean checkSpaceCooldown(PlayerEntity user) {
         if (cooldown.containsKey(user) && cooldown.get(user) > System.currentTimeMillis()) {
-            user.sendMessage(Text.translatable("infinitygauntlet.warning.teleportcooldown").formatted(Formatting.GRAY));
+            user.sendMessage(Text.translatable("infinitygauntlet.warning.teleportcooldown").formatted(Formatting.GRAY), false);
             return false;
         }
         return true;
@@ -910,7 +912,7 @@ public final class SharedGemFunctions {
                 teleportToNextSpaceWorld(user, nextServerWorld);
             }
         } else {
-            user.sendMessage(Text.translatable("infinitygauntlet.error.worldnotfound"));
+            user.sendMessage(Text.translatable("infinitygauntlet.error.worldnotfound"), false);
         }
     }
 
@@ -962,11 +964,11 @@ public final class SharedGemFunctions {
                     break;
                 }
             }
-            user.teleport(nextServerWorld, x, y, z, new HashSet<>(), 0, 0);
+            user.teleport(nextServerWorld, x, y, z, Set.of(), 0, 0, false);
         }
         else {
             BlockPos endSpawnPos = ServerWorld.END_SPAWN_POS;
-            user.teleport(nextServerWorld, endSpawnPos.getX(), endSpawnPos.getY(), endSpawnPos.getZ(), new HashSet<>(), 0, 0);
+            user.teleport(nextServerWorld, endSpawnPos.getX(), endSpawnPos.getY(), endSpawnPos.getZ(), Set.of(), 0, 0, false);
         }
     }
     /* GEM SHOULD BE FINISHED
@@ -1041,7 +1043,7 @@ public final class SharedGemFunctions {
             Vec3d targetPos = entityHitResult.getPos();
             spawnPortalParticles((ServerWorld) world, targetPos, true);
             BlockPos spawnPos = Objects.requireNonNull(user.getServer()).getOverworld().getSpawnPos();
-            entityHitResult.getEntity().teleport(Objects.requireNonNull(user.getServer()).getOverworld(), spawnPos.getX(), spawnPos.getY(), spawnPos.getZ(), new HashSet<>(), 0, 0);
+            entityHitResult.getEntity().teleport(Objects.requireNonNull(user.getServer()).getOverworld(), spawnPos.getX(), spawnPos.getY(), spawnPos.getZ(), Set.of(), 0, 0, false);
             spawnPortalParticles((ServerWorld) world, spawnPos.toCenterPos(), true);
         }
     }

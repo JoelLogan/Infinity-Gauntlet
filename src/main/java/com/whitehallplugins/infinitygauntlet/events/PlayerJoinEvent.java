@@ -6,6 +6,8 @@ import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.Join;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.recipe.RecipeEntry;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -34,7 +36,7 @@ public final class PlayerJoinEvent implements Join {
     }
 
     private static void unlockRecipe(ServerPlayNetworkHandler handler, MinecraftServer server){
-        Optional<RecipeEntry<?>> gauntletRecipe = server.getRecipeManager().get(InfinityGauntlet.gauntletIdentifier());
+        Optional<RecipeEntry<?>> gauntletRecipe = server.getRecipeManager().get(RegistryKey.of(RegistryKeys.RECIPE, InfinityGauntlet.gauntletIdentifier()));
         if (gauntletRecipe.isPresent()) {
             handler.getPlayer().unlockRecipes(Collections.singleton(gauntletRecipe.get()));
         } else {
