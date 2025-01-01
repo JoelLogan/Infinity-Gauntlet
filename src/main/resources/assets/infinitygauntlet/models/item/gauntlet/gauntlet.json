@@ -1,199 +1,28 @@
 {
-	"credit": "Made with Blockbench",
+	"parent": "item/generated",
 	"textures": {
 		"1": "infinitygauntlet:item/power/infinitygaun2",
-		"2": "infinitygauntlet:item/power/infinitygaun",
-		"3": "infinitygauntlet:item/power/gem1",
-		"4": "infinitygauntlet:item/power/gem2",
-		"5": "infinitygauntlet:item/power/gem3",
-		"6": "infinitygauntlet:item/power/gem4",
-		"7": "infinitygauntlet:item/power/gem5",
-		"8": "infinitygauntlet:item/power/gem6"
+		"2": "infinitygauntlet:item/power/infinitygaun"
 	},
 	"elements": [
 		{
-			"from": [6, 0, 5],
-			"to": [10, 3, 8],
-			"rotation": {"angle": 0, "axis": "y", "origin": [9, 0, 6]},
+			"from": [0, 0, 0],
+			"to": [16, 16, 16],
 			"faces": {
-				"north": {"uv": [0, 0, 4, 3], "texture": "#1"},
-				"east": {"uv": [0, 6, 3, 9], "texture": "#1"},
-				"south": {"uv": [0, 3, 4, 6], "texture": "#1"},
-				"west": {"uv": [3, 6, 6, 9], "texture": "#1"},
-				"up": {"uv": [8, 3, 4, 0], "texture": "#1"},
-				"down": {"uv": [8, 3, 4, 6], "texture": "#1"}
-			}
-		},
-		{
-			"from": [6.3, 0.2, 8],
-			"to": [9.7, 2.8, 10.8],
-			"rotation": {"angle": 0, "axis": "y", "origin": [9, 0, 9]},
-			"faces": {
-				"north": {"uv": [4, 0, 7.5, 2.5], "texture": "#2"},
-				"east": {"uv": [0, 6, 3, 8.5], "texture": "#2"},
-				"south": {"uv": [4, 3, 7.5, 5.5], "texture": "#2"},
-				"west": {"uv": [3, 6, 6, 8.5], "texture": "#2"},
-				"up": {"uv": [3.5, 3, 0, 0], "texture": "#2"},
-				"down": {"uv": [3.5, 3, 0, 6], "texture": "#2"}
-			}
-		},
-		{
-			"from": [9, 2.5, 10],
-			"to": [9.5, 3, 10.5],
-			"rotation": {"angle": 0, "axis": "y", "origin": [10, 3, 10]},
-			"faces": {
-				"north": {"uv": [0, 0, 1, 1], "texture": "#3"},
-				"east": {"uv": [0, 2, 1, 3], "texture": "#3"},
-				"south": {"uv": [2, 0, 3, 1], "texture": "#3"},
-				"west": {"uv": [2, 2, 3, 3], "texture": "#3"},
-				"up": {"uv": [1, 5, 0, 4], "texture": "#3"},
-				"down": {"uv": [5, 0, 4, 1], "texture": "#3"}
-			}
-		},
-		{
-			"from": [9.5, 2.1, 10],
-			"to": [10, 2.6, 10.5],
-			"rotation": {"angle": 0, "axis": "z", "origin": [11, 2, 10]},
-			"faces": {
-				"north": {"uv": [0, 0, 1, 1], "rotation": 180, "texture": "#7"},
-				"east": {"uv": [2, 2, 3, 3], "rotation": 180, "texture": "#7"},
-				"south": {"uv": [2, 0, 3, 1], "rotation": 180, "texture": "#7"},
-				"west": {"uv": [0, 2, 1, 3], "rotation": 180, "texture": "#7"},
-				"up": {"uv": [5, 0, 4, 1], "rotation": 180, "texture": "#7"},
-				"down": {"uv": [1, 5, 0, 4], "rotation": 180, "texture": "#7"}
-			}
-		},
-		{
-			"from": [7.4, 2.45, 8.1],
-			"to": [8.7, 2.95, 9.4],
-			"rotation": {"angle": 0, "axis": "y", "origin": [9, 3, 9]},
-			"faces": {
-				"north": {"uv": [0, 0, 1, 1], "texture": "#4"},
-				"east": {"uv": [0, 2, 1, 3], "texture": "#4"},
-				"south": {"uv": [2, 0, 3, 1], "texture": "#4"},
-				"west": {"uv": [2, 2, 3, 3], "texture": "#4"},
-				"up": {"uv": [1, 5, 0, 4], "texture": "#4"},
-				"down": {"uv": [5, 0, 4, 1], "texture": "#4"}
-			}
-		},
-		{
-			"from": [7.4, 2.5, 10],
-			"to": [7.9, 3, 10.5],
-			"rotation": {"angle": 0, "axis": "y", "origin": [9, 3, 10]},
-			"faces": {
-				"north": {"uv": [0, 0, 1, 1], "texture": "#5"},
-				"east": {"uv": [0, 2, 1, 3], "texture": "#5"},
-				"south": {"uv": [2, 0, 3, 1], "texture": "#5"},
-				"west": {"uv": [2, 2, 3, 3], "texture": "#5"},
-				"up": {"uv": [1, 5, 0, 4], "texture": "#5"},
-				"down": {"uv": [5, 0, 4, 1], "texture": "#5"}
-			}
-		},
-		{
-			"from": [8.2, 2.5, 10],
-			"to": [8.7, 3, 10.5],
-			"rotation": {"angle": 0, "axis": "y", "origin": [10, 3, 10]},
-			"faces": {
-				"north": {"uv": [0, 0, 1, 1], "texture": "#8"},
-				"east": {"uv": [0, 2, 1, 3], "texture": "#8"},
-				"south": {"uv": [2, 0, 3, 1], "texture": "#8"},
-				"west": {"uv": [2, 2, 3, 3], "texture": "#8"},
-				"up": {"uv": [1, 5, 0, 4], "texture": "#8"},
-				"down": {"uv": [5, 0, 4, 1], "texture": "#8"}
-			}
-		},
-		{
-			"from": [6.6, 2.5, 10],
-			"to": [7.1, 3, 10.5],
-			"rotation": {"angle": 0, "axis": "y", "origin": [8, 3, 10]},
-			"faces": {
-				"north": {"uv": [0, 0, 1, 1], "texture": "#6"},
-				"east": {"uv": [0, 2, 1, 3], "texture": "#6"},
-				"south": {"uv": [2, 0, 3, 1], "texture": "#6"},
-				"west": {"uv": [2, 2, 3, 3], "texture": "#6"},
-				"up": {"uv": [1, 5, 0, 4], "texture": "#6"},
-				"down": {"uv": [5, 0, 4, 1], "texture": "#6"}
+				"north": { "uv": [0, 0, 16, 16], "texture": "#1" },
+				"east": { "uv": [0, 0, 16, 16], "texture": "#1" },
+				"south": { "uv": [0, 0, 16, 16], "texture": "#1" },
+				"west": { "uv": [0, 0, 16, 16], "texture": "#1" },
+				"up": { "uv": [0, 0, 16, 16], "texture": "#1" },
+				"down": { "uv": [0, 0, 16, 16], "texture": "#1" }
 			}
 		}
-	],
-	"overrides": [
-		{"predicate": {"pulling": 1}, "model": "infinitygauntlet:item/power/gauntlet_pulling_0"},
-		{"predicate": {"pulling": 1, "pull": 0.65}, "model": "infinitygauntlet:item/power/gauntlet_pulling_1"},
-		{"predicate": {"pulling": 1, "pull": 0.9}, "model": "infinitygauntlet:item/power/gauntlet_pulling_2"},
-		{"predicate": {"custom_model_data": 1}, "model": "infinitygauntlet:item/space/gauntlet"},
-		{"predicate": {"custom_model_data": 1, "pulling": 1}, "model": "infinitygauntlet:item/space/gauntlet_pulling_0"},
-		{"predicate": {"custom_model_data": 1, "pulling": 1, "pull": 0.65}, "model": "infinitygauntlet:item/space/gauntlet_pulling_1"},
-		{"predicate": {"custom_model_data": 1, "pulling": 1, "pull": 0.9}, "model": "infinitygauntlet:item/space/gauntlet_pulling_2"},
-		{"predicate": {"custom_model_data": 2}, "model": "infinitygauntlet:item/time/gauntlet"},
-		{"predicate": {"custom_model_data": 2, "pulling": 1}, "model": "infinitygauntlet:item/time/gauntlet_pulling_0"},
-		{"predicate": {"custom_model_data": 2, "pulling": 1, "pull": 0.65}, "model": "infinitygauntlet:item/time/gauntlet_pulling_1"},
-		{"predicate": {"custom_model_data": 2, "pulling": 1, "pull": 0.9}, "model": "infinitygauntlet:item/time/gauntlet_pulling_2"},
-		{"predicate": {"custom_model_data": 3}, "model": "infinitygauntlet:item/mind/gauntlet"},
-		{"predicate": {"custom_model_data": 3, "pulling": 1}, "model": "infinitygauntlet:item/mind/gauntlet_pulling_0"},
-		{"predicate": {"custom_model_data": 3, "pulling": 1, "pull": 0.65}, "model": "infinitygauntlet:item/mind/gauntlet_pulling_1"},
-		{"predicate": {"custom_model_data": 3, "pulling": 1, "pull": 0.9}, "model": "infinitygauntlet:item/mind/gauntlet_pulling_2"},
-		{"predicate": {"custom_model_data": 4}, "model": "infinitygauntlet:item/reality/gauntlet"},
-		{"predicate": {"custom_model_data": 4, "pulling": 1}, "model": "infinitygauntlet:item/reality/gauntlet_pulling_0"},
-		{"predicate": {"custom_model_data": 4, "pulling": 1, "pull": 0.65}, "model": "infinitygauntlet:item/reality/gauntlet_pulling_1"},
-		{"predicate": {"custom_model_data": 4, "pulling": 1, "pull": 0.9}, "model": "infinitygauntlet:item/reality/gauntlet_pulling_2"},
-		{"predicate": {"custom_model_data": 5}, "model": "infinitygauntlet:item/soul/gauntlet"},
-		{"predicate": {"custom_model_data": 5, "pulling": 1}, "model": "infinitygauntlet:item/soul/gauntlet_pulling_0"},
-		{"predicate": {"custom_model_data": 5, "pulling": 1, "pull": 0.65}, "model": "infinitygauntlet:item/soul/gauntlet_pulling_1"},
-		{"predicate": {"custom_model_data": 5, "pulling": 1, "pull": 0.9}, "model": "infinitygauntlet:item/soul/gauntlet_pulling_2"}
 	],
 	"display": {
 		"thirdperson_righthand": {
 			"rotation": [0, 180, 0],
 			"translation": [0, 9, -1],
 			"scale": [1.3, 1.7, 1.5]
-		},
-		"thirdperson_lefthand": {
-			"rotation": [0, 180, 0],
-			"translation": [0, 9, -1],
-			"scale": [1.3, 1.7, 1.5]
-		},
-		"firstperson_righthand": {
-			"rotation": [20, 165, -15],
-			"translation": [1.13, 8.45, 2.13]
-		},
-		"firstperson_lefthand": {
-			"rotation": [20, 165, -15],
-			"translation": [1.13, 8.45, 2.13]
-		},
-		"ground": {
-			"translation": [0, 10, 0],
-			"scale": [1.3, 1.7, 1.5]
-		},
-		"gui": {
-			"rotation": [-115, -13, -164],
-			"translation": [3.5, 7, 0],
-			"scale": [1.9, 2.3, 2.1]
-		},
-		"head": {
-			"rotation": [90, 180, 180],
-			"translation": [0, 11, -9],
-			"scale": [1.5, 1.5, 1.5]
-		},
-		"fixed": {
-			"rotation": [-90, 0, 0],
-			"translation": [0, 0, -13],
-			"scale": [1.7, 2.1, 1.9]
 		}
-	},
-	"groups": [
-		{
-			"name": "bone",
-			"origin": [0, 0, 0],
-			"color": 0,
-			"children": [
-				0,
-				{
-					"name": "bone2",
-					"origin": [0, 0, 0],
-					"color": 0,
-					"children": [1, 2, 3, 4, 5, 6, 7]
-				}
-			]
-		}
-	]
+	}
 }

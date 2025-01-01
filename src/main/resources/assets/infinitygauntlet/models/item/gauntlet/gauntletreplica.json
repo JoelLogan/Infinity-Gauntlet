@@ -8,7 +8,8 @@
 		"5": "infinitygauntlet:item/replica/gem3",
 		"6": "infinitygauntlet:item/replica/gem4",
 		"7": "infinitygauntlet:item/replica/gem5",
-		"8": "infinitygauntlet:item/replica/gem6"
+		"8": "infinitygauntlet:item/replica/gem6",
+		"particle": "infinitygauntlet:item/replica/infinitygaun2"
 	},
 	"elements": [
 		{

@@ -1,5 +1,6 @@
 package com.whitehallplugins.infinitygauntlet;
 
+import com.whitehallplugins.infinitygauntlet.commands.StopRealityThreads;
 import com.whitehallplugins.infinitygauntlet.effects.TargetEntityEffect;
 import com.whitehallplugins.infinitygauntlet.events.EntityLoadEvent;
 import com.whitehallplugins.infinitygauntlet.events.LootTableModifyEvent;
@@ -17,6 +18,7 @@ import com.whitehallplugins.infinitygauntlet.networking.listeners.ModVersionList
 import com.whitehallplugins.infinitygauntlet.networking.payloads.GauntletSwapPayload;
 import com.whitehallplugins.infinitygauntlet.networking.payloads.ModVersionPayload;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
@@ -120,6 +122,8 @@ public final class InfinityGauntlet implements ModInitializer {
         });
 
         initThreadShutdownHook();
+
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> StopRealityThreads.register(dispatcher));
 
         FuelRegistryEvents.BUILD.register((builder, context) -> builder.add(POWER_GEM, CONFIG.getOrDefault("powerGemBurnTime",
                 DefaultModConfig.POWER_GEM_BURN_TIME) + 5));

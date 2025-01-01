@@ -23,6 +23,7 @@ import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -136,8 +137,8 @@ public final class Gauntlet extends BowItem {
         }
     }
 
-    public static void setCustomModelData(PlayerEntity player, ItemStack stack, int customModelData) {
-        stack.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(customModelData));
+    public static void setCustomModelData(PlayerEntity player, ItemStack stack, float customModelData) {
+        stack.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(List.of(customModelData), Collections.emptyList(), Collections.emptyList(), Collections.emptyList()));
         if (stack.getItem() instanceof BowItem) {
             player.clearActiveItem();
         }
@@ -145,7 +146,7 @@ public final class Gauntlet extends BowItem {
 
     public static int getCustomModelData(ItemStack stack) {
         CustomModelDataComponent component = stack.get(DataComponentTypes.CUSTOM_MODEL_DATA);
-        return component != null ? component.value() : 0;
+        return component != null ? component.floats().get(0).intValue() : 0;
     }
 
     @Override
