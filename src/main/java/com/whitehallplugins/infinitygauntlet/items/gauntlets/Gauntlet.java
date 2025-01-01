@@ -2,16 +2,20 @@ package com.whitehallplugins.infinitygauntlet.items.gauntlets;
 
 import com.whitehallplugins.infinitygauntlet.InfinityGauntlet;
 import com.whitehallplugins.infinitygauntlet.files.config.DefaultModConfig;
+import net.fabricmc.fabric.api.item.v1.EnchantingContext;
 import net.minecraft.block.BlockState;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.CustomModelDataComponent;
 import net.minecraft.component.type.UnbreakableComponent;
+import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.*;
 import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
+import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
@@ -19,6 +23,7 @@ import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -40,8 +45,7 @@ public final class Gauntlet extends BowItem {
                 if (charge >= 0 && charge < getChargeTime(stack)) {
                     double chargingIncrement = (double) stack.getMaxDamage() / getChargeTime(stack);
                     stack.setDamage(stack.getMaxDamage() - (int) Math.min(charge * chargingIncrement, stack.getMaxDamage() - 1));
-                }
-                else if (charge == getChargeTime(stack)){
+                } else if (charge == getChargeTime(stack)) {
                     setHideDurabilityBar(stack, true);
                 }
             } else {
@@ -55,12 +59,18 @@ public final class Gauntlet extends BowItem {
 
     private int getChargeTime(ItemStack stack) {
         return switch (getCustomModelData(stack)) {
-            case 0 -> InfinityGauntlet.CONFIG.getOrDefault("powerGauntletChargeTime", DefaultModConfig.POWER_GAUNTLET_CHARGE_TIME); // POWER
-            case 1 -> InfinityGauntlet.CONFIG.getOrDefault("spaceGauntletChargeTime", DefaultModConfig.SPACE_GAUNTLET_CHARGE_TIME);  // SPACE
-            case 2 -> InfinityGauntlet.CONFIG.getOrDefault("timeGauntletChargeTime", DefaultModConfig.TIME_GAUNTLET_CHARGE_TIME);  // TIME
-            case 3 -> InfinityGauntlet.CONFIG.getOrDefault("mindGauntletChargeTime", DefaultModConfig.MIND_GAUNTLET_CHARGE_TIME);  // MIND
-            case 4 -> InfinityGauntlet.CONFIG.getOrDefault("realityGauntletChargeTime", DefaultModConfig.REALITY_GAUNTLET_CHARGE_TIME);  // REALITY
-            case 5 -> InfinityGauntlet.CONFIG.getOrDefault("soulGauntletChargeTime", DefaultModConfig.SOUL_GAUNTLET_CHARGE_TIME);  // SOUL
+            case 0 ->
+                    InfinityGauntlet.CONFIG.getOrDefault("powerGauntletChargeTime", DefaultModConfig.POWER_GAUNTLET_CHARGE_TIME); // POWER
+            case 1 ->
+                    InfinityGauntlet.CONFIG.getOrDefault("spaceGauntletChargeTime", DefaultModConfig.SPACE_GAUNTLET_CHARGE_TIME);  // SPACE
+            case 2 ->
+                    InfinityGauntlet.CONFIG.getOrDefault("timeGauntletChargeTime", DefaultModConfig.TIME_GAUNTLET_CHARGE_TIME);  // TIME
+            case 3 ->
+                    InfinityGauntlet.CONFIG.getOrDefault("mindGauntletChargeTime", DefaultModConfig.MIND_GAUNTLET_CHARGE_TIME);  // MIND
+            case 4 ->
+                    InfinityGauntlet.CONFIG.getOrDefault("realityGauntletChargeTime", DefaultModConfig.REALITY_GAUNTLET_CHARGE_TIME);  // REALITY
+            case 5 ->
+                    InfinityGauntlet.CONFIG.getOrDefault("soulGauntletChargeTime", DefaultModConfig.SOUL_GAUNTLET_CHARGE_TIME);  // SOUL
             default -> 0;
         };
     }
@@ -76,16 +86,15 @@ public final class Gauntlet extends BowItem {
     }
 
     @Override
-    public void onStoppedUsing(ItemStack stack, World world, LivingEntity user, int remainingUseTicks) {
-        if (world.isClient()){
+    public boolean onStoppedUsing(ItemStack stack, World world, LivingEntity user, int remainingUseTicks) {
+        if (world.isClient()) {
             setHideDurabilityBar(stack, true);
-        }
-        else {
+        } else {
             int charge = getMaxUseTime(stack, user) - remainingUseTicks;
             boolean charged = charge >= getChargeTime(stack);
             switch (getCustomModelData(stack)) {
                 case 0: // POWER
-                    powerGemUse(world, (PlayerEntity) user, charged);
+                    powerGemUse((ServerWorld) world, (PlayerEntity) user, charged);
                     break;
                 case 1: // SPACE
                     spaceGemUse(world, (PlayerEntity) user, charged);
@@ -106,38 +115,38 @@ public final class Gauntlet extends BowItem {
                     break;
             }
         }
+        return true;
     }
 
     @Override
-    public TypedActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand) {
-        player.setCurrentHand(hand);
-        ItemStack stack = player.getStackInHand(hand);
+    public ActionResult use(World world, PlayerEntity user, Hand hand) {
+        user.setCurrentHand(hand);
+        ItemStack stack = user.getStackInHand(hand);
         if (world.isClient()) {
             stack.setDamage(100);
             setHideDurabilityBar(stack, false);
         }
-        return TypedActionResult.consume(stack);
+        return ActionResult.CONSUME.noIncrementStat();
     }
 
     public static void setHideDurabilityBar(ItemStack stack, boolean hide) {
-        if (hide){
+        if (hide) {
             stack.set(DataComponentTypes.UNBREAKABLE, new UnbreakableComponent(false));
-        }
-        else {
+        } else {
             stack.remove(DataComponentTypes.UNBREAKABLE);
         }
     }
 
-    public static void setCustomModelData(PlayerEntity player, ItemStack stack, int customModelData) {
-        stack.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(customModelData));
-        if (stack.getItem() instanceof BowItem){
+    public static void setCustomModelData(PlayerEntity player, ItemStack stack, float customModelData) {
+        stack.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(List.of(customModelData), Collections.emptyList(), Collections.emptyList(), Collections.emptyList()));
+        if (stack.getItem() instanceof BowItem) {
             player.clearActiveItem();
         }
     }
 
     public static int getCustomModelData(ItemStack stack) {
         CustomModelDataComponent component = stack.get(DataComponentTypes.CUSTOM_MODEL_DATA);
-        return component != null ? component.value() : 0;
+        return component != null ? component.floats().get(0).intValue() : 0;
     }
 
     @Override
@@ -161,8 +170,8 @@ public final class Gauntlet extends BowItem {
     }
 
     @Override
-    public int getEnchantability() {
-        return 0;
+    public boolean canBeEnchantedWith(ItemStack stack, RegistryEntry<Enchantment> enchantment, EnchantingContext context) {
+        return false;
     }
 
     @Override
@@ -175,12 +184,12 @@ public final class Gauntlet extends BowItem {
         return true;
     }
 
-    private static void sendCurrentMode(PlayerEntity player, int mode){
-        player.sendMessage(Text.translatable("item.infinitygauntlet.gauntlet.gauntlet.tooltip1", Text.translatable("item.infinitygauntlet.gauntlet.gauntlet.power" + mode)).formatted(Formatting.WHITE));
+    private static void sendCurrentMode(PlayerEntity player, int mode) {
+        player.sendMessage(Text.translatable("item.infinitygauntlet.gauntlet.gauntlet.tooltip1", Text.translatable("item.infinitygauntlet.gauntlet.gauntlet.power" + mode)).formatted(Formatting.WHITE), false);
     }
 
     public static void swapPower(PlayerEntity player, ItemStack stack) {
-        switch(getCustomModelData(stack)){
+        switch (getCustomModelData(stack)) {
             case 1: // FROM SPACE TO TIME
                 setCustomModelData(player, stack, 2);
                 sendCurrentMode(player, 2);
@@ -218,8 +227,7 @@ public final class Gauntlet extends BowItem {
             if (compound.containsUuid(MIND_GEM_NBT_ID)) {
                 setStackGlowing(stack, true);
             }
-        }
-        catch (IllegalArgumentException exception) {
+        } catch (IllegalArgumentException exception) {
             Logger.getLogger(MOD_ID).warning(Text.translatable("infinitygauntlet.error.mindgemuuid").getString());
         }
     }
@@ -231,8 +239,7 @@ public final class Gauntlet extends BowItem {
                     !Objects.requireNonNull(compound.getList(SOUL_GEM_NBT_ID, NbtElement.COMPOUND_TYPE)).isEmpty()) {
                 setStackGlowing(stack, true);
             }
-        }
-        catch (IllegalArgumentException exception) {
+        } catch (IllegalArgumentException exception) {
             Logger.getLogger(MOD_ID).warning(Text.translatable("infinitygauntlet.error.soulgemlist").getString());
         }
     }

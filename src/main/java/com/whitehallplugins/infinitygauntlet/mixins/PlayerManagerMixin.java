@@ -20,6 +20,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 @Mixin(PlayerManager.class)
@@ -49,7 +50,7 @@ public abstract class PlayerManagerMixin {
             ServerWorld targetWorld = Objects.requireNonNull(player.getServer()).getWorld(worldKey);
             if (targetWorld != null) {
                 Vec3d targetPos = new Vec3d(targetX, targetY, targetZ);
-                player.teleport(targetWorld, targetPos.x, targetPos.y, targetPos.z, player.getYaw(), player.getPitch());
+                player.teleport(targetWorld, targetPos.x, targetPos.y, targetPos.z, Set.of(), player.getYaw(), player.getPitch(), true);
             }
             World overworld = Objects.requireNonNull(player.getServer()).getWorld(World.OVERWORLD);
             if (overworld != null) {

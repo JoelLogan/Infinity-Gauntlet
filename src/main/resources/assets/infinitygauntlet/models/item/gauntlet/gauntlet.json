@@ -116,31 +116,6 @@
 			}
 		}
 	],
-	"overrides": [
-		{"predicate": {"pulling": 1}, "model": "infinitygauntlet:item/power/gauntlet_pulling_0"},
-		{"predicate": {"pulling": 1, "pull": 0.65}, "model": "infinitygauntlet:item/power/gauntlet_pulling_1"},
-		{"predicate": {"pulling": 1, "pull": 0.9}, "model": "infinitygauntlet:item/power/gauntlet_pulling_2"},
-		{"predicate": {"custom_model_data": 1}, "model": "infinitygauntlet:item/space/gauntlet"},
-		{"predicate": {"custom_model_data": 1, "pulling": 1}, "model": "infinitygauntlet:item/space/gauntlet_pulling_0"},
-		{"predicate": {"custom_model_data": 1, "pulling": 1, "pull": 0.65}, "model": "infinitygauntlet:item/space/gauntlet_pulling_1"},
-		{"predicate": {"custom_model_data": 1, "pulling": 1, "pull": 0.9}, "model": "infinitygauntlet:item/space/gauntlet_pulling_2"},
-		{"predicate": {"custom_model_data": 2}, "model": "infinitygauntlet:item/time/gauntlet"},
-		{"predicate": {"custom_model_data": 2, "pulling": 1}, "model": "infinitygauntlet:item/time/gauntlet_pulling_0"},
-		{"predicate": {"custom_model_data": 2, "pulling": 1, "pull": 0.65}, "model": "infinitygauntlet:item/time/gauntlet_pulling_1"},
-		{"predicate": {"custom_model_data": 2, "pulling": 1, "pull": 0.9}, "model": "infinitygauntlet:item/time/gauntlet_pulling_2"},
-		{"predicate": {"custom_model_data": 3}, "model": "infinitygauntlet:item/mind/gauntlet"},
-		{"predicate": {"custom_model_data": 3, "pulling": 1}, "model": "infinitygauntlet:item/mind/gauntlet_pulling_0"},
-		{"predicate": {"custom_model_data": 3, "pulling": 1, "pull": 0.65}, "model": "infinitygauntlet:item/mind/gauntlet_pulling_1"},
-		{"predicate": {"custom_model_data": 3, "pulling": 1, "pull": 0.9}, "model": "infinitygauntlet:item/mind/gauntlet_pulling_2"},
-		{"predicate": {"custom_model_data": 4}, "model": "infinitygauntlet:item/reality/gauntlet"},
-		{"predicate": {"custom_model_data": 4, "pulling": 1}, "model": "infinitygauntlet:item/reality/gauntlet_pulling_0"},
-		{"predicate": {"custom_model_data": 4, "pulling": 1, "pull": 0.65}, "model": "infinitygauntlet:item/reality/gauntlet_pulling_1"},
-		{"predicate": {"custom_model_data": 4, "pulling": 1, "pull": 0.9}, "model": "infinitygauntlet:item/reality/gauntlet_pulling_2"},
-		{"predicate": {"custom_model_data": 5}, "model": "infinitygauntlet:item/soul/gauntlet"},
-		{"predicate": {"custom_model_data": 5, "pulling": 1}, "model": "infinitygauntlet:item/soul/gauntlet_pulling_0"},
-		{"predicate": {"custom_model_data": 5, "pulling": 1, "pull": 0.65}, "model": "infinitygauntlet:item/soul/gauntlet_pulling_1"},
-		{"predicate": {"custom_model_data": 5, "pulling": 1, "pull": 0.9}, "model": "infinitygauntlet:item/soul/gauntlet_pulling_2"}
-	],
 	"display": {
 		"thirdperson_righthand": {
 			"rotation": [0, 180, 0],

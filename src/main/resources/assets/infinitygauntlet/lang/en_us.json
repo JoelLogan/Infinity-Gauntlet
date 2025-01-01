@@ -38,6 +38,7 @@
   "infinitygauntlet.warning.playeroffline": "The stored player is offline. They will spawn at the targeted location when they log in",
   "infinitygauntlet.warning.busythreads": "All threads are busy. This reality gem task will start when a thread is available",
   "infinitygauntlet.warning.teleportcooldown": "Teleport on cooldown",
+  "infinitygauntlet.warning.realitythreadsstopped": "All of the reality threads have stopped",
   "infinitygauntlet.error.recipenotfound": "Gauntlet recipe not found",
   "infinitygauntlet.error.modversion": "Error getting the mod version",
   "infinitygauntlet.error.nbtentity": "Entity type not found in NBT list",

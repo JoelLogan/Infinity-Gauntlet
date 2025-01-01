@@ -1,0 +1,199 @@
+{
+  "model": {
+    "type": "minecraft:condition",
+    "on_false": {
+      "type": "minecraft:range_dispatch",
+      "property": "minecraft:custom_model_data",
+      "entries": [
+        {
+          "threshold": 1,
+          "model": {
+            "type": "minecraft:model",
+            "model": "infinitygauntlet:item/space/gauntlet"
+          }
+        },
+        {
+          "threshold": 2,
+          "model": {
+            "type": "minecraft:model",
+            "model": "infinitygauntlet:item/time/gauntlet"
+          }
+        },
+        {
+          "threshold": 3,
+          "model": {
+            "type": "minecraft:model",
+            "model": "infinitygauntlet:item/mind/gauntlet"
+          }
+        },
+        {
+          "threshold": 4,
+          "model": {
+            "type": "minecraft:model",
+            "model": "infinitygauntlet:item/reality/gauntlet"
+          }
+        },
+        {
+          "threshold": 5,
+          "model": {
+            "type": "minecraft:model",
+            "model": "infinitygauntlet:item/soul/gauntlet"
+          }
+        }
+      ],
+      "fallback": {
+        "type": "minecraft:model",
+        "model": "infinitygauntlet:item/power/gauntlet"
+      }
+    },
+    "on_true": {
+      "type": "minecraft:range_dispatch",
+      "entries": [
+        {
+          "model": {
+            "type": "minecraft:range_dispatch",
+            "property": "minecraft:custom_model_data",
+            "entries": [
+              {
+                "threshold": 1,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "infinitygauntlet:item/space/gauntlet_pulling_1"
+                }
+              },
+              {
+                "threshold": 2,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "infinitygauntlet:item/time/gauntlet_pulling_1"
+                }
+              },
+              {
+                "threshold": 3,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "infinitygauntlet:item/mind/gauntlet_pulling_1"
+                }
+              },
+              {
+                "threshold": 4,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "infinitygauntlet:item/reality/gauntlet_pulling_1"
+                }
+              },
+              {
+                "threshold": 5,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "infinitygauntlet:item/soul/gauntlet_pulling_1"
+                }
+              }
+            ],
+            "fallback": {
+              "type": "minecraft:model",
+              "model": "infinitygauntlet:item/power/gauntlet_pulling_1"
+            }
+          },
+          "threshold": 0.65
+        },
+        {
+          "model": {
+            "type": "minecraft:range_dispatch",
+            "property": "minecraft:custom_model_data",
+            "entries": [
+              {
+                "threshold": 1,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "infinitygauntlet:item/space/gauntlet_pulling_2"
+                }
+              },
+              {
+                "threshold": 2,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "infinitygauntlet:item/time/gauntlet_pulling_2"
+                }
+              },
+              {
+                "threshold": 3,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "infinitygauntlet:item/mind/gauntlet_pulling_2"
+                }
+              },
+              {
+                "threshold": 4,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "infinitygauntlet:item/reality/gauntlet_pulling_2"
+                }
+              },
+              {
+                "threshold": 5,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "infinitygauntlet:item/soul/gauntlet_pulling_2"
+                }
+              }
+            ],
+            "fallback": {
+              "type": "minecraft:model",
+              "model": "infinitygauntlet:item/power/gauntlet_pulling_2"
+            }
+          },
+          "threshold": 0.9
+        }
+      ],
+      "fallback": {
+        "type": "minecraft:range_dispatch",
+        "property": "minecraft:custom_model_data",
+        "entries": [
+          {
+            "threshold": 1,
+            "model": {
+              "type": "minecraft:model",
+              "model": "infinitygauntlet:item/space/gauntlet_pulling_0"
+            }
+          },
+          {
+            "threshold": 2,
+            "model": {
+              "type": "minecraft:model",
+              "model": "infinitygauntlet:item/time/gauntlet_pulling_0"
+            }
+          },
+          {
+            "threshold": 3,
+            "model": {
+              "type": "minecraft:model",
+              "model": "infinitygauntlet:item/mind/gauntlet_pulling_0"
+            }
+          },
+          {
+            "threshold": 4,
+            "model": {
+              "type": "minecraft:model",
+              "model": "infinitygauntlet:item/reality/gauntlet_pulling_0"
+            }
+          },
+          {
+            "threshold": 5,
+            "model": {
+              "type": "minecraft:model",
+              "model": "infinitygauntlet:item/soul/gauntlet_pulling_0"
+            }
+          }
+        ],
+        "fallback": {
+          "type": "minecraft:model",
+          "model": "infinitygauntlet:item/power/gauntlet_pulling_0"
+        }
+      },
+      "property": "minecraft:use_duration",
+      "scale": 0.05
+    },
+    "property": "minecraft:using_item"
+  }
+}

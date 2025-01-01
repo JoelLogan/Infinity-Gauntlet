@@ -18,9 +18,9 @@ public final class LootTableModifyEvent implements Modify {
 
     private static final String MC_ID = "minecraft";
 
-    private static final Identifier WITHER_LOOT_TABLE_ID = EntityType.WITHER.getLootTableId().getValue();
-    private static final Identifier WARDEN_LOOT_TABLE_ID = EntityType.WARDEN.getLootTableId().getValue();
-    private static final Identifier ENDER_DRAGON_LOOT_TABLE_ID = EntityType.ENDER_DRAGON.getLootTableId().getValue();
+    private static final Identifier WITHER_LOOT_TABLE_ID = EntityType.WITHER.getLootTableKey().orElseThrow().getValue();
+    private static final Identifier WARDEN_LOOT_TABLE_ID = EntityType.WARDEN.getLootTableKey().orElseThrow().getValue();
+    private static final Identifier ENDER_DRAGON_LOOT_TABLE_ID = EntityType.ENDER_DRAGON.getLootTableKey().orElseThrow().getValue();
     private static final Identifier JUNGLE_TEMPLE_LOOT_TABLE_ID = Identifier.of(MC_ID, "chests/jungle_temple");
     private static final Identifier ANCIENT_CITY_LOOT_TABLE_ID = Identifier.of(MC_ID, "chests/ancient_city");
     private static final Identifier DESERT_PYRAMID_LOOT_TABLE_ID = Identifier.of(MC_ID, "chests/desert_pyramid");

@@ -1,5 +1,4 @@
 {
-    "parent": "item/bow",
     "textures": {
 		"1": "infinitygauntlet:item/reality/infinitygaun2",
 		"2": "infinitygauntlet:item/reality/infinitygaun",
@@ -51,15 +50,15 @@
 			}
 		},
 		{
-			"from": [9, 3.1, 10],
-			"to": [9.5, 3.6, 10.5],
-			"rotation": {"angle": 0, "axis": "z", "origin": [10, 3, 10]},
+			"from": [9.5, 2.1, 10],
+			"to": [10, 2.6, 10.5],
+			"rotation": {"angle": 0, "axis": "z", "origin": [11, 2, 10]},
 			"faces": {
 				"north": {"uv": [0, 0, 1, 1], "texture": "#7"},
 				"east": {"uv": [0, 2, 1, 3], "texture": "#7"},
 				"south": {"uv": [2, 0, 3, 1], "texture": "#7"},
-				"west": {"uv": [2, 2, 3, 3], "texture": "#7"},
-				"up": {"uv": [1, 5, 0, 4], "texture": "#7"},
+				"west": {"uv": [0, 4, 1, 5], "texture": "#7"},
+				"up": {"uv": [3, 3, 2, 2], "texture": "#7"},
 				"down": {"uv": [5, 0, 4, 1], "texture": "#7"}
 			}
 		},
@@ -115,5 +114,44 @@
 				"down": {"uv": [5, 0, 4, 1], "texture": "#6"}
 			}
 		}
-	]
+	],
+	"display": {
+		"thirdperson_righthand": {
+			"rotation": [0, 180, 0],
+			"translation": [0, 9, -1],
+			"scale": [1.3, 1.7, 1.5]
+		},
+		"thirdperson_lefthand": {
+			"rotation": [0, 180, 0],
+			"translation": [0, 9, -1],
+			"scale": [1.3, 1.7, 1.5]
+		},
+		"firstperson_righthand": {
+			"rotation": [20, 165, -15],
+			"translation": [1.13, 8.45, 2.13]
+		},
+		"firstperson_lefthand": {
+			"rotation": [20, 165, -15],
+			"translation": [1.13, 8.45, 2.13]
+		},
+		"ground": {
+			"translation": [0, 10, 0],
+			"scale": [1.3, 1.7, 1.5]
+		},
+		"gui": {
+			"rotation": [-115, -13, -164],
+			"translation": [3.5, 7, 0],
+			"scale": [1.9, 2.3, 2.1]
+		},
+		"head": {
+			"rotation": [90, 180, 180],
+			"translation": [0, 11, -9],
+			"scale": [1.5, 1.5, 1.5]
+		},
+		"fixed": {
+			"rotation": [-90, 0, 0],
+			"translation": [0, 0, -13],
+			"scale": [1.7, 2.1, 1.9]
+		}
+	}
 }
