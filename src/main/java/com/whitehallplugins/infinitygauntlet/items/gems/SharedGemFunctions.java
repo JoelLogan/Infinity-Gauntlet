@@ -85,8 +85,9 @@ public final class SharedGemFunctions {
     private static final int ENTITY_RAYCAST_DISTANCE = CONFIG.getOrDefault("raycastEntityDistance", DefaultModConfig.RAYCAST_ENTITY_DISTANCE);
     private static final int BLOCK_RAYCAST_DISTANCE = CONFIG.getOrDefault("raycastBlocksDistance", DefaultModConfig.RAYCAST_BLOCKS_DISTANCE);
     private static final int COMBINED_RAYCAST_DISTANCE = CONFIG.getOrDefault("raycastCombinedDistance", DefaultModConfig.RAYCAST_COMBINED_DISTANCE);
+    private static final String THREAD_CONFIG_NAME = "realityGauntletConcurrentThreads";
     private static ScheduledExecutorService executorService = Executors.newScheduledThreadPool(CONFIG.getOrDefault(
-            "realityGauntletConcurrentThreads", DefaultModConfig.REALITY_GAUNTLET_CONCURRENT_THREADS));
+            THREAD_CONFIG_NAME, DefaultModConfig.REALITY_GAUNTLET_CONCURRENT_THREADS));
     private static ThreadPoolExecutor threadPoolExecutor = (ThreadPoolExecutor) executorService;
     private static boolean keepRunning = true;
     private static final Object lockObj = new Object();
@@ -105,7 +106,7 @@ public final class SharedGemFunctions {
     public static void stopAllCurrentThreads() {
         executorService.shutdownNow();
         executorService = Executors.newScheduledThreadPool(CONFIG.getOrDefault(
-                "realityGauntletConcurrentThreads", DefaultModConfig.REALITY_GAUNTLET_CONCURRENT_THREADS));
+                THREAD_CONFIG_NAME, DefaultModConfig.REALITY_GAUNTLET_CONCURRENT_THREADS));
         threadPoolExecutor = (ThreadPoolExecutor) executorService;
     }
 
@@ -439,7 +440,7 @@ public final class SharedGemFunctions {
     }
 
     private static boolean isThreadPoolBusy() {
-        return threadPoolExecutor.getActiveCount() >= CONFIG.getOrDefault("realityGauntletConcurrentThreads",
+        return threadPoolExecutor.getActiveCount() >= CONFIG.getOrDefault(THREAD_CONFIG_NAME,
                 DefaultModConfig.REALITY_GAUNTLET_CONCURRENT_THREADS);
     }
 

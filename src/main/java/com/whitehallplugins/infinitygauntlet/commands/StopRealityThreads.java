@@ -10,6 +10,8 @@ import static net.minecraft.server.command.CommandManager.literal;
 
 public class StopRealityThreads {
 
+    private StopRealityThreads() {}
+
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(literal("infinitygauntlet:stoprealitythreads")
                 .requires(source -> source.hasPermissionLevel(4))
