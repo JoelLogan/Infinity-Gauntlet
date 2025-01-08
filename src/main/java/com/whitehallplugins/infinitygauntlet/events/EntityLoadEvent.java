@@ -20,7 +20,8 @@ public class EntityLoadEvent implements Load {
         else if (entity.getType().equals(EntityType.AREA_EFFECT_CLOUD)) {
             NbtCompound compound = new NbtCompound();
             entity.saveNbt(compound);
-            if (compound.contains("effects") && Objects.requireNonNull(compound.get("effects")).toString().contains(InfinityGauntlet.TARGET_ENTITY_EFFECT_ID.toString())) {
+            System.out.println("EntityLoadEvent: " + entity.getName() + " nbt " + compound);
+            if (compound.contains("potion_contents") && Objects.requireNonNull(compound.get("potion_contents")).toString().contains(InfinityGauntlet.TARGET_ENTITY_EFFECT_ID.toString())) {
                 entity.remove(Entity.RemovalReason.DISCARDED);
             }
         }

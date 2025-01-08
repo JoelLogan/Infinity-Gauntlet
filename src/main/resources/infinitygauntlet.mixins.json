@@ -4,6 +4,8 @@
   "package": "com.whitehallplugins.infinitygauntlet.mixins",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "FreezeEntityMixin",
+    "FreezePlayerEntityMixin",
     "FurnaceBlockEntityMixin",
     "PlayerManagerMixin"
   ],

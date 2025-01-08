@@ -10,6 +10,7 @@ import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 
+import java.util.Arrays;
 import java.util.UUID;
 
 public final class TargetEntityEffect extends StatusEffect {
@@ -29,7 +30,7 @@ public final class TargetEntityEffect extends StatusEffect {
     public boolean applyUpdateEffect(ServerWorld world, LivingEntity entity, int amplifier) {
         if (entity.getWorld() instanceof ServerWorld serverWorld && entity instanceof HostileEntity) {
             for (String s : entity.getCommandTags()) {
-                if (s.split("\\.")[0].equals(COMMAND_TAG)) {
+                if (Arrays.asList(s.split("\\.")).contains(COMMAND_TAG)) {
                     UUID uuid = UUID.fromString(s.split("\\.")[1]);
                     Entity target = serverWorld.getEntity(uuid);
                     if (target instanceof LivingEntity) {
@@ -43,6 +44,10 @@ public final class TargetEntityEffect extends StatusEffect {
                             removeEffect(entity, s);
                             return false;
                         }
+                    }
+                    else {
+                        removeEffect(entity, s);
+                        return false;
                     }
                 }
             }

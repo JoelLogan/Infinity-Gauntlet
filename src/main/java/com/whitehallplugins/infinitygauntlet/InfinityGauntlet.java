@@ -1,6 +1,7 @@
 package com.whitehallplugins.infinitygauntlet;
 
 import com.whitehallplugins.infinitygauntlet.commands.StopRealityThreads;
+import com.whitehallplugins.infinitygauntlet.effects.FreezeEntityEffect;
 import com.whitehallplugins.infinitygauntlet.effects.TargetEntityEffect;
 import com.whitehallplugins.infinitygauntlet.events.EntityLoadEvent;
 import com.whitehallplugins.infinitygauntlet.events.LootTableModifyEvent;
@@ -43,9 +44,7 @@ import net.minecraft.util.Rarity;
 import net.minecraft.registry.Registry;
 import net.minecraft.world.World;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.whitehallplugins.infinitygauntlet.items.gems.SharedGemFunctions.initThreadShutdownHook;
 
@@ -96,10 +95,12 @@ public final class InfinityGauntlet implements ModInitializer {
 
     public static final Identifier SOUL_DIMENSION_ID = Identifier.of(MOD_ID, "souldimension");
     public static final Identifier TARGET_ENTITY_EFFECT_ID = Identifier.of(MOD_ID, "targeteffect");
+    public static final Identifier FREEZE_ENTITY_EFFECT_ID = Identifier.of(MOD_ID, "freezeeffect");
 
     public static final Block SOUL_DIMENSION_BLOCK = new Block(AbstractBlock.Settings.create().strength(-1.0f, 3600000.0F).dropsNothing().registryKey(RegistryKey.of(RegistryKeys.BLOCK, blockIdentifiers[0])));
 
     public static final StatusEffect targetEntityEffect = new TargetEntityEffect();
+    public static final StatusEffect freezeEntityEffect = new FreezeEntityEffect();
 
     public static final RegistryKey<DamageType> POWER_GEM_DAMAGE_TYPE = RegistryKey.of(RegistryKeys.DAMAGE_TYPE, Identifier.of(MOD_ID, "power_gem_damage_type"));
 
@@ -137,6 +138,7 @@ public final class InfinityGauntlet implements ModInitializer {
         Registry.register(Registries.ITEM, itemIdentifiers[14], new BlockItem(SOUL_DIMENSION_BLOCK, new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, itemIdentifiers[14]))));
 
         Registry.register(Registries.STATUS_EFFECT, TARGET_ENTITY_EFFECT_ID, targetEntityEffect);
+        Registry.register(Registries.STATUS_EFFECT, FREEZE_ENTITY_EFFECT_ID, freezeEntityEffect);
 
         PayloadTypeRegistry.playS2C().register(ModVersionPayload.ID, ModVersionPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(ModVersionPayload.ID, ModVersionPayload.CODEC);
@@ -175,8 +177,8 @@ public final class InfinityGauntlet implements ModInitializer {
         Registry.register(Registries.ITEM, itemIdentifiers[13], TIME_GEM_REPLICA);
     }
 
-    public static Identifier gauntletIdentifier() {
-        return itemIdentifiers[0];
+    public static List<Identifier> getItemIdentifiers() {
+        return Collections.unmodifiableList(Arrays.asList(itemIdentifiers));
     }
 
     public static Set<RegistryKey<World>> getServerWorlds() {

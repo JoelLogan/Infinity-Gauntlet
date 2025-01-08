@@ -14,7 +14,6 @@ import net.minecraft.entity.damage.DamageTypes;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.mob.HostileEntity;
-import net.minecraft.entity.passive.PassiveEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.AirBlockItem;
 import net.minecraft.item.BlockItem;
@@ -993,7 +992,7 @@ public final class SharedGemFunctions {
                 if (target.getType().equals(HitResult.Type.BLOCK)) {
                     handleTimeBlockTarget(world, (BlockHitResult) target);
                 } else if (target.getType().equals(HitResult.Type.ENTITY)) {
-                    handleTimeEntityTarget((EntityHitResult) target);
+                    handleTimeEntityTarget(user, (EntityHitResult) target, false);
                 }
             }
         } else {
@@ -1034,26 +1033,51 @@ public final class SharedGemFunctions {
         }
     }
 
-    private static void handleTimeEntityTarget(EntityHitResult entityHitResult) {
-        if (entityHitResult.getEntity() instanceof PassiveEntity passiveEntity) {
-            passiveEntity.setBaby(!passiveEntity.isBaby());
+    private static void handleTimeEntityTarget(PlayerEntity user, EntityHitResult entityHitResult, boolean gauntlet) {
+        Entity entity = entityHitResult.getEntity();
+        if (entity instanceof LivingEntity livingEntity) {
+            if (gauntlet) {
+                updateFreezeEffect(user, livingEntity);
+            }
+            else { // Gem (no player)
+                if (!(entity instanceof PlayerEntity)) {
+                    updateFreezeEffect(user, livingEntity);
+                }
+            }
+        }
+    }
+
+    private static void updateFreezeEffect(PlayerEntity user, LivingEntity livingEntity) {
+        if (livingEntity.getStatusEffects().stream().anyMatch((statusEffectInstance) -> statusEffectInstance.getEffectType().value().equals(InfinityGauntlet.freezeEntityEffect))) {
+            livingEntity.removeStatusEffect(Registries.STATUS_EFFECT.getEntry(InfinityGauntlet.freezeEntityEffect));
+            user.sendMessage(Text.translatable("item.infinitygauntlet.time.frozeentity").formatted(Formatting.GRAY), false);
+        }
+        else {
+            livingEntity.addStatusEffect(new StatusEffectInstance(Registries.STATUS_EFFECT.getEntry(InfinityGauntlet.freezeEntityEffect), StatusEffectInstance.INFINITE, 1, false, false, false));
+            user.sendMessage(Text.translatable("item.infinitygauntlet.time.unfrozenentity").formatted(Formatting.GRAY), false);
         }
     }
 
     private static void handleTimeGauntletUse(World world, PlayerEntity user) {
         EntityHitResult entityHitResult = (EntityHitResult) raycast(user, ENTITY_RAYCAST_DISTANCE, 2, false, false, false);
         if (entityHitResult.getEntity() != null && !entityHitResult.getType().equals(HitResult.Type.MISS)) {
-            Vec3d targetPos = entityHitResult.getPos();
-            spawnPortalParticles((ServerWorld) world, targetPos, true);
-            BlockPos spawnPos = Objects.requireNonNull(user.getServer()).getOverworld().getSpawnPos();
-            entityHitResult.getEntity().teleport(Objects.requireNonNull(user.getServer()).getOverworld(), spawnPos.getX(), spawnPos.getY(), spawnPos.getZ(), Set.of(), 0, 0, false);
-            spawnPortalParticles((ServerWorld) world, spawnPos.toCenterPos(), true);
+            if (user.isSneaking()) {
+                Vec3d targetPos = entityHitResult.getPos();
+                spawnPortalParticles((ServerWorld) world, targetPos, true);
+                BlockPos spawnPos = Objects.requireNonNull(user.getServer()).getOverworld().getSpawnPos();
+                entityHitResult.getEntity().teleport(Objects.requireNonNull(user.getServer()).getOverworld(), spawnPos.getX(), spawnPos.getY(), spawnPos.getZ(), Set.of(), 0, 0, false);
+                spawnPortalParticles((ServerWorld) world, spawnPos.toCenterPos(), true);
+            }
+            else {
+                handleTimeEntityTarget(user, entityHitResult, true);
+            }
         }
     }
     /*   GEM SHOULD BE FINISHED
-     * right click = if blocks - bone meal, if entity - baby/adult (up to 64 blocks) (WORKS)
+     * right click = if blocks - bone meal, if entity - freeze/unfreeze (up to 64 blocks) (WORKS)
      * shift right click = speed 10 (7:30) Haste 3 (WORKS)
      *
-     * With gauntlet: hold right click to send player to spawn or remove mob(WORKS)
+     * With gauntlet: freeze entity (WORKS)
+     * With shift gauntlet: hold right click to send player to spawn (WORKS)
      */
 }

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CCC",
+    "CBC",
+    "CCC"
+  ],
+  "key": {
+    "C": "minecraft:cobblestone",
+    "B": "minecraft:orange_dye"
+  },
+  "result": {
+    "id": "infinitygauntlet:soul/gemreplica",
+    "count": 1
+  }
+}
