@@ -1,5 +1,6 @@
 package com.whitehallplugins.infinitygauntlet;
 
+import com.whitehallplugins.infinitygauntlet.commands.OpenConfig;
 import com.whitehallplugins.infinitygauntlet.commands.StopRealityThreads;
 import com.whitehallplugins.infinitygauntlet.effects.FreezeEntityEffect;
 import com.whitehallplugins.infinitygauntlet.effects.TargetEntityEffect;
@@ -104,7 +105,8 @@ public final class InfinityGauntlet implements ModInitializer {
 
     public static final RegistryKey<DamageType> POWER_GEM_DAMAGE_TYPE = RegistryKey.of(RegistryKeys.DAMAGE_TYPE, Identifier.of(MOD_ID, "power_gem_damage_type"));
 
-    public static final SimpleConfig CONFIG = SimpleConfig.of("IGConfig").provider(DefaultModConfig::getConfig).request();
+    public static final String CONFIG_FILE_NAME = "IGConfig";
+    public static final SimpleConfig CONFIG = SimpleConfig.of(CONFIG_FILE_NAME).provider(DefaultModConfig::getConfig).request();
 
     @Override
     public void onInitialize() {
@@ -125,6 +127,7 @@ public final class InfinityGauntlet implements ModInitializer {
         initThreadShutdownHook();
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> StopRealityThreads.register(dispatcher));
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> OpenConfig.register(dispatcher));
 
         FuelRegistryEvents.BUILD.register((builder, context) -> builder.add(POWER_GEM, CONFIG.getOrDefault("powerGemBurnTime",
                 DefaultModConfig.POWER_GEM_BURN_TIME) + 5));
