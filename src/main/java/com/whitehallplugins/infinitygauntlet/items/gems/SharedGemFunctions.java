@@ -81,9 +81,9 @@ public final class SharedGemFunctions {
             Blocks.PURPLE_STAINED_GLASS, Blocks.BLUE_STAINED_GLASS, Blocks.BROWN_STAINED_GLASS,
             Blocks.GREEN_STAINED_GLASS, Blocks.RED_STAINED_GLASS, Blocks.BLACK_STAINED_GLASS);
     private static final HashMap<PlayerEntity, Long> cooldown = new HashMap<>();
-    private static final int ENTITY_RAYCAST_DISTANCE = CONFIG.getOrDefault("raycastEntityDistance", DefaultModConfig.RAYCAST_ENTITY_DISTANCE);
-    private static final int BLOCK_RAYCAST_DISTANCE = CONFIG.getOrDefault("raycastBlocksDistance", DefaultModConfig.RAYCAST_BLOCKS_DISTANCE);
-    private static final int COMBINED_RAYCAST_DISTANCE = CONFIG.getOrDefault("raycastCombinedDistance", DefaultModConfig.RAYCAST_COMBINED_DISTANCE);
+    public static final int ENTITY_RAYCAST_DISTANCE = CONFIG.getOrDefault("raycastEntityDistance", DefaultModConfig.RAYCAST_ENTITY_DISTANCE);
+    public static final int BLOCK_RAYCAST_DISTANCE = CONFIG.getOrDefault("raycastBlocksDistance", DefaultModConfig.RAYCAST_BLOCKS_DISTANCE);
+    public static final int COMBINED_RAYCAST_DISTANCE = CONFIG.getOrDefault("raycastCombinedDistance", DefaultModConfig.RAYCAST_COMBINED_DISTANCE);
     private static final String THREAD_CONFIG_NAME = "realityGauntletConcurrentThreads";
     private static ScheduledExecutorService executorService = Executors.newScheduledThreadPool(CONFIG.getOrDefault(
             THREAD_CONFIG_NAME, DefaultModConfig.REALITY_GAUNTLET_CONCURRENT_THREADS));
@@ -121,6 +121,7 @@ public final class SharedGemFunctions {
      * @param mode      1 for blocks, 2 for entities, 3 for both
      * @param particles Whether to show particles
      * @param explosion Whether to show explosion particles
+     * @param waterInteraction Whether to interact with water
      * @return The target of the player's crosshair
      */
     public static HitResult raycast(PlayerEntity player, double distance, int mode, boolean particles, boolean explosion, boolean waterInteraction) {
@@ -775,32 +776,50 @@ public final class SharedGemFunctions {
             if (glowingItem.contains(SOUL_GEM_NBT_ID, NbtCompound.LIST_TYPE)) {
                 entityList = glowingItem.getList(SOUL_GEM_NBT_ID, NbtElement.COMPOUND_TYPE);
             }
+            HitResult target = raycast(user, COMBINED_RAYCAST_DISTANCE, 3, false, false, false);
             if (!user.isSneaking()) {
-                handleSoulNonSneakingAction(world, user, gauntlet, stackInHand, glowingItem, entityList);
+                handleSoulNonSneakingAction(world, user, gauntlet, stackInHand, glowingItem, entityList, target);
             } else {
-                handleSoulSneakingAction(world, user, gauntlet, stackInHand, glowingItem, entityList);
+                handleSoulSneakingAction(world, user, gauntlet, stackInHand, glowingItem, entityList, target);
             }
         }
     }
 
-    private static void handleSoulNonSneakingAction(World world, PlayerEntity user, boolean gauntlet, ItemStack stackInHand, NbtCompound glowingItem, NbtList entityList) {
-        if (entityList.size() < CONFIG.getOrDefault("maxNumberofEntitesInSoulGem", DefaultModConfig.MAX_NUMBER_OF_ENTITIES_IN_SOUL_GEM)) {
-            EntityHitResult entityHitResult = (EntityHitResult) raycast(user, ENTITY_RAYCAST_DISTANCE, 2, false, false, false);
-            if (entityHitResult.getEntity() != null && !entityHitResult.getType().equals(HitResult.Type.MISS)) {
-                Entity targetEntity = entityHitResult.getEntity();
-                if (targetEntity instanceof LivingEntity && !disallowedEntities.contains(targetEntity.getType())) {
-                    if (!(targetEntity instanceof PlayerEntity) && CONFIG.getOrDefault("isSoulGemEnabled", DefaultModConfig.IS_SOUL_GEM_ENABLED)) {
-                        soulGemInitialAction(world, user, glowingItem, targetEntity, entityList, stackInHand);
-                        despawnEntity(world, targetEntity);
-                    } else if (gauntlet && CONFIG.getOrDefault("isSoulGemGauntletEnabled", DefaultModConfig.IS_SOUL_GEM_GAUNTLET_ENABLED) && targetEntity instanceof PlayerEntity) {
-                        handleSoulGauntletPlayerAction(world, user, targetEntity, glowingItem, entityList, stackInHand);
+    private static void handleSoulNonSneakingAction(World world, PlayerEntity user, boolean gauntlet, ItemStack stackInHand, NbtCompound glowingItem, NbtList entityList, HitResult target) {
+        if (target.getType().equals(HitResult.Type.BLOCK)) {
+            BlockHitResult blockHitResult = (BlockHitResult) target;
+            if (world.getBlockState(blockHitResult.getBlockPos()).isOf(SOUL_DIMENSION_PORTAL_FRAME_BLOCK_NONINFUSED)) {
+                world.setBlockState(blockHitResult.getBlockPos(), SOUL_DIMENSION_PORTAL_FRAME_BLOCK_INFUSED.getDefaultState());
+            }
+            else if (world.getBlockState(blockHitResult.getBlockPos()).isOf(SOUL_DIMENSION_PORTAL_FRAME_BLOCK_INFUSED) && user.isSneaking()) {
+                world.setBlockState(blockHitResult.getBlockPos(), SOUL_DIMENSION_PORTAL_FRAME_BLOCK_NONINFUSED.getDefaultState());
+            }
+        } else if (target.getType().equals(HitResult.Type.ENTITY)) {
+            if (entityList.size() < CONFIG.getOrDefault("maxNumberofEntitesInSoulGem", DefaultModConfig.MAX_NUMBER_OF_ENTITIES_IN_SOUL_GEM)) {
+                EntityHitResult entityHitResult = (EntityHitResult) target;
+                if (entityHitResult.getEntity() != null && !entityHitResult.getType().equals(HitResult.Type.MISS)) {
+                    Entity targetEntity = entityHitResult.getEntity();
+                    if (targetEntity instanceof LivingEntity && !disallowedEntities.contains(targetEntity.getType())) {
+                        if (!(targetEntity instanceof PlayerEntity) && CONFIG.getOrDefault("isSoulGemEnabled", DefaultModConfig.IS_SOUL_GEM_ENABLED)) {
+                            soulGemInitialAction(world, user, glowingItem, targetEntity, entityList, stackInHand);
+                            despawnEntity(world, targetEntity);
+                        } else if (gauntlet && CONFIG.getOrDefault("isSoulGemGauntletEnabled", DefaultModConfig.IS_SOUL_GEM_GAUNTLET_ENABLED) && targetEntity instanceof PlayerEntity) {
+                            handleSoulGauntletPlayerAction(world, user, targetEntity, glowingItem, entityList, stackInHand);
+                        }
                     }
                 }
             }
         }
     }
 
-    private static void handleSoulSneakingAction(World world, PlayerEntity user, boolean gauntlet, ItemStack stackInHand, NbtCompound glowingItem, NbtList entityList) {
+    private static void handleSoulSneakingAction(World world, PlayerEntity user, boolean gauntlet, ItemStack stackInHand, NbtCompound glowingItem, NbtList entityList, HitResult target) {
+        if (target.getType().equals(HitResult.Type.BLOCK)) {
+            BlockHitResult blockHitResult = (BlockHitResult) target;
+            if (world.getBlockState(blockHitResult.getBlockPos()).isOf(SOUL_DIMENSION_PORTAL_FRAME_BLOCK_INFUSED)) {
+                world.setBlockState(blockHitResult.getBlockPos(), SOUL_DIMENSION_PORTAL_FRAME_BLOCK_NONINFUSED.getDefaultState());
+                return;
+            }
+        }
         if (!entityList.isEmpty() && CONFIG.getOrDefault("isSoulGemEnabled", DefaultModConfig.IS_SOUL_GEM_ENABLED)) {
             if (((NbtCompound) entityList.get(entityList.size() - 1)).get("id") != null) {
                 resummonEntity(world, user, glowingItem, entityList, stackInHand, gauntlet);
@@ -1050,11 +1069,27 @@ public final class SharedGemFunctions {
     private static void updateFreezeEffect(PlayerEntity user, LivingEntity livingEntity) {
         if (livingEntity.getStatusEffects().stream().anyMatch((statusEffectInstance) -> statusEffectInstance.getEffectType().value().equals(InfinityGauntlet.freezeEntityEffect))) {
             livingEntity.removeStatusEffect(Registries.STATUS_EFFECT.getEntry(InfinityGauntlet.freezeEntityEffect));
-            user.sendMessage(Text.translatable("item.infinitygauntlet.time.frozeentity").formatted(Formatting.GRAY), false);
+            user.sendMessage(Text.translatable("item.infinitygauntlet.time.unfrozenentity").formatted(Formatting.GRAY), false);
+            if (livingEntity instanceof PlayerEntity) {
+                ((PlayerEntity) livingEntity).sendMessage(Text.translatable("item.infinitygauntlet.time.unfrozenplayer").formatted(Formatting.AQUA), false);
+            }
         }
         else {
-            livingEntity.addStatusEffect(new StatusEffectInstance(Registries.STATUS_EFFECT.getEntry(InfinityGauntlet.freezeEntityEffect), StatusEffectInstance.INFINITE, 1, false, false, false));
-            user.sendMessage(Text.translatable("item.infinitygauntlet.time.unfrozenentity").formatted(Formatting.GRAY), false);
+            livingEntity.addStatusEffect(new StatusEffectInstance(Registries.STATUS_EFFECT.getEntry(StatusEffects.GLOWING.value()), StatusEffectInstance.INFINITE, 0, true, false, false));
+            new Thread(() -> {
+                try {
+                    Thread.sleep(200);
+                    livingEntity.removeStatusEffect(StatusEffects.GLOWING);
+                    Thread.sleep(200);
+                    livingEntity.addStatusEffect(new StatusEffectInstance(Registries.STATUS_EFFECT.getEntry(InfinityGauntlet.freezeEntityEffect), StatusEffectInstance.INFINITE, 0, true, false, false));
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }).start();
+            user.sendMessage(Text.translatable("item.infinitygauntlet.time.frozenentity").formatted(Formatting.GRAY), false);
+            if (livingEntity instanceof PlayerEntity) {
+                ((PlayerEntity) livingEntity).sendMessage(Text.translatable("item.infinitygauntlet.time.frozenplayer").formatted(Formatting.AQUA), false);
+            }
         }
     }
 

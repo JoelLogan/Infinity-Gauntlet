@@ -7,6 +7,7 @@ import com.whitehallplugins.infinitygauntlet.effects.TargetEntityEffect;
 import com.whitehallplugins.infinitygauntlet.events.EntityLoadEvent;
 import com.whitehallplugins.infinitygauntlet.events.LootTableModifyEvent;
 import com.whitehallplugins.infinitygauntlet.events.PlayerJoinEvent;
+import com.whitehallplugins.infinitygauntlet.events.SoulDimensionPortalOpenEvent;
 import com.whitehallplugins.infinitygauntlet.files.config.DefaultModConfig;
 import com.whitehallplugins.infinitygauntlet.files.teleport.OfflineTeleportManager;
 import com.whitehallplugins.infinitygauntlet.files.config.SimpleConfig;
@@ -29,6 +30,7 @@ import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.registry.FuelRegistryEvents;
+import net.kyrptonaught.customportalapi.api.CustomPortalBuilder;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.entity.damage.DamageType;
@@ -40,6 +42,7 @@ import net.minecraft.item.ItemGroups;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
+import net.minecraft.sound.BlockSoundGroup;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Rarity;
 import net.minecraft.registry.Registry;
@@ -68,11 +71,15 @@ public final class InfinityGauntlet implements ModInitializer {
             Identifier.of(MOD_ID, "soul/gemreplica"),
             Identifier.of(MOD_ID, "space/gemreplica"),
             Identifier.of(MOD_ID, "time/gemreplica"),
-            Identifier.of(MOD_ID, "souldimensionblock")
+            Identifier.of(MOD_ID, "souldimensionblock"),
+            Identifier.of(MOD_ID, "souldimensionportalblockinfused"),
+            Identifier.of(MOD_ID, "souldimensionportalblocknoninfused")
     };
 
     private static final Identifier[] blockIdentifiers = {
-            Identifier.of(MOD_ID, "souldimensionblock")
+            Identifier.of(MOD_ID, "souldimensionblock"),
+            Identifier.of(MOD_ID, "souldimensionportalblockinfused"),
+            Identifier.of(MOD_ID, "souldimensionportalblocknoninfused")
     };
 
     public static final Gauntlet GAUNTLET_ITEM = new Gauntlet(new Item.Settings().rarity(Rarity.EPIC).maxCount(1).fireproof().maxDamage(100).registryKey(RegistryKey.of(RegistryKeys.ITEM, itemIdentifiers[0])));
@@ -94,11 +101,14 @@ public final class InfinityGauntlet implements ModInitializer {
 
     private static Set<RegistryKey<World>> serverWorlds;
 
+    private static final Item SOUL_DIMENSION_PORTAL_IGNITION_ITEM = SOUL_GEM;
     public static final Identifier SOUL_DIMENSION_ID = Identifier.of(MOD_ID, "souldimension");
     public static final Identifier TARGET_ENTITY_EFFECT_ID = Identifier.of(MOD_ID, "targeteffect");
     public static final Identifier FREEZE_ENTITY_EFFECT_ID = Identifier.of(MOD_ID, "freezeeffect");
 
     public static final Block SOUL_DIMENSION_BLOCK = new Block(AbstractBlock.Settings.create().strength(-1.0f, 3600000.0F).dropsNothing().registryKey(RegistryKey.of(RegistryKeys.BLOCK, blockIdentifiers[0])));
+    public static final Block SOUL_DIMENSION_PORTAL_FRAME_BLOCK_INFUSED = new Block(AbstractBlock.Settings.create().strength(-1.0f, 3600000.0F).registryKey(RegistryKey.of(RegistryKeys.BLOCK, blockIdentifiers[1])).sounds(BlockSoundGroup.CREAKING_HEART));
+    public static final Block SOUL_DIMENSION_PORTAL_FRAME_BLOCK_NONINFUSED = new Block(AbstractBlock.Settings.create().strength(10.0f).registryKey(RegistryKey.of(RegistryKeys.BLOCK, blockIdentifiers[2])).sounds(BlockSoundGroup.CREAKING_HEART));
 
     public static final StatusEffect targetEntityEffect = new TargetEntityEffect();
     public static final StatusEffect freezeEntityEffect = new FreezeEntityEffect();
@@ -113,57 +123,19 @@ public final class InfinityGauntlet implements ModInitializer {
         OfflineTeleportManager.loadTeleportData();
 
         registerItems();
-
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.TOOLS).register(content -> {
-            content.add(GAUNTLET_REPLICA_ITEM);
-            content.add(MIND_GEM_REPLICA);
-            content.add(POWER_GEM_REPLICA);
-            content.add(REALITY_GEM_REPLICA);
-            content.add(SOUL_GEM_REPLICA);
-            content.add(SPACE_GEM_REPLICA);
-            content.add(TIME_GEM_REPLICA);
-        });
+        registerBlocks();
+        registerStatusEffects();
+        registerFuelSources();
+        registerCommands();
+        registerEvents();
+        registerCreativeMenuItems();
+        registerPortals();
+        registerNetworking();
 
         initThreadShutdownHook();
-
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> StopRealityThreads.register(dispatcher));
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> OpenConfig.register(dispatcher));
-
-        FuelRegistryEvents.BUILD.register((builder, context) -> builder.add(POWER_GEM, CONFIG.getOrDefault("powerGemBurnTime",
-                DefaultModConfig.POWER_GEM_BURN_TIME) + 5));
-        FuelRegistryEvents.BUILD.register((builder, context) -> builder.add(GAUNTLET_ITEM, CONFIG.getOrDefault("infinityGauntletBurnTime",
-                DefaultModConfig.INFINITY_GAUNTLET_BURN_TIME) + 5));
-
-
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.BUILDING_BLOCKS).register(content -> content.add(SOUL_DIMENSION_BLOCK.asItem()));
-
-        Registry.register(Registries.BLOCK, blockIdentifiers[0], SOUL_DIMENSION_BLOCK);
-        Registry.register(Registries.ITEM, itemIdentifiers[14], new BlockItem(SOUL_DIMENSION_BLOCK, new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, itemIdentifiers[14]))));
-
-        Registry.register(Registries.STATUS_EFFECT, TARGET_ENTITY_EFFECT_ID, targetEntityEffect);
-        Registry.register(Registries.STATUS_EFFECT, FREEZE_ENTITY_EFFECT_ID, freezeEntityEffect);
-
-        PayloadTypeRegistry.playS2C().register(ModVersionPayload.ID, ModVersionPayload.CODEC);
-        PayloadTypeRegistry.playC2S().register(ModVersionPayload.ID, ModVersionPayload.CODEC);
-        PayloadTypeRegistry.playC2S().register(GauntletSwapPayload.ID, GauntletSwapPayload.CODEC);
-
-        ServerPlayNetworking.registerGlobalReceiver(ModVersionPayload.ID, new ModVersionListenerServer());
-        ServerPlayNetworking.registerGlobalReceiver(GauntletSwapPayload.ID, new GauntletSwapPacketListener());
-
-        ServerPlayConnectionEvents.JOIN.register(new PlayerJoinEvent());
-        LootTableEvents.MODIFY.register(new LootTableModifyEvent());
-        ServerEntityEvents.ENTITY_LOAD.register(new EntityLoadEvent());
-        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
-            serverWorlds = server.getWorldRegistryKeys();
-            SharedGemFunctions.setKeepRunning(true);
-        });
-        ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
-            OfflineTeleportManager.saveTeleportData();
-            SharedGemFunctions.setKeepRunning(false);
-        });
     }
 
-    private static void registerItems() {
+    private void registerItems() {
         Registry.register(Registries.ITEM, itemIdentifiers[0], GAUNTLET_ITEM);
         Registry.register(Registries.ITEM, itemIdentifiers[1], MIND_GEM);
         Registry.register(Registries.ITEM, itemIdentifiers[2], POWER_GEM);
@@ -178,6 +150,82 @@ public final class InfinityGauntlet implements ModInitializer {
         Registry.register(Registries.ITEM, itemIdentifiers[11], SOUL_GEM_REPLICA);
         Registry.register(Registries.ITEM, itemIdentifiers[12], SPACE_GEM_REPLICA);
         Registry.register(Registries.ITEM, itemIdentifiers[13], TIME_GEM_REPLICA);
+    }
+
+    private void registerBlocks() {
+        Registry.register(Registries.BLOCK, blockIdentifiers[0], SOUL_DIMENSION_BLOCK);
+        Registry.register(Registries.BLOCK, blockIdentifiers[1], SOUL_DIMENSION_PORTAL_FRAME_BLOCK_INFUSED);
+        Registry.register(Registries.BLOCK, blockIdentifiers[2], SOUL_DIMENSION_PORTAL_FRAME_BLOCK_NONINFUSED);
+        Registry.register(Registries.ITEM, itemIdentifiers[14], new BlockItem(SOUL_DIMENSION_BLOCK, new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, itemIdentifiers[14]))));
+        Registry.register(Registries.ITEM, itemIdentifiers[15], new BlockItem(SOUL_DIMENSION_PORTAL_FRAME_BLOCK_INFUSED, new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, itemIdentifiers[15]))));
+        Registry.register(Registries.ITEM, itemIdentifiers[16], new BlockItem(SOUL_DIMENSION_PORTAL_FRAME_BLOCK_NONINFUSED, new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, itemIdentifiers[16])).recipeRemainder(GAUNTLET_ITEM)));
+    }
+
+    private void registerStatusEffects() {
+        Registry.register(Registries.STATUS_EFFECT, TARGET_ENTITY_EFFECT_ID, targetEntityEffect);
+        Registry.register(Registries.STATUS_EFFECT, FREEZE_ENTITY_EFFECT_ID, freezeEntityEffect);
+    }
+
+    private void registerFuelSources() {
+        FuelRegistryEvents.BUILD.register((builder, context) -> builder.add(POWER_GEM, CONFIG.getOrDefault("powerGemBurnTime",
+                DefaultModConfig.POWER_GEM_BURN_TIME) + 5));
+        FuelRegistryEvents.BUILD.register((builder, context) -> builder.add(GAUNTLET_ITEM, CONFIG.getOrDefault("infinityGauntletBurnTime",
+                DefaultModConfig.INFINITY_GAUNTLET_BURN_TIME) + 5));
+    }
+
+    private void registerCommands() {
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> StopRealityThreads.register(dispatcher));
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> OpenConfig.register(dispatcher));
+    }
+
+    private void registerEvents() {
+        ServerPlayConnectionEvents.JOIN.register(new PlayerJoinEvent());
+        LootTableEvents.MODIFY.register(new LootTableModifyEvent());
+        ServerEntityEvents.ENTITY_LOAD.register(new EntityLoadEvent());
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            serverWorlds = server.getWorldRegistryKeys();
+            SharedGemFunctions.setKeepRunning(true);
+        });
+        ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
+            OfflineTeleportManager.saveTeleportData();
+            SharedGemFunctions.setKeepRunning(false);
+        });
+    }
+
+    private void registerCreativeMenuItems() {
+        ItemGroupEvents.modifyEntriesEvent(ItemGroups.TOOLS).register(content -> {
+            content.add(GAUNTLET_REPLICA_ITEM);
+            content.add(MIND_GEM_REPLICA);
+            content.add(POWER_GEM_REPLICA);
+            content.add(REALITY_GEM_REPLICA);
+            content.add(SOUL_GEM_REPLICA);
+            content.add(SPACE_GEM_REPLICA);
+            content.add(TIME_GEM_REPLICA);
+        });
+        ItemGroupEvents.modifyEntriesEvent(ItemGroups.BUILDING_BLOCKS).register(content -> {
+            content.add(SOUL_DIMENSION_BLOCK.asItem());
+            content.add(SOUL_DIMENSION_PORTAL_FRAME_BLOCK_INFUSED.asItem());
+            content.add(SOUL_DIMENSION_PORTAL_FRAME_BLOCK_NONINFUSED.asItem());
+        });
+    }
+
+    private void registerPortals() {
+        CustomPortalBuilder.beginPortal()
+                .frameBlock(SOUL_DIMENSION_PORTAL_FRAME_BLOCK_INFUSED)
+                .lightWithItem(SOUL_DIMENSION_PORTAL_IGNITION_ITEM)
+                .destDimID(SOUL_DIMENSION_ID)
+                .tintColor(203, 194, 193)
+                .registerIgniteEvent(new SoulDimensionPortalOpenEvent())
+                .registerPortal();
+    }
+
+    private void registerNetworking() {
+        PayloadTypeRegistry.playS2C().register(ModVersionPayload.ID, ModVersionPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(ModVersionPayload.ID, ModVersionPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(GauntletSwapPayload.ID, GauntletSwapPayload.CODEC);
+
+        ServerPlayNetworking.registerGlobalReceiver(ModVersionPayload.ID, new ModVersionListenerServer());
+        ServerPlayNetworking.registerGlobalReceiver(GauntletSwapPayload.ID, new GauntletSwapPacketListener());
     }
 
     public static List<Identifier> getItemIdentifiers() {

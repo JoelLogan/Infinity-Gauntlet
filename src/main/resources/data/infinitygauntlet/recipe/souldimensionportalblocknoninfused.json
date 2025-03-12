@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "H": "minecraft:creaking_heart",
+    "G": "infinitygauntlet:gauntlet/gauntlet"
+  },
+  "pattern": [
+    "HHH",
+    "HGH",
+    "HHH"
+  ],
+  "result": {
+    "count": 8,
+    "id": "infinitygauntlet:souldimensionportalblocknoninfused"
+  }
+}

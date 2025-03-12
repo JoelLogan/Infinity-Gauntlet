@@ -3,6 +3,8 @@ package com.whitehallplugins.infinitygauntlet.items.gauntlets;
 import com.whitehallplugins.infinitygauntlet.InfinityGauntlet;
 import com.whitehallplugins.infinitygauntlet.files.config.DefaultModConfig;
 import net.fabricmc.fabric.api.item.v1.EnchantingContext;
+import net.kyrptonaught.customportalapi.portal.PortalIgnitionSource;
+import net.kyrptonaught.customportalapi.portal.PortalPlacer;
 import net.minecraft.block.BlockState;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.CustomModelDataComponent;
@@ -20,6 +22,8 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.*;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
@@ -129,6 +133,23 @@ public final class Gauntlet extends BowItem {
         return ActionResult.CONSUME.noIncrementStat();
     }
 
+    @Override
+    public ActionResult useOnBlock(ItemUsageContext context) {
+        if (!context.getWorld().isClient()) {
+            if (getCustomModelData(context.getStack()) == 5 && context.getWorld().getBlockState(context.getBlockPos()).isOf(InfinityGauntlet.SOUL_DIMENSION_PORTAL_FRAME_BLOCK_INFUSED)) {
+                HitResult hit = Objects.requireNonNull(context.getPlayer()).raycast(6.0F, 1.0F, false);
+                if (hit.getType() == HitResult.Type.BLOCK) {
+                    BlockHitResult blockHit = (BlockHitResult)hit;
+                    BlockPos usedBlockPos = blockHit.getBlockPos();
+                    if (PortalPlacer.attemptPortalLight(context.getWorld(), usedBlockPos.offset(blockHit.getSide()), PortalIgnitionSource.ItemUseSource(InfinityGauntlet.SOUL_GEM).withPlayer(context.getPlayer()))) {
+                        return ActionResult.SUCCESS_SERVER;
+                    }
+                }
+            }
+        }
+        return super.useOnBlock(context);
+    }
+
     public static void setHideDurabilityBar(ItemStack stack, boolean hide) {
         if (hide) {
             stack.set(DataComponentTypes.UNBREAKABLE, new UnbreakableComponent(false));
@@ -182,6 +203,11 @@ public final class Gauntlet extends BowItem {
     @Override
     public boolean allowContinuingBlockBreaking(PlayerEntity player, ItemStack oldStack, ItemStack newStack) {
         return true;
+    }
+
+    @Override
+    public ItemStack getRecipeRemainder(ItemStack stack) {
+        return this.asItem().getDefaultStack();
     }
 
     private static void sendCurrentMode(PlayerEntity player, int mode) {
