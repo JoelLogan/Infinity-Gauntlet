@@ -911,18 +911,14 @@ public final class SharedGemFunctions {
     }
 
     private static boolean isValidSpaceTeleportLocation(World world, BlockPos blockPos) {
-        for (BlockPos pos : BlockPos.iterateOutwards(blockPos, 1, 1, 1)) {
-            if (!world.getBlockState(pos).isAir()) {
-                return true;
-            }
-        }
-        return false;
+        return !world.getBlockState(blockPos).isAir() && world.getBlockState(blockPos.up(1)).isAir() && world.getBlockState(blockPos.up(2)).isAir();
     }
 
     private static void performSpaceTeleport(PlayerEntity user, BlockPos blockPos) {
         cooldown.put(user, System.currentTimeMillis() + CONFIG.getOrDefault(
                 "spaceGemTeleportCooldown", DefaultModConfig.SPACE_GEM_TELEPORT_COOLDOWN));
-        user.teleport(blockPos.getX(), blockPos.getY() + 1, blockPos.getZ(), true);
+        System.out.println("Teleporting to " + blockPos.toCenterPos());
+        user.requestTeleport(blockPos.toCenterPos().x, blockPos.toCenterPos().y + 0.5, blockPos.toCenterPos().z);
         user.playSoundToPlayer(SoundEvents.ENTITY_PLAYER_TELEPORT, SoundCategory.PLAYERS, 1, 1);
     }
 
