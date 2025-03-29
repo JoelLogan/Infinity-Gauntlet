@@ -143,7 +143,7 @@ public final class SimpleConfig {
                 }
                 String valueKey = ": Value for key '";
                 String onLine = "' on line ";
-                if (defaultModConfig.getValidBooleanVerification().contains(key) && !Boolean.parseBoolean(value)){
+                if (defaultModConfig.getValidBooleanVerification().contains(key) && !(Objects.equals(value, "true") || Objects.equals(value, "false"))) {
                     throw new InvalidConfigValueException(MOD_ID + valueKey + key + onLine + line + " is not a boolean!");
                 }
                 else if (defaultModConfig.getValidStringListVerification().contains(key)) {
