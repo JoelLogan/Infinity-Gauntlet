@@ -22,4 +22,7 @@ public class BaseGemReplica extends Item {
         return false;
     }
 
+    protected String getGemType() {
+        return null;
+    }
 }
