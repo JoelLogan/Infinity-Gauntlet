@@ -27,10 +27,12 @@ public class OpenConfig {
         if (!ctx.getServer().isDedicated()) {
             String filePath = String.valueOf(FabricLoader.getInstance().getConfigDir().resolve(MOD_ID)
                     .resolve(InfinityGauntlet.CONFIG_FILE_NAME + ".properties").toAbsolutePath());
+            HoverEvent.ShowText hoverEvent = new HoverEvent.ShowText(Text.translatable("infinitygauntlet.info.openconfig.hover"));
+            ClickEvent.CopyToClipboard clickEvent = new ClickEvent.CopyToClipboard(filePath);
             ctx.sendMessage(Text.translatable("infinitygauntlet.info.openconfig")
                     .setStyle(Style.EMPTY
-                            .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.translatable("infinitygauntlet.info.openconfig.hover")))
-                            .withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, filePath)))
+                            .withHoverEvent(hoverEvent)
+                            .withClickEvent(clickEvent))
                     .formatted(Formatting.UNDERLINE, Formatting.GOLD));
         }
         else {

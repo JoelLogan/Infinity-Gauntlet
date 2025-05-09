@@ -1,6 +1,7 @@
 package com.whitehallplugins.infinitygauntlet.client;
 
 import com.whitehallplugins.infinitygauntlet.InfinityGauntlet;
+import com.whitehallplugins.infinitygauntlet.events.TooltipUpdateEvent;
 import com.whitehallplugins.infinitygauntlet.items.gauntlets.Gauntlet;
 import com.whitehallplugins.infinitygauntlet.networking.NetworkingConstants;
 import com.whitehallplugins.infinitygauntlet.networking.payloads.GauntletSwapPayload;
@@ -19,12 +20,13 @@ import static net.fabricmc.fabric.api.client.rendering.v1.IdentifiedLayer.MISC_O
 
 public final class InfinityGauntletClient implements ClientModInitializer {
 
-    private static final Identifier EFFECT_LAYER = Identifier.of(InfinityGauntlet.MOD_ID, "effect-layer");
+    //private static final Identifier EFFECT_LAYER = Identifier.of(InfinityGauntlet.MOD_ID, "effect-layer");
     boolean isKeyPressed = false;
 
     @Override
     public void onInitializeClient() {
         KeyBindingHelper.registerKeyBinding(InfinityGauntletKeybinds.CHANGE_POWER);
+        TooltipUpdateEvent.EVENT.register(new TooltipUpdateEvent());
         //HudLayerRegistrationCallback.EVENT.register(layeredDrawerWrapper -> layeredDrawerWrapper.attachLayerBefore(MISC_OVERLAYS, EFFECT_LAYER, this::render));
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (InfinityGauntletKeybinds.CHANGE_POWER.isPressed()) {

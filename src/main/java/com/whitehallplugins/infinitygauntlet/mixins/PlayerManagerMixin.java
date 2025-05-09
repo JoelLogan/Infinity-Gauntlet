@@ -20,6 +20,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -43,18 +44,18 @@ public abstract class PlayerManagerMixin {
         NbtCompound teleportData = OfflineTeleportManager.getTeleportData(playerUUID);
 
         if (teleportData != null) {
-            double targetX = teleportData.getDouble("TargetX");
-            double targetY = teleportData.getDouble("TargetY");
-            double targetZ = teleportData.getDouble("TargetZ");
-            RegistryKey<World> worldKey = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(teleportData.getString("World")));
+            Optional<Double> targetX = teleportData.getDouble("TargetX");
+            Optional<Double> targetY = teleportData.getDouble("TargetY");
+            Optional<Double> targetZ = teleportData.getDouble("TargetZ");
+            RegistryKey<World> worldKey = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(teleportData.getString("World").orElseThrow()));
             ServerWorld targetWorld = Objects.requireNonNull(player.getServer()).getWorld(worldKey);
             if (targetWorld != null) {
-                Vec3d targetPos = new Vec3d(targetX, targetY, targetZ);
+                Vec3d targetPos = new Vec3d(targetX.orElseThrow(), targetY.orElseThrow(), targetZ.orElseThrow());
                 player.teleport(targetWorld, targetPos.x, targetPos.y, targetPos.z, Set.of(), player.getYaw(), player.getPitch(), true);
             }
             World overworld = Objects.requireNonNull(player.getServer()).getWorld(World.OVERWORLD);
             if (overworld != null) {
-                player.setSpawnPoint(overworld.getRegistryKey(), overworld.getSpawnPos(), 0.0F, true, false);
+                player.setSpawnPoint(new ServerPlayerEntity.Respawn(overworld.getRegistryKey(), overworld.getSpawnPos(), 0.0F, true), false);
             }
             OfflineTeleportManager.removeTeleportData(playerUUID);
         }

@@ -8,14 +8,11 @@ import net.kyrptonaught.customportalapi.portal.PortalPlacer;
 import net.minecraft.block.BlockState;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.CustomModelDataComponent;
-import net.minecraft.component.type.UnbreakableComponent;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.*;
-import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
@@ -26,16 +23,15 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraft.util.Unit;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.logging.Logger;
 
 import static com.whitehallplugins.infinitygauntlet.InfinityGauntlet.MOD_ID;
 import static com.whitehallplugins.infinitygauntlet.items.gems.SharedGemFunctions.*;
 
-public final class Gauntlet extends BowItem {
+public final class Gauntlet extends BowItem{
 
     public Gauntlet(Settings settings) {
         super(settings);
@@ -80,7 +76,7 @@ public final class Gauntlet extends BowItem {
     }
 
     @Override
-    public boolean canMine(BlockState state, World world, BlockPos pos, PlayerEntity miner) {
+    public boolean canMine(ItemStack stack, BlockState state, World world, BlockPos pos, LivingEntity user) {
         return state.getBlock().getHardness() <= 50f;
     }
 
@@ -152,28 +148,23 @@ public final class Gauntlet extends BowItem {
 
     public static void setHideDurabilityBar(ItemStack stack, boolean hide) {
         if (hide) {
-            stack.set(DataComponentTypes.UNBREAKABLE, new UnbreakableComponent(false));
+            stack.set(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE);
         } else {
             stack.remove(DataComponentTypes.UNBREAKABLE);
         }
     }
 
-    public static void setCustomModelData(PlayerEntity player, ItemStack stack, float customModelData) {
+    public static void setCustomModelData(ItemStack stack, float customModelData) {
         stack.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(List.of(customModelData), Collections.emptyList(), Collections.emptyList(), Collections.emptyList()));
-        if (stack.getItem() instanceof BowItem) {
+        System.out.println(stack.getHolder());
+        if (stack.getHolder() instanceof PlayerEntity player) {
             player.clearActiveItem();
         }
     }
 
     public static int getCustomModelData(ItemStack stack) {
         CustomModelDataComponent component = stack.get(DataComponentTypes.CUSTOM_MODEL_DATA);
-        return component != null ? component.floats().get(0).intValue() : 0;
-    }
-
-    @Override
-    public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
-        tooltip.add(Text.translatable("item.infinitygauntlet.gauntlet.gauntlet.tooltip1", Text.translatable("item.infinitygauntlet.gauntlet.gauntlet.power" + getCustomModelData(stack))).formatted(Formatting.GOLD));
-        super.appendTooltip(stack, context, tooltip, type);
+        return component != null ? component.floats().getFirst().intValue() : 0;
     }
 
     @Override
@@ -182,12 +173,22 @@ public final class Gauntlet extends BowItem {
     }
 
     @Override
-    public void onCraftByPlayer(ItemStack stack, World world, PlayerEntity player) {
+    public void onCraft(ItemStack stack, World world) {
         if (!world.isClient()) {
-            setHideDurabilityBar(stack, true);
-            setCustomModelData(player, stack, 0);
+            initStack(stack);
         }
-        super.onCraftByPlayer(stack, world, player);
+        super.onCraft(stack, world);
+    }
+
+    @Override
+    public void onCraftByPlayer(ItemStack stack, PlayerEntity player) {
+        initStack(stack);
+        super.onCraftByPlayer(stack, player);
+    }
+
+    private void initStack(ItemStack stack) {
+        setHideDurabilityBar(stack, true);
+        setCustomModelData(stack, 0);
     }
 
     @Override
@@ -215,33 +216,34 @@ public final class Gauntlet extends BowItem {
     }
 
     public static void swapPower(PlayerEntity player, ItemStack stack) {
+        stack.setHolder(player);
         switch (getCustomModelData(stack)) {
             case 1: // FROM SPACE TO TIME
-                setCustomModelData(player, stack, 2);
+                setCustomModelData(stack, 2);
                 sendCurrentMode(player, 2);
                 break;
             case 2: // FROM TIME TO MIND
                 timeToMind(stack);
-                setCustomModelData(player, stack, 3);
+                setCustomModelData(stack, 3);
                 sendCurrentMode(player, 3);
                 break;
             case 3: // FROM MIND TO REALITY
                 setStackGlowing(stack, false);
-                setCustomModelData(player, stack, 4);
+                setCustomModelData(stack, 4);
                 sendCurrentMode(player, 4);
                 break;
             case 4: // FROM REALITY TO SOUL
                 realityToSoul(stack);
-                setCustomModelData(player, stack, 5);
+                setCustomModelData(stack, 5);
                 sendCurrentMode(player, 5);
                 break;
             case 5: // FROM SOUL TO POWER
                 setStackGlowing(stack, false);
-                setCustomModelData(player, stack, 0);
+                setCustomModelData(stack, 0);
                 sendCurrentMode(player, 0);
                 break;
             default: // FROM POWER TO SPACE
-                setCustomModelData(player, stack, 1);
+                setCustomModelData(stack, 1);
                 sendCurrentMode(player, 1);
                 break;
         }
@@ -250,7 +252,7 @@ public final class Gauntlet extends BowItem {
     private static void timeToMind(ItemStack stack) {
         NbtCompound compound = getNbtFromItem(stack);
         try {
-            if (compound.containsUuid(MIND_GEM_NBT_ID)) {
+            if (compound.contains(MIND_GEM_NBT_ID)) {
                 setStackGlowing(stack, true);
             }
         } catch (IllegalArgumentException exception) {
@@ -261,8 +263,8 @@ public final class Gauntlet extends BowItem {
     private static void realityToSoul(ItemStack stack) {
         NbtCompound compound = getNbtFromItem(stack);
         try {
-            if (compound.contains(SOUL_GEM_NBT_ID, NbtElement.LIST_TYPE) &&
-                    !Objects.requireNonNull(compound.getList(SOUL_GEM_NBT_ID, NbtElement.COMPOUND_TYPE)).isEmpty()) {
+            if (compound.contains(SOUL_GEM_NBT_ID) &&
+                    Objects.requireNonNull(compound.getList(SOUL_GEM_NBT_ID)).isPresent()) {
                 setStackGlowing(stack, true);
             }
         } catch (IllegalArgumentException exception) {

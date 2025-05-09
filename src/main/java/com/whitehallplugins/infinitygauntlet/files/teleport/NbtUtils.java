@@ -26,7 +26,7 @@ public final class NbtUtils {
     private static JsonElement toJsonElement(NbtElement element) {
         return switch (element.getType()) {
             case NbtElement.COMPOUND_TYPE -> toJson((NbtCompound) element);
-            case NbtElement.STRING_TYPE -> new JsonPrimitive(element.asString());
+            case NbtElement.STRING_TYPE -> new JsonPrimitive(element.asString().orElseThrow());
             case NbtElement.INT_TYPE -> new JsonPrimitive(((NbtInt) element).intValue());
             case NbtElement.DOUBLE_TYPE -> new JsonPrimitive(((NbtDouble) element).doubleValue());
             case NbtElement.LONG_TYPE -> new JsonPrimitive(((NbtLong) element).longValue());
