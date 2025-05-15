@@ -1,6 +1,7 @@
 package com.whitehallplugins.infinitygauntlet.items.gauntlets;
 
 import com.whitehallplugins.infinitygauntlet.InfinityGauntlet;
+import com.whitehallplugins.infinitygauntlet.client.InfinityGauntletClient;
 import com.whitehallplugins.infinitygauntlet.files.config.DefaultModConfig;
 import net.fabricmc.fabric.api.item.v1.EnchantingContext;
 import net.kyrptonaught.customportalapi.portal.PortalIgnitionSource;
@@ -89,31 +90,60 @@ public final class Gauntlet extends BowItem{
     public boolean onStoppedUsing(ItemStack stack, World world, LivingEntity user, int remainingUseTicks) {
         if (world.isClient()) {
             setHideDurabilityBar(stack, true);
-        } else {
-            int charge = getMaxUseTime(stack, user) - remainingUseTicks;
-            boolean charged = charge >= getChargeTime(stack);
-            switch (getCustomModelData(stack)) {
-                case 0: // POWER
+        }
+        int charge = getMaxUseTime(stack, user) - remainingUseTicks;
+        boolean charged = charge >= getChargeTime(stack);
+        switch (getCustomModelData(stack)) {
+            case 0: // POWER
+                if (!world.isClient()) {
                     powerGemUse((ServerWorld) world, (PlayerEntity) user, charged);
-                    break;
-                case 1: // SPACE
+                }
+                else {
+                    InfinityGauntletClient.triggerAnimation(0xff0000);
+                }
+                break;
+            case 1: // SPACE
+                if (!world.isClient()) {
                     spaceGemUse(world, (PlayerEntity) user, charged);
-                    break;
-                case 2: // TIME
+                }
+                else {
+                    InfinityGauntletClient.triggerAnimation(0xd500ca);
+                }
+                break;
+            case 2: // TIME
+                if (!world.isClient()) {
                     timeGemUse(world, (PlayerEntity) user, charged);
-                    break;
-                case 3: // MIND
+                }
+                else {
+                    InfinityGauntletClient.triggerAnimation(0x03d97e);
+                }
+                break;
+            case 3: // MIND
+                if (!world.isClient()) {
                     mindGemUse(world, (PlayerEntity) user, charged);
-                    break;
-                case 4: // REALITY
+                }
+                else {
+                    InfinityGauntletClient.triggerAnimation(0x0072d5);
+                }
+                break;
+            case 4: // REALITY
+                if (!world.isClient()) {
                     realityGemUse(world, (PlayerEntity) user, charged);
-                    break;
-                case 5: // SOUL
+                }
+                else {
+                    InfinityGauntletClient.triggerAnimation(0xffea4d);
+                }
+                break;
+            case 5: // SOUL
+                if (!world.isClient()) {
                     soulGemUse(world, (PlayerEntity) user, charged);
-                    break;
-                default:
-                    break;
-            }
+                }
+                else {
+                    InfinityGauntletClient.triggerAnimation(0xffaa18);
+                }
+                break;
+            default:
+                break;
         }
         return true;
     }

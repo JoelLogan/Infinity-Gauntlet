@@ -1,5 +1,6 @@
 package com.whitehallplugins.infinitygauntlet.items.gems;
 
+import com.whitehallplugins.infinitygauntlet.client.InfinityGauntletClient;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ActionResult;
@@ -14,11 +15,13 @@ public final class Gems {
         public MindGem(Settings settings) {
             super(settings);
         }
-
         @Override
         public ActionResult use(World world, PlayerEntity user, Hand hand) {
             if (!world.isClient()) {
                 mindGemUse(world, user, false);
+            }
+            else {
+                InfinityGauntletClient.triggerAnimation(0x0072d5);
             }
             return ActionResult.PASS;
         }
@@ -32,6 +35,9 @@ public final class Gems {
             if (!world.isClient()) {
                 powerGemUse((ServerWorld) world, user, false);
             }
+            else {
+                InfinityGauntletClient.triggerAnimation(0xff0000);
+            }
             return ActionResult.PASS;
         }
     }
@@ -43,6 +49,9 @@ public final class Gems {
         public ActionResult use(World world, PlayerEntity user, Hand hand) {
             if (!world.isClient()) {
                 realityGemUse(world, user, false);
+            }
+            else {
+                InfinityGauntletClient.triggerAnimation(0xffea4d);
             }
             return ActionResult.PASS;
         }
@@ -56,6 +65,9 @@ public final class Gems {
             if (!world.isClient()) {
                 soulGemUse(world, user, false);
             }
+            else {
+                InfinityGauntletClient.triggerAnimation(0xffaa18);
+            }
             return ActionResult.PASS;
         }
     }
@@ -68,6 +80,9 @@ public final class Gems {
             if (!world.isClient()) {
                 spaceGemUse(world, user, false);
             }
+            else {
+                InfinityGauntletClient.triggerAnimation(0xd500ca);
+            }
             return ActionResult.PASS;
         }
     }
@@ -79,6 +94,9 @@ public final class Gems {
         public ActionResult use(World world, PlayerEntity user, Hand hand) {
             if (!world.isClient()) {
                 timeGemUse(world, user, false);
+            }
+            else {
+                InfinityGauntletClient.triggerAnimation(0x03d97e);
             }
             return ActionResult.PASS;
         }
